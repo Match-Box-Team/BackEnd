@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: matchbox
       POSTGRES_DB: matchbox_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
       - intra
 networks:

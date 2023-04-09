@@ -19,8 +19,8 @@ model User {
   intraId     String @unique @map("intra_id")
   phoneNumber Int?   @unique @map("phone_number")
 
-  // games       UserGame[]
-  user_games  UserGame[]
+  userGames  UserGame[]
+  gameWatches GameWatch[]
 }
 
 model Game {
@@ -29,7 +29,18 @@ model Game {
   price      Int
   isPlayable Boolean @map("is_playable")
 
-  user_games UserGame[]
+  userGames  UserGame[]
+  gameWatches GameWatch[]
+}
+
+model GameWatch {
+  gameWatchId   String @id @default(uuid()) @map("game_watch_id") @db.Uuid
+  currentViewer Int    @map("current_viewer")
+  gameId        String @map("game_id") @db.Uuid
+  userId        String @map("user_id") @db.Uuid
+
+  game       Game   @relation(fields: [gameId], references: [gameId])
+  user       User   @relation(fields: [userId], references: [userId])
 }
 
 model UserGame {
@@ -40,13 +51,6 @@ model UserGame {
   user       User   @relation(fields: [userId], references: [userId])
   game       Game   @relation(fields: [gameId], references: [gameId])
 }
-
-// model GameWatch {
-//   gameWatchId   String @id @default(uuid()) @map("game_watch_id") @db.Uuid
-//   currentViewer Int    @map("current_viewer")
-//   gameId        String @map("game_id") @db.Uuid
-//   userId        String @map("user_id") @db.Uuid
-// }
 
 // model GameHistory {
 //   gameHistoryId String @id @default(uuid()) @map("game_history_id") @db.Uuid

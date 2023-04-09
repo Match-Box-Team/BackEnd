@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId      String  @id @default(uuid()) @db.Uuid @map("user_id")
+  nickname    String  @unique
+  status      String
+  email       String  @unique
+  image       String?
+  intraId     String  @unique @map("intra_id")
+  phoneNumber Int?    @unique @map("phone_number")
+}
+
+model GameWatch {
+  gameWatchId  String  @id @default(uuid()) @db.Uuid @map("game_watch_id")
+  currentViewr Int @map("current_viewr")
+  gameId       String @map("game_id")
+  userId       String @map("user_id")
+}
+
+model Game {
+  gameId     String  @id @default(uuid()) @db.Uuid @map("game_id")
+  name       String
+  price      Int
+  isPlayable Boolean @map("is_playable")
+}
+
+model UserGame {
+  userGameId String  @id @default(uuid()) @db.Uuid @map("user_game_id")
+  userId     String @map("user_id")
+  gameId     String @map("game_id")
+}
+
+model GameHistory {
+  gameHistoryId String  @id @default(uuid()) @db.Uuid @map("game_history_id")
+  winnerId      String @unique @map("winner_id")
+  loserId       String @unique @map("loser_id")
+}
+
+model Friend {
+  friendId String  @id @default(uuid()) @db.Uuid @map("friend_id")
+  isBan    Boolean @map("is_ban")
+  myId     String     @map("my_id")
+  buddyId  String     @map("buddy_id")
+}
+
+model Channel {
+  channelId   String  @id @default(uuid()) @db.Uuid @map("channel_id")
+  channelName String  @map("channel_name")
+  password    String
+  count       Int
+  isPublic    Boolean @map("is_public")
+  isDm        Boolean @map("is_dm")
+}
+
+model UserChannel {
+  userChannelId String   @id @default(uuid()) @db.Uuid @map("user_channel_id")
+  userId        String      @map("user_id")
+  channelId     String      @map("channel_id")
+  isOwner       Boolean  @map("is_owner")
+  isAdmin       Boolean  @map("is_admin")
+  isMute        Boolean  @map("is_mute")
+  lastChatTime  DateTime @map("last_chat_time")
+}
+
+model Chat {
+  chatId    String   @id @default(uuid()) @db.Uuid @map("chat_id")
+  userId    String      @map("user_id")
+  channelId String      @map("channel_id")
+  message   String
+  time      DateTime
+}

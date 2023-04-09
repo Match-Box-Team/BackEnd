@@ -11,71 +11,78 @@ datasource db {
 }
 
 model User {
-  userId      String  @id @default(uuid()) @db.Uuid @map("user_id")
-  nickname    String  @unique
+  userId      String @id @default(uuid()) @map("user_id") @db.Uuid
+  nickname    String @unique
   status      String
-  email       String  @unique
-  image       String?
-  intraId     String  @unique @map("intra_id")
-  phoneNumber Int?    @unique @map("phone_number")
-}
+  email       String @unique
+  image       String
+  intraId     String @unique @map("intra_id")
+  phoneNumber Int?   @unique @map("phone_number")
 
-model GameWatch {
-  gameWatchId  String  @id @default(uuid()) @db.Uuid @map("game_watch_id")
-  currentViewr Int @map("current_viewr")
-  gameId       String @map("game_id")
-  userId       String @map("user_id")
+  // games       UserGame[]
+  user_games  UserGame[]
 }
 
 model Game {
-  gameId     String  @id @default(uuid()) @db.Uuid @map("game_id")
+  gameId     String  @id @default(uuid()) @map("game_id") @db.Uuid
   name       String
   price      Int
   isPlayable Boolean @map("is_playable")
+
+  user_games UserGame[]
 }
 
 model UserGame {
-  userGameId String  @id @default(uuid()) @db.Uuid @map("user_game_id")
-  userId     String @map("user_id")
-  gameId     String @map("game_id")
+  userGameId String @id @default(uuid()) @map("user_game_id") @db.Uuid
+  userId     String @map("user_id") @db.Uuid
+  gameId     String @map("game_id") @db.Uuid
+
+  user       User   @relation(fields: [userId], references: [userId])
+  game       Game   @relation(fields: [gameId], references: [gameId])
 }
 
-model GameHistory {
-  gameHistoryId String  @id @default(uuid()) @db.Uuid @map("game_history_id")
-  winnerId      String @unique @map("winner_id")
-  loserId       String @unique @map("loser_id")
-}
+// model GameWatch {
+//   gameWatchId   String @id @default(uuid()) @map("game_watch_id") @db.Uuid
+//   currentViewer Int    @map("current_viewer")
+//   gameId        String @map("game_id") @db.Uuid
+//   userId        String @map("user_id") @db.Uuid
+// }
 
-model Friend {
-  friendId String  @id @default(uuid()) @db.Uuid @map("friend_id")
-  isBan    Boolean @map("is_ban")
-  myId     String     @map("my_id")
-  buddyId  String     @map("buddy_id")
-}
+// model GameHistory {
+//   gameHistoryId String @id @default(uuid()) @map("game_history_id") @db.Uuid
+//   winnerId      String @map("winner_id") @db.Uuid
+//   loserId       String @map("loser_id") @db.Uuid
+// }
 
-model Channel {
-  channelId   String  @id @default(uuid()) @db.Uuid @map("channel_id")
-  channelName String  @map("channel_name")
-  password    String
-  count       Int
-  isPublic    Boolean @map("is_public")
-  isDm        Boolean @map("is_dm")
-}
+// model Friend {
+//   friendId String  @id @default(uuid()) @map("friend_id") @db.Uuid
+//   isBan    Boolean @map("is_ban")
+//   myId     String  @map("my_id") @db.Uuid
+//   buddyId  String  @map("buddy_id") @db.Uuid
+// }
 
-model UserChannel {
-  userChannelId String   @id @default(uuid()) @db.Uuid @map("user_channel_id")
-  userId        String      @map("user_id")
-  channelId     String      @map("channel_id")
-  isOwner       Boolean  @map("is_owner")
-  isAdmin       Boolean  @map("is_admin")
-  isMute        Boolean  @map("is_mute")
-  lastChatTime  DateTime @map("last_chat_time")
-}
+// model Channel {
+//   channelId   String  @id @default(uuid()) @map("channel_id") @db.Uuid
+//   channelName String  @map("channel_name")
+//   password    String
+//   count       Int
+//   isPublic    Boolean @map("is_public")
+//   isDm        Boolean @map("is_dm")
+// }
 
-model Chat {
-  chatId    String   @id @default(uuid()) @db.Uuid @map("chat_id")
-  userId    String      @map("user_id")
-  channelId String      @map("channel_id")
-  message   String
-  time      DateTime
-}
+// model UserChannel {
+//   userChannelId String   @id @default(uuid()) @map("user_channel_id") @db.Uuid
+//   isOwner       Boolean  @map("is_owner")
+//   isAdmin       Boolean  @map("is_admin")
+//   isMute        Boolean  @map("is_mute")
+//   lastChatTime  DateTime @default(now()) @map("last_chat_time")
+//   userId        String   @map("user_id") @db.Uuid
+//   channelId     String   @map("channel_id") @db.Uuid
+// }
+
+// model Chat {
+//   chatId        String   @id @default(uuid()) @map("chat_id") @db.Uuid
+//   message       String
+//   time          DateTime @default(now())
+//   userChannelId String   @map("user_channel_id") @db.Uuid
+// }

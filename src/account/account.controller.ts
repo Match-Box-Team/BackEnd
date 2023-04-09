@@ -1,4 +1,30 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import { AccountService } from './account.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from '@prisma/client';
 
 @Controller('account')
-export class AccountController {}
+export class AccountController {
+    constructor(private readonly accountService: AccountService) {}
+
+    @Get()
+    async getUser() : Promise<User[]> {
+        return this.accountService.getUsers();
+    }
+
+    @Patch(':userId')
+    async updateUser(
+      @Param('userId') userId: string,
+      @Body() updateUserDto: UpdateUserDto,
+    ) {
+        
+        console.log(userId, updateUserDto);
+      return this.accountService.updateUser({
+        where: { userId: userId },
+        data: {
+            nickname: updateUserDto.nickname,
+            image: updateUserDto.image,
+        },
+      })
+    }
+}

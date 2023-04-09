@@ -19,8 +19,10 @@ model User {
   intraId     String @unique @map("intra_id")
   phoneNumber Int?   @unique @map("phone_number")
 
-  userGames   UserGame[]
-  gameWatches GameWatch[]
+  userGames     UserGame[]
+  gameWatches   GameWatch[]
+  myself        Friend[] @relation(name: "myself")
+  friends       Friend[] @relation(name: "buddy")
 }
 
 model Game {
@@ -38,8 +40,8 @@ model UserGame {
   userId        String @map("user_id") @db.Uuid @unique
   gameId        String @map("game_id") @db.Uuid @unique
 
-  winnerHistory GameHistory[] @relation(name: "WinnerUserGame")
-  loserHistory  GameHistory[] @relation(name: "LoserUserGame")
+  winnerHistory GameHistory[] @relation(name: "winnerUserGame")
+  loserHistory  GameHistory[] @relation(name: "loserUserGame")
 
   user          User   @relation(fields: [userId], references: [userId])
   game          Game   @relation(fields: [gameId], references: [gameId])
@@ -60,16 +62,19 @@ model GameHistory {
   winnerId      String @map("winner_id") @db.Uuid
   loserId       String @map("loser_id") @db.Uuid
 
-  winner        UserGame @relation(name: "WinnerUserGame", fields: [winnerId], references: [userId])
-  loser         UserGame @relation(name: "LoserUserGame", fields: [loserId], references: [userId])
+  winner        UserGame @relation(name: "winnerUserGame", fields: [winnerId], references: [userId])
+  loser         UserGame @relation(name: "loserUserGame", fields: [loserId], references: [userId])
 }
 
-// model Friend {
-//   friendId String  @id @default(uuid()) @map("friend_id") @db.Uuid
-//   isBan    Boolean @map("is_ban")
-//   myId     String  @map("my_id") @db.Uuid
-//   buddyId  String  @map("buddy_id") @db.Uuid
-// }
+model Friend {
+  friendId String  @id @default(uuid()) @map("friend_id") @db.Uuid
+  isBan    Boolean @map("is_ban")
+  myId     String  @map("my_id") @db.Uuid
+  buddyId  String  @map("buddy_id") @db.Uuid
+
+  user     User    @relation("myself", fields: [myId], references: [userId])
+  buddy    User    @relation("buddy", fields: [buddyId], references: [userId])
+}
 
 // model Channel {
 //   channelId   String  @id @default(uuid()) @map("channel_id") @db.Uuid

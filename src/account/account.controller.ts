@@ -17,8 +17,6 @@ export class AccountController {
       @Param('userId') userId: string,
       @Body() updateUserDto: UpdateUserDto,
     ) {
-        
-        console.log(userId, updateUserDto);
       return this.accountService.updateUser({
         where: { userId: userId },
         data: {

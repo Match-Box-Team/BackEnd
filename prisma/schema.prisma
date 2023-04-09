@@ -88,18 +88,18 @@ model Channel {
   userChannels  UserChannel[]
 }
 
-// model UserChannel {
-//   userChannelId String   @id @default(uuid()) @map("user_channel_id") @db.Uuid
-//   isOwner       Boolean  @map("is_owner")
-//   isAdmin       Boolean  @map("is_admin")
-//   isMute        Boolean  @map("is_mute")
-//   lastChatTime  DateTime @default(now()) @map("last_chat_time")
-//   userId        String   @map("user_id") @db.Uuid
-//   channelId     String   @map("channel_id") @db.Uuid
+model UserChannel {
+  userChannelId String   @id @default(uuid()) @map("user_channel_id") @db.Uuid
+  isOwner       Boolean  @map("is_owner")
+  isAdmin       Boolean  @map("is_admin")
+  isMute        Boolean  @map("is_mute")
+  lastChatTime  DateTime @default(now()) @map("last_chat_time")
+  userId        String   @map("user_id") @db.Uuid
+  channelId     String   @map("channel_id") @db.Uuid
 
-//   user          User    @relation(fields: [userId], references: [userId])
-//   game          Channel @relation(fields: [channelId], references: [channelId])
-// }
+  user          User    @relation(fields: [userId], references: [userId])
+  game          Channel @relation(fields: [channelId], references: [channelId])
+}
 
 // model Chat {
 //   chatId        String   @id @default(uuid()) @map("chat_id") @db.Uuid

@@ -97,11 +97,13 @@ async function main() {
       currentViewer: 2,
       gameId: games[0].gameId,
       userId: users[2].userId,
+      // userGameId: userGames[0].userGameId,
     },
     {
       currentViewer: 2,
       gameId: games[0].gameId,
       userId: users[3].userId,
+      // userGameId: userGames[0].userGameId,
     },
   ]
 

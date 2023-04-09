@@ -40,11 +40,11 @@ model Game {
 
 model UserGame {
   userGameId    String @id @default(uuid()) @map("user_game_id") @db.Uuid
-  userId        String @map("user_id") @db.Uuid
+  userId        String @unique @map("user_id") @db.Uuid
   gameId        String @map("game_id") @db.Uuid
 
-  // winnerHistory GameHistory[] @relation(name: "winnerUserGame")
-  // loserHistory  GameHistory[] @relation(name: "loserUserGame")
+  winnerHistory GameHistory[] @relation(name: "winnerUserGame")
+  loserHistory  GameHistory[] @relation(name: "loserUserGame")
 
   user          User  @relation(fields: [userId], references: [userId])
   game          Game  @relation(fields: [gameId], references: [gameId])
@@ -65,8 +65,8 @@ model GameHistory {
   winnerId      String  @map("winner_id") @db.Uuid
   loserId       String  @map("loser_id") @db.Uuid
 
-  // winner        UserGame  @relation(name: "winnerUserGame", fields: [winnerId], references: [userId])
-  // loser         UserGame  @relation(name: "loserUserGame", fields: [loserId], references: [userId])
+  winner        UserGame  @relation(name: "winnerUserGame", fields: [winnerId], references: [userId])
+  loser         UserGame  @relation(name: "loserUserGame", fields: [loserId], references: [userId])
 }
 
 model Friend {

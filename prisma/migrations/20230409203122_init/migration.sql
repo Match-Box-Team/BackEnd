@@ -103,6 +103,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 -- CreateIndex
 CREATE UNIQUE INDEX "User_intra_id_key" ON "User"("intra_id");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "UserGame_user_id_key" ON "UserGame"("user_id");
+
 -- AddForeignKey
 ALTER TABLE "UserGame" ADD CONSTRAINT "UserGame_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -114,6 +117,12 @@ ALTER TABLE "GameWatch" ADD CONSTRAINT "GameWatch_game_id_fkey" FOREIGN KEY ("ga
 
 -- AddForeignKey
 ALTER TABLE "GameWatch" ADD CONSTRAINT "GameWatch_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GameHistory" ADD CONSTRAINT "GameHistory_winner_id_fkey" FOREIGN KEY ("winner_id") REFERENCES "UserGame"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GameHistory" ADD CONSTRAINT "GameHistory_loser_id_fkey" FOREIGN KEY ("loser_id") REFERENCES "UserGame"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Friend" ADD CONSTRAINT "Friend_my_id_fkey" FOREIGN KEY ("my_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -10,14 +10,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User의 phoneNumber int에서 string으로 바뀐 상태임
+
 model User {
-  userId      String @id @default(uuid()) @map("user_id") @db.Uuid
-  nickname    String @unique
+  userId      String  @id @default(uuid()) @map("user_id") @db.Uuid
+  nickname    String  @unique
   status      String
-  email       String @unique
+  email       String  @unique
   image       String
-  intraId     String @unique @map("intra_id")
-  phoneNumber Int?   @unique @map("phone_number")
+  intraId     String  @unique @map("intra_id")
+  phoneNumber String? @map("phone_number")
 
   userGames     UserGame[]
   gameWatches   GameWatch[]
@@ -38,11 +40,11 @@ model Game {
 
 model UserGame {
   userGameId    String @id @default(uuid()) @map("user_game_id") @db.Uuid
-  userId        String @map("user_id") @db.Uuid @unique
-  gameId        String @map("game_id") @db.Uuid @unique
+  userId        String @map("user_id") @db.Uuid
+  gameId        String @map("game_id") @db.Uuid
 
-  winnerHistory GameHistory[] @relation(name: "winnerUserGame")
-  loserHistory  GameHistory[] @relation(name: "loserUserGame")
+  // winnerHistory GameHistory[] @relation(name: "winnerUserGame")
+  // loserHistory  GameHistory[] @relation(name: "loserUserGame")
 
   user          User  @relation(fields: [userId], references: [userId])
   game          Game  @relation(fields: [gameId], references: [gameId])
@@ -63,8 +65,8 @@ model GameHistory {
   winnerId      String  @map("winner_id") @db.Uuid
   loserId       String  @map("loser_id") @db.Uuid
 
-  winner        UserGame  @relation(name: "winnerUserGame", fields: [winnerId], references: [userId])
-  loser         UserGame  @relation(name: "loserUserGame", fields: [loserId], references: [userId])
+  // winner        UserGame  @relation(name: "winnerUserGame", fields: [winnerId], references: [userId])
+  // loser         UserGame  @relation(name: "loserUserGame", fields: [loserId], references: [userId])
 }
 
 model Friend {
@@ -101,8 +103,6 @@ model UserChannel {
 
   user          User    @relation(fields: [userId], references: [userId])
   game          Channel @relation(fields: [channelId], references: [channelId])
-
-
 }
 
 model Chat {

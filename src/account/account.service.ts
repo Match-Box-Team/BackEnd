@@ -20,6 +20,10 @@ export class AccountService {
           where,
         });
     }
+
+    async verifyCode(code: string) : Promise<void> {
+        console.log(`code: ${code}`)
+    }
 }
 
 

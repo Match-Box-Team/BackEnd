@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
+import { VerifyCodeDto } from './dto/verify-code.dto';
 
 @Controller('account')
 export class AccountController {
@@ -24,5 +25,10 @@ export class AccountController {
             image: updateUserDto.image,
         },
       })
+    }
+
+    @Post()
+    async verifyCode(@Body() verifyCodeDto: VerifyCodeDto): Promise<void> {
+        return this.accountService.verifyCode(verifyCodeDto.code);
     }
 }

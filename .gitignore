@@ -39,3 +39,4 @@ lerna-debug.log*
 
 # DEV
 .env
+.gitmessage.txt

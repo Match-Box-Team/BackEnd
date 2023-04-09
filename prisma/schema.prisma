@@ -44,27 +44,27 @@ model UserGame {
   winnerHistory GameHistory[] @relation(name: "winnerUserGame")
   loserHistory  GameHistory[] @relation(name: "loserUserGame")
 
-  user          User   @relation(fields: [userId], references: [userId])
-  game          Game   @relation(fields: [gameId], references: [gameId])
+  user          User  @relation(fields: [userId], references: [userId])
+  game          Game  @relation(fields: [gameId], references: [gameId])
 }
 
 model GameWatch {
-  gameWatchId   String @id @default(uuid()) @map("game_watch_id") @db.Uuid
-  currentViewer Int    @map("current_viewer")
-  gameId        String @map("game_id") @db.Uuid
-  userId        String @map("user_id") @db.Uuid
+  gameWatchId   String  @id @default(uuid()) @map("game_watch_id") @db.Uuid
+  currentViewer Int     @map("current_viewer")
+  gameId        String  @map("game_id") @db.Uuid
+  userId        String  @map("user_id") @db.Uuid
 
-  game          Game   @relation(fields: [gameId], references: [gameId])
-  user          User   @relation(fields: [userId], references: [userId])
+  game          Game  @relation(fields: [gameId], references: [gameId])
+  user          User  @relation(fields: [userId], references: [userId])
 }
 
 model GameHistory {
-  gameHistoryId String @id @default(uuid()) @map("game_history_id") @db.Uuid
-  winnerId      String @map("winner_id") @db.Uuid
-  loserId       String @map("loser_id") @db.Uuid
+  gameHistoryId String  @id @default(uuid()) @map("game_history_id") @db.Uuid
+  winnerId      String  @map("winner_id") @db.Uuid
+  loserId       String  @map("loser_id") @db.Uuid
 
-  winner        UserGame @relation(name: "winnerUserGame", fields: [winnerId], references: [userId])
-  loser         UserGame @relation(name: "loserUserGame", fields: [loserId], references: [userId])
+  winner        UserGame  @relation(name: "winnerUserGame", fields: [winnerId], references: [userId])
+  loser         UserGame  @relation(name: "loserUserGame", fields: [loserId], references: [userId])
 }
 
 model Friend {
@@ -73,37 +73,43 @@ model Friend {
   myId     String  @map("my_id") @db.Uuid
   buddyId  String  @map("buddy_id") @db.Uuid
 
-  user     User    @relation("myself", fields: [myId], references: [userId])
-  buddy    User    @relation("buddy", fields: [buddyId], references: [userId])
+  user     User @relation("myself", fields: [myId], references: [userId])
+  buddy    User @relation("buddy", fields: [buddyId], references: [userId])
 }
 
 model Channel {
-  channelId   String  @id @default(uuid()) @map("channel_id") @db.Uuid
-  channelName String  @map("channel_name")
-  password    String
-  count       Int
-  isPublic    Boolean @map("is_public")
-  isDm        Boolean @map("is_dm")
+  channelId     String  @id @default(uuid()) @map("channel_id") @db.Uuid
+  channelName   String  @map("channel_name")
+  password      String
+  count         Int
+  isPublic      Boolean @map("is_public")
+  isDm          Boolean @map("is_dm")
 
   userChannels  UserChannel[]
 }
 
 model UserChannel {
-  userChannelId String   @id @default(uuid()) @map("user_channel_id") @db.Uuid
-  isOwner       Boolean  @map("is_owner")
-  isAdmin       Boolean  @map("is_admin")
-  isMute        Boolean  @map("is_mute")
-  lastChatTime  DateTime @default(now()) @map("last_chat_time")
-  userId        String   @map("user_id") @db.Uuid
-  channelId     String   @map("channel_id") @db.Uuid
+  userChannelId String    @id @default(uuid()) @map("user_channel_id") @db.Uuid
+  isOwner       Boolean   @map("is_owner")
+  isAdmin       Boolean   @map("is_admin")
+  isMute        Boolean   @map("is_mute")
+  lastChatTime  DateTime  @default(now()) @map("last_chat_time")
+  userId        String    @map("user_id") @db.Uuid
+  channelId     String    @map("channel_id") @db.Uuid
+
+  chat          Chat[]
 
   user          User    @relation(fields: [userId], references: [userId])
   game          Channel @relation(fields: [channelId], references: [channelId])
+
+
 }
 
-// model Chat {
-//   chatId        String   @id @default(uuid()) @map("chat_id") @db.Uuid
-//   message       String
-//   time          DateTime @default(now())
-//   userChannelId String   @map("user_channel_id") @db.Uuid
-// }
+model Chat {
+  chatId        String   @id @default(uuid()) @map("chat_id") @db.Uuid
+  message       String
+  time          DateTime @default(now())
+  userChannelId String   @map("user_channel_id") @db.Uuid
+
+  userChannel   UserChannel @relation(fields: [userChannelId], references: [userChannelId])
+}

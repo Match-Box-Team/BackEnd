@@ -19,18 +19,30 @@ model User {
   intraId     String @unique @map("intra_id")
   phoneNumber Int?   @unique @map("phone_number")
 
-  userGames  UserGame[]
+  userGames   UserGame[]
   gameWatches GameWatch[]
 }
 
 model Game {
-  gameId     String  @id @default(uuid()) @map("game_id") @db.Uuid
-  name       String
-  price      Int
-  isPlayable Boolean @map("is_playable")
+  gameId      String  @id @default(uuid()) @map("game_id") @db.Uuid
+  name        String
+  price       Int
+  isPlayable  Boolean @map("is_playable")
 
-  userGames  UserGame[]
+  userGames   UserGame[]
   gameWatches GameWatch[]
+}
+
+model UserGame {
+  userGameId    String @id @default(uuid()) @map("user_game_id") @db.Uuid
+  userId        String @map("user_id") @db.Uuid @unique
+  gameId        String @map("game_id") @db.Uuid @unique
+
+  winnerHistory GameHistory[] @relation(name: "WinnerUserGame")
+  loserHistory  GameHistory[] @relation(name: "LoserUserGame")
+
+  user          User   @relation(fields: [userId], references: [userId])
+  game          Game   @relation(fields: [gameId], references: [gameId])
 }
 
 model GameWatch {
@@ -39,24 +51,18 @@ model GameWatch {
   gameId        String @map("game_id") @db.Uuid
   userId        String @map("user_id") @db.Uuid
 
-  game       Game   @relation(fields: [gameId], references: [gameId])
-  user       User   @relation(fields: [userId], references: [userId])
+  game          Game   @relation(fields: [gameId], references: [gameId])
+  user          User   @relation(fields: [userId], references: [userId])
 }
 
-model UserGame {
-  userGameId String @id @default(uuid()) @map("user_game_id") @db.Uuid
-  userId     String @map("user_id") @db.Uuid
-  gameId     String @map("game_id") @db.Uuid
+model GameHistory {
+  gameHistoryId String @id @default(uuid()) @map("game_history_id") @db.Uuid
+  winnerId      String @map("winner_id") @db.Uuid
+  loserId       String @map("loser_id") @db.Uuid
 
-  user       User   @relation(fields: [userId], references: [userId])
-  game       Game   @relation(fields: [gameId], references: [gameId])
+  winner        UserGame @relation(name: "WinnerUserGame", fields: [winnerId], references: [userId])
+  loser         UserGame @relation(name: "LoserUserGame", fields: [loserId], references: [userId])
 }
-
-// model GameHistory {
-//   gameHistoryId String @id @default(uuid()) @map("game_history_id") @db.Uuid
-//   winnerId      String @map("winner_id") @db.Uuid
-//   loserId       String @map("loser_id") @db.Uuid
-// }
 
 // model Friend {
 //   friendId String  @id @default(uuid()) @map("friend_id") @db.Uuid

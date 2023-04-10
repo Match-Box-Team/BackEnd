@@ -7,7 +7,7 @@ async function main() {
   const users = [
     {
       userId: uuidv4(),
-      nickname: uuidv4(),
+      nickname: "jinho",
       status: 'game',
       email: uuidv4(),
       image: '127.0.0.1/image/jinho',

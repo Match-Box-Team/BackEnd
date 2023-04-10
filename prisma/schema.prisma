@@ -43,10 +43,18 @@ model UserGame {
 
   winnerUserGame  GameHistory[] @relation(name: "winnerUserGame")
   loserUserGame   GameHistory[] @relation(name: "loserUserGame")
-  // gameHistory     GameHistory[]
 
   user          User  @relation(fields: [userId], references: [userId], onDelete: Cascade)
   game          Game  @relation(fields: [gameId], references: [gameId], onDelete: Cascade)
+}
+
+model GameHistory {
+  gameHistoryId     String  @id @default(uuid()) @map("game_history_id") @db.Uuid
+  winnerUserGameId  String  @map("winner_user_game_id") @db.Uuid
+  loserUserGameId   String  @map("loser_user_game_id") @db.Uuid
+
+  winnerUserGame    UserGame  @relation(name: "winnerUserGame", fields: [winnerUserGameId], references: [userGameId], onDelete: Cascade)
+  loserUserGame     UserGame  @relation(name: "loserUserGame", fields: [loserUserGameId], references: [userGameId], onDelete: Cascade)
 }
 
 model GameWatch {
@@ -60,15 +68,12 @@ model GameWatch {
 }
 
 model GameHistory {
-  gameHistoryId String  @id @default(uuid()) @map("game_history_id") @db.Uuid
-  winnerUserGameId      String  @map("winner_user_game_id") @db.Uuid
-  loserUserGameId       String  @map("loser_user_game_id") @db.Uuid
-  // userGameId            String   @map("user_game_id") @db.Uuid
+  gameHistoryId     String  @id @default(uuid()) @map("game_history_id") @db.Uuid
+  winnerUserGameId  String  @map("winner_user_game_id") @db.Uuid
+  loserUserGameId   String  @map("loser_user_game_id") @db.Uuid
 
-  winnerUserGame        UserGame  @relation(name:"winnerUserGame", fields: [winnerUserGameId], references: [userGameId], onDelete: Cascade)
-  loserUserGame         UserGame  @relation(name:"loserUserGame", fields: [loserUserGameId], references: [userGameId], onDelete: Cascade)
-
-  // userGame              UserGame  @relation(fields: [userGameId], references: [userGameId], onDelete: Cascade)
+  winnerUserGame    UserGame  @relation(name: "winnerUserGame", fields: [winnerUserGameId], references: [userGameId], onDelete: Cascade)
+  loserUserGame     UserGame  @relation(name: "loserUserGame", fields: [loserUserGameId], references: [userGameId], onDelete: Cascade)
 }
 
 model Friend {
@@ -77,8 +82,8 @@ model Friend {
   myId     String  @map("my_id") @db.Uuid
   buddyId  String  @map("buddy_id") @db.Uuid
 
-  user     User @relation("myself", fields: [myId], references: [userId], onDelete: Cascade)
-  buddy    User @relation("buddy", fields: [buddyId], references: [userId], onDelete: Cascade)
+  user     User @relation(name: "myself", fields: [myId], references: [userId], onDelete: Cascade)
+  buddy    User @relation(name: "buddy", fields: [buddyId], references: [userId], onDelete: Cascade)
 }
 
 model Channel {
@@ -104,7 +109,7 @@ model UserChannel {
   chat          Chat[]
 
   user          User    @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  game          Channel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+  channel       Channel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
 }
 
 model Chat {

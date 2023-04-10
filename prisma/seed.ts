@@ -81,14 +81,19 @@ async function main() {
 
   const userGames = [
     {
-      // userGameId: uuidv4(),
+      userGameId: uuidv4(),
       userId: users[0].userId,
       gameId: games[0].gameId,
     },
     {
-      // userGameId: uuidv4(),
+      userGameId: uuidv4(),
+      userId: users[0].userId,
+      gameId: games[1].gameId,
+    },
+    {
+      userGameId: uuidv4(),
       userId: users[1].userId,
-      gameId: games[0].gameId,
+      gameId: games[2].gameId,
     },
   ]
 
@@ -97,24 +102,22 @@ async function main() {
       currentViewer: 2,
       gameId: games[0].gameId,
       userId: users[2].userId,
-      // userGameId: userGames[0].userGameId,
     },
     {
       currentViewer: 2,
       gameId: games[0].gameId,
       userId: users[3].userId,
-      // userGameId: userGames[0].userGameId,
     },
   ]
 
   const gameHistories = [
     {
-      winnerId: users[0].userId,
-      loserId: users[1].userId,
+      winnerUserGameId: userGames[0].userGameId,
+      loserUserGameId: userGames[1].userGameId,
     },
     {
-      winnerId: users[1].userId,
-      loserId: users[0].userId,
+      winnerUserGameId: userGames[1].userGameId,
+      loserUserGameId: userGames[0].userGameId,
     },
   ]
 
@@ -271,11 +274,6 @@ async function main() {
     })
   }
 
-  for (const gameHistory of gameHistories) {
-    await prisma.gameHistory.create({
-      data: gameHistory,
-    })
-  }
 
   for (const friend of friends) {
     await prisma.friend.create({
@@ -298,6 +296,12 @@ async function main() {
   for (const chat of chats) {
     await prisma.chat.create({
       data: chat,
+    })
+  }
+
+  for (const gameHistory of gameHistories) {
+    await prisma.gameHistory.create({
+      data: gameHistory,
     })
   }
 

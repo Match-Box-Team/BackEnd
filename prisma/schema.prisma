@@ -10,15 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User의 phoneNumber int에서 string으로 바뀐 상태임
-
 model User {
   userId      String  @id @default(uuid()) @map("user_id") @db.Uuid
   nickname    String  @unique
   status      String
   email       String  @unique
   image       String
-  intraId     String  @unique @map("intra_id")
+  intraId     String  @map("intra_id")
   phoneNumber String? @map("phone_number")
 
   userGames     UserGame[]
@@ -40,14 +38,15 @@ model Game {
 
 model UserGame {
   userGameId    String @id @default(uuid()) @map("user_game_id") @db.Uuid
-  userId        String @unique @map("user_id") @db.Uuid
+  userId        String @map("user_id") @db.Uuid
   gameId        String @map("game_id") @db.Uuid
 
-  winnerHistory GameHistory[] @relation(name: "winnerUserGame")
-  loserHistory  GameHistory[] @relation(name: "loserUserGame")
+  winnerUserGame  GameHistory[] @relation(name: "winnerUserGame")
+  loserUserGame   GameHistory[] @relation(name: "loserUserGame")
+  // gameHistory     GameHistory[]
 
-  user          User  @relation(fields: [userId], references: [userId])
-  game          Game  @relation(fields: [gameId], references: [gameId])
+  user          User  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  game          Game  @relation(fields: [gameId], references: [gameId], onDelete: Cascade)
 }
 
 model GameWatch {
@@ -56,17 +55,20 @@ model GameWatch {
   gameId        String  @map("game_id") @db.Uuid
   userId        String  @map("user_id") @db.Uuid
 
-  game          Game  @relation(fields: [gameId], references: [gameId])
-  user          User  @relation(fields: [userId], references: [userId])
+  game          Game  @relation(fields: [gameId], references: [gameId], onDelete: Cascade)
+  user          User  @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model GameHistory {
   gameHistoryId String  @id @default(uuid()) @map("game_history_id") @db.Uuid
-  winnerId      String  @map("winner_id") @db.Uuid
-  loserId       String  @map("loser_id") @db.Uuid
+  winnerUserGameId      String  @map("winner_user_game_id") @db.Uuid
+  loserUserGameId       String  @map("loser_user_game_id") @db.Uuid
+  // userGameId            String   @map("user_game_id") @db.Uuid
 
-  winner        UserGame  @relation(name: "winnerUserGame", fields: [winnerId], references: [userId])
-  loser         UserGame  @relation(name: "loserUserGame", fields: [loserId], references: [userId])
+  winnerUserGame        UserGame  @relation(name:"winnerUserGame", fields: [winnerUserGameId], references: [userGameId], onDelete: Cascade)
+  loserUserGame         UserGame  @relation(name:"loserUserGame", fields: [loserUserGameId], references: [userGameId], onDelete: Cascade)
+
+  // userGame              UserGame  @relation(fields: [userGameId], references: [userGameId], onDelete: Cascade)
 }
 
 model Friend {
@@ -75,8 +77,8 @@ model Friend {
   myId     String  @map("my_id") @db.Uuid
   buddyId  String  @map("buddy_id") @db.Uuid
 
-  user     User @relation("myself", fields: [myId], references: [userId])
-  buddy    User @relation("buddy", fields: [buddyId], references: [userId])
+  user     User @relation("myself", fields: [myId], references: [userId], onDelete: Cascade)
+  buddy    User @relation("buddy", fields: [buddyId], references: [userId], onDelete: Cascade)
 }
 
 model Channel {
@@ -101,8 +103,8 @@ model UserChannel {
 
   chat          Chat[]
 
-  user          User    @relation(fields: [userId], references: [userId])
-  game          Channel @relation(fields: [channelId], references: [channelId])
+  user          User    @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  game          Channel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
 }
 
 model Chat {
@@ -111,5 +113,5 @@ model Chat {
   time          DateTime @default(now())
   userChannelId String   @map("user_channel_id") @db.Uuid
 
-  userChannel   UserChannel @relation(fields: [userChannelId], references: [userChannelId])
+  userChannel   UserChannel @relation(fields: [userChannelId], references: [userChannelId], onDelete: Cascade)
 }

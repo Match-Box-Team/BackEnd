@@ -1,4 +1,7 @@
 import { Controller } from '@nestjs/common';
+import { ChannelsService } from './channels.service';
 
 @Controller('channels')
-export class ChannelsController {}
+export class ChannelsController {
+  constructor(private channelsService: ChannelsService) {}
+}

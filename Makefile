@@ -1,5 +1,6 @@
 all:
-	sudo docker-compose up
+	docker-compose up
+	nest
 
 nest:
 	npx prisma migrate dev --name init
@@ -9,10 +10,11 @@ nest:
 clean:
 	sudo docker-compose down
 
+dbclean: clean
+	docker-compose down -v
+	rm -rf db
+
 fclean: clean
-	sudo docker system prune -af
-	sudo rm -rf db
+	docker-compose down -v
 
 re: fclean all
-
-.PHONY: all nest clean fclean re

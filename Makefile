@@ -9,11 +9,14 @@ nest:
 clean:
 	sudo docker-compose down
 
-dbclean: clean
-	docker-compose down -v
+dbclean:
 	rm -rf db
 
 fclean: clean
-	docker-compose down -v
+	docker-compose down
+
+ffclean: clean
+	docker system prune -af
+	rm -rf db
 
 re: fclean all

@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId      String  @id @default(uuid()) @map("user_id") @db.Uuid
+  nickname    String  @unique
+  status      String
+  email       String  @unique
+  image       String
+  intraId     String  @map("intra_id")
+  phoneNumber String? @map("phone_number")
+
+  userGames     UserGame[]
+  gameWatches   GameWatch[]
+  myself        Friend[] @relation(name: "myself")
+  friends       Friend[] @relation(name: "buddy")
+  userChannels  UserChannel[]
+}
+
+model Game {
+  gameId      String  @id @default(uuid()) @map("game_id") @db.Uuid
+  name        String
+  price       Int
+  isPlayable  Boolean @map("is_playable")
+
+  userGames   UserGame[]
+  gameWatches GameWatch[]
+}
+
+model UserGame {
+  userGameId    String @id @default(uuid()) @map("user_game_id") @db.Uuid
+  userId        String @map("user_id") @db.Uuid
+  gameId        String @map("game_id") @db.Uuid
+
+  winnerUserGame  GameHistory[] @relation(name: "winnerUserGame")
+  loserUserGame   GameHistory[] @relation(name: "loserUserGame")
+
+  user          User  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  game          Game  @relation(fields: [gameId], references: [gameId], onDelete: Cascade)
+}
+
+model GameWatch {
+  gameWatchId   String  @id @default(uuid()) @map("game_watch_id") @db.Uuid
+  currentViewer Int     @map("current_viewer")
+  gameId        String  @map("game_id") @db.Uuid
+  userId        String  @map("user_id") @db.Uuid
+
+  game          Game  @relation(fields: [gameId], references: [gameId], onDelete: Cascade)
+  user          User  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+}
+
+model GameHistory {
+  gameHistoryId     String  @id @default(uuid()) @map("game_history_id") @db.Uuid
+  winnerUserGameId  String  @map("winner_user_game_id") @db.Uuid
+  loserUserGameId   String  @map("loser_user_game_id") @db.Uuid
+
+  winnerUserGame    UserGame  @relation(name: "winnerUserGame", fields: [winnerUserGameId], references: [userGameId], onDelete: Cascade)
+  loserUserGame     UserGame  @relation(name: "loserUserGame", fields: [loserUserGameId], references: [userGameId], onDelete: Cascade)
+}
+
+model Friend {
+  friendId String  @id @default(uuid()) @map("friend_id") @db.Uuid
+  isBan    Boolean @map("is_ban")
+  myId     String  @map("my_id") @db.Uuid
+  buddyId  String  @map("buddy_id") @db.Uuid
+
+  user     User @relation(name: "myself", fields: [myId], references: [userId], onDelete: Cascade)
+  buddy    User @relation(name: "buddy", fields: [buddyId], references: [userId], onDelete: Cascade)
+}
+
+model Channel {
+  channelId     String  @id @default(uuid()) @map("channel_id") @db.Uuid
+  channelName   String  @map("channel_name")
+  password      String
+  count         Int
+  isPublic      Boolean @map("is_public")
+  isDm          Boolean @map("is_dm")
+
+  userChannels  UserChannel[]
+}
+
+model UserChannel {
+  userChannelId String    @id @default(uuid()) @map("user_channel_id") @db.Uuid
+  isOwner       Boolean   @map("is_owner")
+  isAdmin       Boolean   @map("is_admin")
+  isMute        Boolean   @map("is_mute")
+  lastChatTime  DateTime  @default(now()) @map("last_chat_time")
+  userId        String    @map("user_id") @db.Uuid
+  channelId     String    @map("channel_id") @db.Uuid
+
+  chat          Chat[]
+
+  user          User    @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  channel       Channel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+}
+
+model Chat {
+  chatId        String   @id @default(uuid()) @map("chat_id") @db.Uuid
+  message       String
+  time          DateTime @default(now())
+  userChannelId String   @map("user_channel_id") @db.Uuid
+
+  userChannel   UserChannel @relation(fields: [userChannelId], references: [userChannelId], onDelete: Cascade)
+}

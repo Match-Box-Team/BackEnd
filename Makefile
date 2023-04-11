@@ -1,6 +1,5 @@
 all:
 	docker-compose up
-	nest
 
 nest:
 	npx prisma migrate dev --name init

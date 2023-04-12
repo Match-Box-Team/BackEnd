@@ -20,7 +20,6 @@ model User {
   phoneNumber String? @map("phone_number")
 
   userGames     UserGame[]
-  gameWatches   GameWatch[]
   myself        Friend[] @relation(name: "myself")
   friends       Friend[] @relation(name: "buddy")
   userChannels  UserChannel[]
@@ -33,13 +32,15 @@ model Game {
   isPlayable  Boolean @map("is_playable")
 
   userGames   UserGame[]
-  gameWatches GameWatch[]
 }
 
 model UserGame {
   userGameId    String @id @default(uuid()) @map("user_game_id") @db.Uuid
   userId        String @map("user_id") @db.Uuid
   gameId        String @map("game_id") @db.Uuid
+
+  gameWatch1       GameWatch[] @relation(name: "userGame1")
+  gameWatch2       GameWatch[] @relation(name: "userGame2")
 
   winnerUserGame  GameHistory[] @relation(name: "winnerUserGame")
   loserUserGame   GameHistory[] @relation(name: "loserUserGame")
@@ -51,11 +52,11 @@ model UserGame {
 model GameWatch {
   gameWatchId   String  @id @default(uuid()) @map("game_watch_id") @db.Uuid
   currentViewer Int     @map("current_viewer")
-  gameId        String  @map("game_id") @db.Uuid
-  userId        String  @map("user_id") @db.Uuid
+  userGameId1   String  @map("user_game_id1") @db.Uuid
+  userGameId2   String  @map("user_game_id2") @db.Uuid
 
-  game          Game  @relation(fields: [gameId], references: [gameId], onDelete: Cascade)
-  user          User  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userGame1    UserGame  @relation(name: "userGame1", fields: [userGameId1], references: [userGameId], onDelete: Cascade)
+  userGame2    UserGame  @relation(name: "userGame2", fields: [userGameId2], references: [userGameId], onDelete: Cascade)
 }
 
 model GameHistory {

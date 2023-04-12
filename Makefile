@@ -2,15 +2,14 @@ all:
 	docker-compose up
 
 nest:
+	npm run start:dev
+
+migrate:
 	npx prisma migrate dev --name init
 	npm run seed
-	npm run start:dev
 
 clean:
 	sudo docker-compose down
-
-dbclean:
-	rm -rf db
 
 fclean: clean
 	docker-compose down

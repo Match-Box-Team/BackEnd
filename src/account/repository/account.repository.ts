@@ -11,7 +11,7 @@ export class AccountRepository {
     return this.prisma.user.findMany();
   }
 
-  async updateUser(params: {
+  async updateUserProfile(params: {
     where: Prisma.UserWhereUniqueInput;
     data: Prisma.UserUpdateInput;
   }): Promise<User> {
@@ -19,6 +19,17 @@ export class AccountRepository {
     return this.prisma.user.update({
       data,
       where,
+    });
+  }
+
+  async updateUserState(userId: string, status: string): Promise<User> {
+    const where = { userId: userId };
+    const data = {
+      status: status,
+    };
+    return this.prisma.user.update({
+      where,
+      data,
     });
   }
 }

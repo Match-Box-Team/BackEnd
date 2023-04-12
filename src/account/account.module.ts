@@ -3,9 +3,15 @@ import { AccountController } from './account.controller';
 import { AccountService } from './account.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { AccountRepository } from './repository/account.repository';
+import { AccountEventsGateway } from './events/account.gateway';
 
 @Module({
   controllers: [AccountController],
-  providers: [AccountService, PrismaService, AccountRepository],
+  providers: [
+    AccountService,
+    PrismaService,
+    AccountRepository,
+    AccountEventsGateway,
+  ],
 })
 export class AccountModule {}

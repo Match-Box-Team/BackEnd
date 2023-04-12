@@ -17,9 +17,12 @@ export class AuthController {
   @Get('callback')
   async signIn(@Query('code') code: string): Promise<any> {
     // console.log(code);
-    const res = await this.authService.getAccessTokenUrl(code);
+    const accessToken = await this.authService.getAccessTokenUrl(code);
     // console.log(res);
 
-    return `${code}`;
+    const info = await this.authService.getUserInfo(accessToken);
+    // console.log(userInfo);
+    // return `${userInfo}`;
+    return `${JSON.stringify(info)}`;
   }
 }

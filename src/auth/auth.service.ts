@@ -21,7 +21,7 @@ export class AuthService {
   //     return res;
   //   }
 
-  async getAccessTokenUrl(code: string) {
+  async getAccessTokenUrl(code: string): Promise<string> {
     const redirect_url = 'http://127.0.0.1:3000/auth/callback';
     const fullUrl = `https://api.intra.42.fr/oauth/token`;
 
@@ -34,25 +34,50 @@ export class AuthService {
     };
 
     let res;
+    let obj;
     try {
       res = await fetch(fullUrl, requestOptions);
-      const tmp = await res.json();
-      console.log(tmp);
+      obj = await res.json();
+      // console.log(obj);
     } catch (error) {
       throw new ConflictException(error, 'access token 발급 실패');
     }
     if (res.status >= 400) {
       throw new ConflictException('404 에러');
     }
-    return res;
+    return obj.access_token;
   }
 
-  //https://api.intra.42.fr/oauth/token?grant_type=authorization_code&client_id=${client_id}&client_secret=${client_secret}&code=${code}&redirect_uri=${redirect_uri}
+  async getUserInfo(token: string): Promise<any> {
+    const apiUrl = 'https://api.intra.42.fr/v2/me';
+    const requestOptions = {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
 
-  //   constructor(private jwtService: JwtService) {}
-  //   async signIn(username: string, pass: string): Promise<any> {
-  //     return {
-  //       access_token: await this.jwtService.signAsync(payload),
-  //     };
-  // }
+    let res;
+    try {
+      res = await fetch(apiUrl, requestOptions);
+    } catch (error) {
+      throw new ConflictException(
+        error,
+        'User Profile 정보를 얻어올 수 없습니다',
+      );
+    }
+
+    if (res.status !== 200) {
+      throw new ConflictException('User Profile 정보를 얻어올 수 없습니다');
+    }
+
+    let info;
+    try {
+      info = await res.json();
+    } catch (error) {
+      throw new ConflictException('User Profile 정보가 json 양식이 아닙니다');
+    }
+
+    return info;
+  }
 }

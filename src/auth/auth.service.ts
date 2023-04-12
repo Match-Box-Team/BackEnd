@@ -1,26 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-// import { JwtService } from '@nestjs/jwt';
+import { OAuthUserInfoDto } from './dto';
 @Injectable()
 export class AuthService {
-  constructor() {}
-
-  //   async getAccessTokenUrl(code: string) {
-  //     // const baseUrl = 'https://api.intra.42.fr/oauth/token?';
-  //     const redirect_url = 'http://127.0.0.1:3000/auth/callback';
-  //     const fullUrl = `https://api.intra.42.fr/oauth/token?grant_type=authorization_code&client_id=${process.env.OAUTH_CLIENT_ID}&client_secret=${process.env.OAUTH_CLIENT_SECRET}&code=${code}&redirect_uri=${redirect_url}`;
-  //     // const fullUrl = `${baseUrl}?grant_type=authorization_code&client_id=${process.env.OAUTH_CLIENT_ID}&client_secret=${process.env.OAUTH_CLIENT_SECRET}&code=${code}&redirect_uri=${redirect_url}`;
-  //     let res;
-  //     try {
-  //       res = await fetch(fullUrl);
-  //     } catch (error) {
-  //       throw new ConflictException(error, 'access token 발급 실패');
-  //     }
-  //     if (res.status >= 400) {
-  //       throw new ConflictException('404 에러');
-  //     }
-  //     return res;
-  //   }
-
   async getAccessTokenUrl(code: string): Promise<string> {
     const redirect_url = 'http://127.0.0.1:3000/auth/callback';
     const fullUrl = `https://api.intra.42.fr/oauth/token`;
@@ -48,7 +29,7 @@ export class AuthService {
     return obj.access_token;
   }
 
-  async getUserInfo(token: string): Promise<any> {
+  async getUserInfo(token: string): Promise<OAuthUserInfoDto> {
     const apiUrl = 'https://api.intra.42.fr/v2/me';
     const requestOptions = {
       method: 'GET',
@@ -78,6 +59,13 @@ export class AuthService {
       throw new ConflictException('User Profile 정보가 json 양식이 아닙니다');
     }
 
-    return info;
+    const profile: OAuthUserInfoDto = {
+      email: info.email,
+      image: info.image.link,
+      intraId: info.login,
+      phoneNumber: info.phone !== 'hidden' ? info.phone : null,
+    };
+
+    return profile;
   }
 }

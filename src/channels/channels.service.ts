@@ -9,14 +9,14 @@ export class ChannelsService {
    * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
    */
 
-  async getPublicList(): Promise<PublicChannels> {
+  async getPublicList() {
     // userId 알아내는 로직 필요
     const userId = "";
     const channel = await this.repository.findPublicList();
     return {channel: channel};
   }
 
-  async getChatLog(channelId: string): Promise<ChatLog> {
+  async getChatLog(channelId: string) {
     // userId 알아내는 로직 필요
     const userId = "";
     const userChannel =  await this.validateUserChannel(userId, channelId);

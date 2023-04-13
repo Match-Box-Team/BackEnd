@@ -1,9 +1,14 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { OAuthUserInfoDto } from './dto';
 import { AuthRepository } from './repository/auth.repository';
+import { JwtUtil } from './jwt/jwt.util';
+
 @Injectable()
 export class AuthService {
-  constructor(private authRepository: AuthRepository) {}
+  constructor(
+    private authRepository: AuthRepository,
+    private jwtUtil: JwtUtil,
+  ) {}
 
   async getAccessTokenUrl(code: string): Promise<string> {
     const redirect_url = 'http://127.0.0.1:3000/auth/callback';
@@ -78,5 +83,14 @@ export class AuthService {
     } catch (error) {
       throw new ConflictException('유저 로그인 에러');
     }
+  }
+
+  async generateJwt(user: OAuthUserInfoDto): Promise<string> {
+    const payload = {
+      intraId: user.intraId,
+      email: user.email,
+    };
+    const resJWT = await this.jwtUtil.encode(payload);
+    return resJWT;
   }
 }

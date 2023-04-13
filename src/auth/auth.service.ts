@@ -2,12 +2,14 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { OAuthUserInfoDto } from './dto';
 import { AuthRepository } from './repository/auth.repository';
 import { JwtUtil } from './jwt/jwt.util';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private authRepository: AuthRepository,
     private jwtUtil: JwtUtil,
+    private prisma: PrismaService,
   ) {}
 
   async getAccessTokenUrl(code: string): Promise<string> {
@@ -86,11 +88,20 @@ export class AuthService {
   }
 
   async generateJwt(user: OAuthUserInfoDto): Promise<string> {
+    const foundUser = await this.prisma.user.findUnique({
+      where: {
+        email: user.email,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
     const payload = {
-      intraId: user.intraId,
-      email: user.email,
+      id: foundUser.userId,
     };
-    const resJWT = await this.jwtUtil.encode(payload);
+
+    const resJWT = this.jwtUtil.encode(payload);
     return resJWT;
   }
 }

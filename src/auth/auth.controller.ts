@@ -18,7 +18,7 @@ export class AuthController {
   async signIn(@Query('code') code: string): Promise<any> {
     const accessToken = await this.authService.getAccessTokenUrl(code);
     const info = await this.authService.getUserInfo(accessToken);
-
+    await this.authService.saveUserInfo(info);
     return `${JSON.stringify(info)}`;
   }
 }

@@ -1,7 +1,10 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { OAuthUserInfoDto } from './dto';
+import { AuthRepository } from './repository/auth.repository';
 @Injectable()
 export class AuthService {
+  constructor(private authRepository: AuthRepository) {}
+
   async getAccessTokenUrl(code: string): Promise<string> {
     const redirect_url = 'http://127.0.0.1:3000/auth/callback';
     const fullUrl = `https://api.intra.42.fr/oauth/token`;
@@ -67,5 +70,13 @@ export class AuthService {
     };
 
     return profile;
+  }
+
+  async saveUserInfo(profile: OAuthUserInfoDto): Promise<void> {
+    try {
+      await this.authRepository.createOrUpdateUser(profile);
+    } catch (error) {
+      throw new ConflictException('유저 로그인 에러');
+    }
   }
 }

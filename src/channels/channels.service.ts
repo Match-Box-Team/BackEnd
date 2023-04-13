@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ChannelsRepository } from './repository/channels.repository';
 
 @Injectable()
@@ -9,40 +9,53 @@ export class ChannelsService {
    * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
    */
 
-  async getPublicList() {
+  async getPublicList(): Promise<PublicChannels> {
     // userId 알아내는 로직 필요
-    const userId = "7a68ed09-0036-440e-b187-5594e03457d9";
+    const userId = "";
     const channel = await this.repository.findPublicList();
     return {channel: channel};
   }
 
-  async getChatLog(channelId: string) {
+  async getChatLog(channelId: string): Promise<ChatLog> {
     // userId 알아내는 로직 필요
-    // get userChannel(userId, channelId)
-    // if user(userId) not in channel(channelId)
-    // => throw error
-    //로직이 생기면 아래 코드 수정.
-    const userId = "7a68ed09-0036-440e-b187-5594e03457d9";
-    const userChannel = await this.repository.findOneUserChannel(userId, channelId);
-    if (userChannel == null) {
-      return "error"; // throw로 수정
-    }
-    const chats = await this.repository.findChannelLogs(userChannel.userChannelId);
+    const userId = "";
+    const userChannel =  await this.validateUserChannel(userId, channelId);
+    const chats = await this.repository.findChatLogs(userChannel.channel.channelId);
     return { 
       channel: userChannel.channel,
       chat: chats
     };
   }
 
-  async sendMessage(channelId: string, userId: string, message: string, time: Date) {
-    const userChannel = await this.repository.findOneUserChannel(userId, channelId);
-    if (userChannel == null) {
-      return "error"; // throw로 수정
-    }
+  /**
+   * 소켓에서 사용하는 메소드
+   */
+
+  async sendMessage(userChannel: UserChannelOne, message: string, time: Date): Promise<UserOne> {
     await this.repository.createChat(userChannel.userChannelId, message, time);
-    console.log(userChannel.user);
     return {
       user: userChannel.user
     };
+  }
+
+  async updateLastViewTime(userChannelId: string) {
+    const lastTime = new Date();
+    await this.repository.updateLastChatTime(userChannelId, lastTime);
+  }
+
+  /**
+   * validation(검증) 메소드
+   */
+  async validateUserChannel(userId: string, channelId: string): Promise<UserChannelOne> {
+    const userChannel = await this.repository.findOneUserChannel(userId, channelId);
+    if (userChannel === null) {
+      throw new NotFoundException();
+    }
+    return userChannel;
+  }
+
+  async validateUserChannelNoThrow(userId: string, channelId: string): Promise<UserChannelOne | null> {
+    const userChannel = await this.repository.findOneUserChannel(userId, channelId);
+    return userChannel;
   }
 }

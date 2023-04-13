@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Channel, Chat } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
@@ -7,7 +6,7 @@ export class ChannelsRepository {
   constructor(private prisma: PrismaService) {}
 
   // 쿼리 작성
-  async findPublicList() {
+  async findPublicList(): Promise<FindPublicChannels[]> {
     return this.prisma.channel.findMany({
       where: {
         isPublic: true,
@@ -20,7 +19,7 @@ export class ChannelsRepository {
     });
   }
 
-  async findOneUserChannel(userId: string, channelId: string) {
+  async findOneUserChannel(userId: string, channelId: string): Promise<UserChannelOne> {
     return await this.prisma.userChannel.findFirst({
       where: {
         userId: userId,
@@ -45,11 +44,13 @@ export class ChannelsRepository {
     });
   }
 
-  async findChannelLogs(userChannelId: string) {
+  async findChatLogs(channelId: string): Promise<FindChatLogs[]> {
     return await this.prisma.chat.findMany({
       where: {
         userChannel: {
-          userChannelId: userChannelId
+          channel: {
+            channelId: channelId
+          }
         }
       },
       select: {
@@ -70,18 +71,32 @@ export class ChannelsRepository {
           },
         },
       },
-      orderBy: {
-        time: 'desc'
-      }
+      orderBy: [{
+        time: 'asc'
+      }]
     });
   }
 
+  /**
+   * Create, Delete, Update
+   */
   async createChat(userChannelId: string, message: string, time: Date) {
     await this.prisma.chat.create({
       data: {
         userChannelId: userChannelId,
         message: message,
         time: time
+      }
+    });
+  }
+
+  async updateLastChatTime(userChannelId: string, lastTime: Date) {
+    await this.prisma.userChannel.update({
+      where: {
+        userChannelId: userChannelId
+      },
+      data: {
+        lastChatTime: lastTime
       }
     });
   }

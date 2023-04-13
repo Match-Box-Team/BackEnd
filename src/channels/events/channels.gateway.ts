@@ -12,7 +12,8 @@ import { Server, Socket } from 'socket.io';
 import { ChannelsService } from '../channels.service';
 
 interface EnterChannelMessage {
-  channelId: string
+  channelId: string,
+  userId: string
 }
 
 interface ChatMessage {
@@ -22,7 +23,7 @@ interface ChatMessage {
   time: Date
 }
 
-@WebSocketGateway({namespace: 'channel'})
+@WebSocketGateway({ namespace: 'channel' })
 export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -33,22 +34,29 @@ export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection
   
   // 채팅방에 들어갈 경우
   @SubscribeMessage('enterChannel')
-  enterChannel(client: Socket, { channelId }: EnterChannelMessage) {
-    console.log(channelId);
-    client.join(channelId);
+  async enterChannel(client: Socket, { channelId, userId }: EnterChannelMessage) {
+    const userChannel = await this.channelService.validateUserChannelNoThrow(userId, channelId);
+    if (userChannel !== null) {
+      client.data.userChannelId = userChannel.userChannelId;
+      client.join(channelId);
+      return {return: "Success"};
+    }
+    return {return: "Not Found"};
   }
 
   // 채팅방 안에서 메시지 전송 및 수신
   @SubscribeMessage('chat')
   async chatMessage(client: Socket, { channelId, userId, message, time }: ChatMessage) {
-    console.log("Enter => " + channelId);
-    const user = await this.channelService.sendMessage(channelId, userId, message, time);
-    client.to(channelId).emit('chat',  { channelId: channelId, user: user, message: message, time: time });
-    return {
-        channelId: channelId,
-        user: user,
-        message: message
-    };
+    const userChannel = await this.channelService.validateUserChannelNoThrow(userId, channelId);
+    if (client.data.userChannelId === userChannel.userChannelId) {
+      const user = await this.channelService.sendMessage(userChannel, message, time);
+      client.to(channelId).emit('chat',  { channelId: channelId, user: user, message: message, time: time });
+      return {
+          channelId: channelId,
+          user: user,
+          message: message
+      };
+    }
   }
 
   // 초기화 이후에 실행
@@ -64,5 +72,9 @@ export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection
   // 소켓 연결이 끊기면 실행
   handleDisconnect(@ConnectedSocket() client: Socket) {
     this.logger.log(`${client.id} 소켓 연결 해제`);
+    const userChannelId = client.data.userChannelId;
+    if (userChannelId !== undefined) {
+      this.channelService.updateLastViewTime(userChannelId);
+    }
   }
 }

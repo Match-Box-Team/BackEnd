@@ -158,7 +158,7 @@ async function main() {
     {
       channelId: uuidv4(),
       channelName: '_announcement 공개방',
-      password: '',
+      password: null,
       count: 1000,
       isPublic: true,
       isDm: false,
@@ -174,7 +174,7 @@ async function main() {
     {
       channelId: uuidv4(),
       channelName: 'matchbox 회의방',
-      password: '',
+      password: null,
       count: 200,
       isPublic: true,
       isDm: false,
@@ -182,7 +182,7 @@ async function main() {
     {
       channelId: uuidv4(),
       channelName: 'unknown과의 개인 채팅',
-      password: '',
+      password: null,
       count: 50,
       isPublic: false,
       isDm: true,

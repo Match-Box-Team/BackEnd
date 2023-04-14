@@ -8,7 +8,7 @@ export class ChannelsService {
   constructor(private repository: ChannelsRepository) {}
 
   private getUserId() {
-    return "a2902722-ee78-4b65-bfdf-1a233b9355a0";
+    return "05eafb5c-7259-4945-a718-d526f3007ca9";
   }
   async getPublicList() {
     // userId 알아내는 로직 필요
@@ -49,13 +49,16 @@ export class ChannelsService {
         }
       };
     }));
-    return result;
+    result.sort((res1: ChannelListArrayType, res2: ChannelListArrayType): number => {
+      return new Date(res1.chat.time).getTime() - new Date(res2.chat.time).getTime();
+    }).reverse();
+    return { channel: result };
   }
 
   async createChannel(dto: ChannelCreateDto) {
     // userId 알아내는 로직 필요
     const userId = this.getUserId();
-    let channelPassword: string = "";
+    let channelPassword: string = null;
     // password 암호화
     if (dto.password !== undefined) {
       channelPassword = dto.password;
@@ -82,7 +85,7 @@ export class ChannelsService {
       throw new ConflictException("Already joined");
     }
     // password 복호화?, 패스워드 없을 떄 수정
-    if (channel.password !== "" && dto.password !== channel.password) {
+    if (channel.password !== null && dto.password !== channel.password) {
       throw new BadRequestException("wrong password");
     }
     const userChannelData: CreateUserChannelData = {

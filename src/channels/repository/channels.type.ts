@@ -54,3 +54,12 @@ interface CreateUserChannelData {
     userId: string,
     channelId:string,
 }
+
+interface ChannelListArrayType {
+    userChannel: FindUserChannelsWithChannel;
+    user: FindUsersInChannel[];
+    chat: {
+        computedChatCount: number;
+        time: Date;
+    };
+}

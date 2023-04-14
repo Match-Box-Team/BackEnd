@@ -96,15 +96,11 @@ async function main() {
   const gameWatches = [
     {
       currentViewer: 2,
-      score1: 0,
-      score2: 0,
       userGameId1: userGames[0].userGameId,
       userGameId2: userGames[1].userGameId,
     },
     {
       currentViewer: 2,
-      score1: 10,
-      score2: 5,
       userGameId1: userGames[2].userGameId,
       userGameId2: userGames[3].userGameId,
     },

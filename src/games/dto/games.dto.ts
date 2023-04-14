@@ -1,20 +1,19 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-// 예시
-export class GamesDto {
-  //   @IsString()
-  //   userId: string;
-}
-
-export interface gameIdDto {
+export class gameIdDto {
+  @IsString()
   gameId: string;
 }
 
-export interface gameWatchIdDto {
+export class gameWatchIdDto {
+  @IsString()
   gameWatchId: string;
 }
 
-export interface GameHistoryDto {
+export class GameHistoryDto {
+  @IsString()
   winnerId: string;
+
+  @IsString()
   loserId: string;
 }

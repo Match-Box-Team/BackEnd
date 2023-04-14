@@ -45,7 +45,6 @@ export class AuthController {
     const jwt = await this.authService.generateJwt(info);
     const cookieHeader = `token=${jwt}; HttpOnly; Path=/`; // 쿠키 헤더 생성
 
-    console.log(jwt);
     res.setHeader('Set-Cookie', cookieHeader); // 헤더에 쿠키 설정
     res.redirect(301, 'http://127.0.0.1:3000/'); // 리다이렉트
   }

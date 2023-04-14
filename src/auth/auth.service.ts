@@ -29,7 +29,6 @@ export class AuthService {
     try {
       res = await fetch(fullUrl, requestOptions);
       obj = await res.json();
-      // console.log(obj);
     } catch (error) {
       throw new ConflictException(error, 'access token 발급 실패');
     }

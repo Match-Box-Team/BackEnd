@@ -10,7 +10,7 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Get()
-  async getUser(): Promise<User[]> {
+  async getUsers(): Promise<User[]> {
     return this.accountService.getUsers();
   }
 

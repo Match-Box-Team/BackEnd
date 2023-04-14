@@ -12,8 +12,7 @@ export class AppController {
   }
 
   private createOauthUrl(): string {
-    const clientId =
-      'u-s4t2ud-cafde703fab6ae68159fb938dc4bab30a128b70e2cce609bb0571e85d22785ab';
+    const clientId = process.env.OAUTH_APP_URL;
     const redirectUri = encodeURIComponent(
       'http://127.0.0.1:3000/auth/callback',
     );

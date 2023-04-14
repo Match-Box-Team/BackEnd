@@ -16,7 +16,7 @@ async function main() {
     },
     {
       userId: uuidv4(),
-      nickname: uuidv4(),
+      nickname: 'jibang',
       status: 'game',
       email: uuidv4(),
       image: '127.0.0.1/image/jibang',
@@ -25,7 +25,7 @@ async function main() {
     },
     {
       userId: uuidv4(),
-      nickname: uuidv4(),
+      nickname: 'jokang',
       status: 'online',
       email: uuidv4(),
       image: '127.0.0.1/image/chaekim',
@@ -34,19 +34,10 @@ async function main() {
     },
     {
       userId: uuidv4(),
-      nickname: uuidv4(),
+      nickname: 'chaekim',
       status: 'online',
       email: uuidv4(),
       image: '127.0.0.1/image/jokang',
-      intraId: uuidv4(),
-      phoneNumber: '인트라에 안 뜸',
-    },
-    {
-      userId: uuidv4(),
-      nickname: uuidv4(),
-      status: 'offline',
-      email: uuidv4(),
-      image: '127.0.0.1/image/unknown',
       intraId: uuidv4(),
       phoneNumber: '인트라에 안 뜸',
     },
@@ -105,11 +96,15 @@ async function main() {
   const gameWatches = [
     {
       currentViewer: 2,
+      score1: 0,
+      score2: 0,
       userGameId1: userGames[0].userGameId,
       userGameId2: userGames[1].userGameId,
     },
     {
       currentViewer: 2,
+      score1: 10,
+      score2: 5,
       userGameId1: userGames[2].userGameId,
       userGameId2: userGames[3].userGameId,
     },

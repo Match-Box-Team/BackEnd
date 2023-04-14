@@ -52,6 +52,10 @@ model UserGame {
 model GameWatch {
   gameWatchId   String  @id @default(uuid()) @map("game_watch_id") @db.Uuid
   currentViewer Int     @map("current_viewer")
+
+  score1        Int
+  score2        Int
+
   userGameId1   String  @map("user_game_id1") @db.Uuid
   userGameId2   String  @map("user_game_id2") @db.Uuid
 

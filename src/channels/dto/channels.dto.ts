@@ -1,7 +1,22 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-// 예시
-export class ChannelsDto {
-  //   @IsString()
-  //   userId: string;
+export class ChannelCreateDto {
+  @IsString()
+  channelName: string;
+  
+  @IsString()
+  password: string;
+
+  @IsBoolean()
+  isPublic: boolean;
+}
+
+export class ChannelPasswordDto {
+  @IsString()
+  password: string;
+}
+
+export class ChannelInviteDto {
+  @IsString()
+  userId: string;
 }

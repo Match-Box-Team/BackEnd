@@ -7,6 +7,7 @@ import { ChannelsEventsGateway } from './events/channels.gateway';
 
 @Module({
   controllers: [ChannelsController],
-  providers: [ChannelsService, PrismaService, ChannelsRepository, ChannelsEventsGateway],
+  providers: [ChannelsService, PrismaService, ChannelsEventsGateway, 
+    ChannelsRepository],
 })
 export class ChannelsModule {}

@@ -48,7 +48,7 @@ export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection
   @SubscribeMessage('chat')
   async chatMessage(client: Socket, { channelId, userId, message, time }: ChatMessage) {
     const userChannel = await this.channelService.validateUserChannelNoThrow(userId, channelId);
-    if (client.data.userChannelId === userChannel.userChannelId) {
+    if (client.data.userChannelId === userChannel.userChannelId && !userChannel.isMute) {
       const user = await this.channelService.sendMessage(userChannel, message, time);
       client.to(channelId).emit('chat',  { channelId: channelId, user: user, message: message, time: time });
       return {

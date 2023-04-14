@@ -104,52 +104,52 @@ export class GamesService {
    ** 소켓 관련
    */
   // 매칭 큐에서 추가
-  // addPlayerToQueue(socket: Socket, user: User, game: Game): void {
-  //   if (game.isPlayable === false) {
-  //     socket.emit('matchFail');
-  //   }
-  //   const userId = user.userId;
-  //   const player = { userId, socket };
-  //   this.queue.push(player);
-  //   console.log(
-  //     `User ${userId} added to matchmaking queue. Current queue length: ${this.queue.length}`,
-  //   );
-  // }
+  addPlayerToQueue(socket: Socket, user: User, game: Game): void {
+    if (game.isPlayable === false) {
+      socket.emit('matchFail');
+    }
+    const userId = user.userId;
+    const player = { userId, socket };
+    this.queue.push(player);
+    console.log(
+      `User ${userId} added to matchmaking queue. Current queue length: ${this.queue.length}`,
+    );
+  }
 
-  // // 매칭 큐에서 제거
-  // removePlayerToQueue(socket: Socket, userId: string): void {
-  //   this.queue = this.queue.filter((user) => user.userId !== userId);
-  //   // delete this.queue[userId];
-  //   console.log(
-  //     `User ${userId} added to matchmaking queue. Current queue length: ${this.queue.length}`,
-  //   );
-  // }
+  // 매칭 큐에서 제거
+  removePlayerToQueue(socket: Socket, userId: string): void {
+    this.queue = this.queue.filter((user) => user.userId !== userId);
+    // delete this.queue[userId];
+    console.log(
+      `User ${userId} added to matchmaking queue. Current queue length: ${this.queue.length}`,
+    );
+  }
 
-  // // 1초마다 유저 2명 이상 있으면 매칭 해줌
-  // processMatchmakingQueue(): void {
-  //   while (this.queue.length >= 2) {
-  //     const user1 = this.queue.pop();
-  //     const user2 = this.queue.pop();
-  //     const roomName = `${user1.userId}-${user2.userId}`;
+  // 1초마다 유저 2명 이상 있으면 매칭 해줌
+  processMatchmakingQueue(): void {
+    while (this.queue.length >= 2) {
+      const user1 = this.queue.pop();
+      const user2 = this.queue.pop();
+      const roomName = `${user1.userId}-${user2.userId}`;
 
-  //     console.log(
-  //       `Matched ${user1.userId} and ${user2.userId} with room name ${roomName}`,
-  //     );
-  //     user1.socket.emit('matchSuccess', { roomName });
-  //     user2.socket.emit('matchSuccess', { roomName });
-  //   }
+      console.log(
+        `Matched ${user1.userId} and ${user2.userId} with room name ${roomName}`,
+      );
+      user1.socket.emit('matchSuccess', { roomName });
+      user2.socket.emit('matchSuccess', { roomName });
+    }
 
-  //   if (this.queue.length === 1) {
-  //     const user = this.queue[0];
-  //     setTimeout(() => {
-  //       if (this.queue.length === 1 && this.queue[0] === user) {
-  //         user.socket.emit('matchFail');
-  //         this.removePlayerToQueue(user.socket, user.userId);
-  //         console.log(
-  //           `User ${user.userId} removed from matchmaking queue due to timeout`,
-  //         );
-  //       }
-  //     }, 5000);
-  //   }
-  // }
+    if (this.queue.length === 1) {
+      const user = this.queue[0];
+      setTimeout(() => {
+        if (this.queue.length === 1 && this.queue[0] === user) {
+          user.socket.emit('matchFail');
+          this.removePlayerToQueue(user.socket, user.userId);
+          console.log(
+            `User ${user.userId} removed from matchmaking queue due to timeout`,
+          );
+        }
+      }, 5000);
+    }
+  }
 }

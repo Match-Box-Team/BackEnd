@@ -42,7 +42,7 @@ export class AuthController {
     await this.authService.saveUserInfo(info);
 
     const jwt = await this.authService.generateJwt(info);
-    const cookieHeader = `jwt=${jwt}; HttpOnly; Path=/`; // 쿠키 헤더 생성
+    const cookieHeader = `token=${jwt}; HttpOnly; Path=/`; // 쿠키 헤더 생성
 
     console.log(jwt);
     res.setHeader('Set-Cookie', cookieHeader); // 헤더에 쿠키 설정

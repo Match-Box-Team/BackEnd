@@ -1,5 +1,6 @@
-import { Controller, Get, Redirect } from '@nestjs/common';
+import { Controller, Get, Redirect, Request, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
+import { AuthGuard } from './auth/guard/auth.guard';
 
 @Controller()
 export class AppController {
@@ -26,4 +27,13 @@ export class AppController {
   oauthLogin(): { url: string } {
     return { url: this.createOauthUrl() };
   }
+
+  /* test for authGuard */
+  // @Get('protected')
+  // @UseGuards(AuthGuard)
+  // protectedPageTest(@Request() req): any {
+  //   const { id } = req.id;
+  //   console.log(id);
+  //   return 'protected for login user';
+  // }
 }

@@ -110,6 +110,8 @@ export class GamesService {
     if (gameWatch === null) {
       throw new NotFoundException('GameWatch not found');
     }
+    const checkGameWatchthis = await this.repository.deleteGameWath(gameWatchId);
+
     const winnerId = gameHistoryDto.winnerId;
     const loserId = gameHistoryDto.loserId;
     if (

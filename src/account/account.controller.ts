@@ -11,8 +11,7 @@ export class AccountController {
 
   @Get()
   async getUsers(): Promise<User[]> {
-    return this.accountService.getUsers();
-  }
+    return this.accountService.getUsers(); }
 
   // @Patch(':userId')
   // async updateUserProfile(
@@ -21,6 +20,12 @@ export class AccountController {
   // ) {
   //   return this.accountService.updateUserProfile(userId, updateUserDto);
   // }
+
+  @Post('sendEmail')
+  async sendEmail(): Promise<void> {
+    const email = 'rlawlsgh8113@naver.com';
+    this.accountService.sendVerificationEmail(email);
+  }
 
   // @Post()
   // async verifyCode(@Body() verifyCodeDto: VerifyCodeDto): Promise<void> {

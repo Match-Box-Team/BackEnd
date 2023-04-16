@@ -65,6 +65,9 @@ model GameHistory {
   winnerUserGameId  String  @map("winner_user_game_id") @db.Uuid
   loserUserGameId   String  @map("loser_user_game_id") @db.Uuid
 
+  winnerScore       Int     @map("winner_score")
+  loserScore        Int     @map("loser_score")
+
   winnerUserGame    UserGame  @relation(name: "winnerUserGame", fields: [winnerUserGameId], references: [userGameId], onDelete: Cascade)
   loserUserGame     UserGame  @relation(name: "loserUserGame", fields: [loserUserGameId], references: [userGameId], onDelete: Cascade)
 }

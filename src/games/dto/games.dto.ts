@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class gameIdDto {
   @IsString()
@@ -16,4 +16,10 @@ export class GameHistoryDto {
 
   @IsString()
   loserId: string;
+
+  @IsNumber()
+  winnerScore: number;
+
+  @IsNumber()
+  loserScore: number;
 }

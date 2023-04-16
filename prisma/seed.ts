@@ -110,10 +110,14 @@ async function main() {
     {
       winnerUserGameId: userGames[0].userGameId,
       loserUserGameId: userGames[1].userGameId,
+      winnerScore: 11,
+      loserScore: 5,
     },
     {
-      winnerUserGameId: userGames[1].userGameId,
-      loserUserGameId: userGames[0].userGameId,
+      winnerUserGameId: userGames[2].userGameId,
+      loserUserGameId: userGames[3].userGameId,
+      winnerScore: 11,
+      loserScore: 7,
     },
   ];
 
@@ -270,6 +274,12 @@ async function main() {
     });
   }
 
+  for (const gameHistory of gameHistories) {
+    await prisma.gameHistory.create({
+      data: gameHistory,
+    });
+  }
+
   for (const friend of friends) {
     await prisma.friend.create({
       data: friend,
@@ -291,12 +301,6 @@ async function main() {
   for (const chat of chats) {
     await prisma.chat.create({
       data: chat,
-    });
-  }
-
-  for (const gameHistory of gameHistories) {
-    await prisma.gameHistory.create({
-      data: gameHistory,
     });
   }
 

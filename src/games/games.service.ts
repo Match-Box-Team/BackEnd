@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Game, User } from '@prisma/client';
+import { Game, GameWatch, User } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { GamesRepository } from './repository/games.repository';
 import { GameIdType, GameWatchesType, GamesType } from './repository/game.type';
 import { GameHistoryDto } from './dto/games.dto';
-import { stringify } from 'querystring';
 
 /**
  * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
@@ -15,9 +14,6 @@ export class GamesService {
   constructor(private repository: GamesRepository) {
     setInterval(() => this.processMatchmakingQueue(), 1000);
   }
-
-  // 게임 매칭 큐
-  private queue: { userId: string; socket: Socket }[] = [];
 
   // api들
   async get(): Promise<Game[]> {
@@ -46,9 +42,12 @@ export class GamesService {
     return { gameId: userGame.gameId };
   }
 
+  async getGameWatch(gameWatchId: string): Promise<GameWatch> {
+    return this.repository.getGameWatchById(gameWatchId);
+  }
+
   async getGameWatches(gameId: string): Promise<GameWatchesType> {
     const game = await this.repository.getGame(gameId);
-    // const gameWatches = await this.repository.getGameWatches();
 
     const gameWatchsWithSameGameId =
       await this.repository.getGameWatchsWithSameGameId(gameId);
@@ -91,10 +90,8 @@ export class GamesService {
         loserId === gameWatch.userGameId2) ||
       (winnerId === gameWatch.userGameId2 && loserId === gameWatch.userGameId1)
     ) {
-      const gameHistory = await this.repository.createGameHistory(
-        winnerId,
-        loserId,
-      );
+      console.log(gameWatchId);
+      const gameHistory = await this.repository.createGameHistory(gameHistoryDto);
     } else {
       throw new NotFoundException('User matching is incorrect');
     }
@@ -103,53 +100,88 @@ export class GamesService {
   /*
    ** 소켓 관련
    */
-  // 매칭 큐에서 추가
-  addPlayerToQueue(socket: Socket, user: User, game: Game): void {
-    if (game.isPlayable === false) {
-      socket.emit('matchFail');
+
+  // 게임 매칭 큐
+  // Map<gameId, [socket...]>
+  private map = new Map<string, Socket[]>();
+
+  // 게임 매칭 큐에 추가
+  addPlayerToQueue(player: Socket): void {
+    const userId = player.data.userId;
+    const gameId = player.data.gameId;
+    const players = this.map.get(gameId);
+    if (players) {
+      this.map.set(gameId, [...this.map.get(gameId), player]);
+    } else {
+      this.map.set(gameId, [player]);
     }
-    const userId = user.userId;
-    const player = { userId, socket };
-    this.queue.push(player);
     console.log(
-      `User ${userId} added to matchmaking queue. Current queue length: ${this.queue.length}`,
+      `User ${userId} added to ${
+        player.data.gameName
+      } matchmaking queue. Current queue length: ${
+        this.map.get(gameId).length
+      }`,
     );
   }
 
-  // 매칭 큐에서 제거
-  removePlayerToQueue(socket: Socket, userId: string): void {
-    this.queue = this.queue.filter((user) => user.userId !== userId);
-    // delete this.queue[userId];
+  // 게임 매칭 큐에서 제거
+  removePlayerToQueue(player: Socket): void {
+    const gameId = player.data.gameId;
+    const players = this.map.get(gameId);
+    this.map.set(
+      gameId,
+      players.filter((socket) => socket.data.userId !== player.data.userId),
+    );
     console.log(
-      `User ${userId} added to matchmaking queue. Current queue length: ${this.queue.length}`,
+      `User ${player.data.nickname} deleted to ${
+        player.data.gameName
+      } matchmaking queue. Current queue length: ${
+        this.map.get(gameId).length
+      }`,
     );
   }
 
   // 1초마다 유저 2명 이상 있으면 매칭 해줌
-  processMatchmakingQueue(): void {
-    while (this.queue.length >= 2) {
-      const user1 = this.queue.pop();
-      const user2 = this.queue.pop();
-      const roomName = `${user1.userId}-${user2.userId}`;
+  async processMatchmakingQueue(): Promise<void> {
+    for (const gameId of this.map.keys()) {
+      const players = this.map.get(gameId);
+      players.map((socket) => {
+        console.log(socket.data.userId);
+      });
+      while (players.length >= 2) {
+        const player1 = players.shift();
+        const player2 = players.shift();
+        const userGame1 = await this.repository.getUserGame(
+          player1.data.userId,
+          player1.data.gameId,
+        );
+        const userGame2 = await this.repository.getUserGame(
+          player2.data.userId,
+          player2.data.gameId,
+        );
+        const gameWatch = await this.repository.createGameWatch(
+          userGame1.userGameId,
+          userGame2.userGameId,
+        );
+        console.log(
+          `Matched ${player1.data.nickname} and ${player2.data.nickname} with room name ${gameWatch.gameWatchId}`,
+        );
+        player1.emit('matchSuccess', { roomName: gameWatch.gameWatchId });
+        player2.emit('matchSuccess', { roomName: gameWatch.gameWatchId });
+      }
 
-      console.log(
-        `Matched ${user1.userId} and ${user2.userId} with room name ${roomName}`,
-      );
-      user1.socket.emit('matchSuccess', { roomName });
-      user2.socket.emit('matchSuccess', { roomName });
-    }
-
-    if (this.queue.length === 1) {
-      const user = this.queue[0];
-      setTimeout(() => {
-        if (this.queue.length === 1 && this.queue[0] === user) {
-          user.socket.emit('matchFail');
-          this.removePlayerToQueue(user.socket, user.userId);
-          console.log(
-            `User ${user.userId} removed from matchmaking queue due to timeout`,
-          );
-        }
-      }, 5000);
+      if (players.length === 1) {
+        const player = players[0];
+        setTimeout(() => {
+          if (players.length === 1 && this.map.get(gameId)[0] === player) {
+            player.emit('matchFail');
+            this.removePlayerToQueue(player);
+            console.log(
+              `User ${player.data.nickname} removed from matchmaking queue due to timeout`,
+            );
+          }
+        }, 5000);
+      }
     }
   }
 }

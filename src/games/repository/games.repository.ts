@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Game, GameHistory, GameWatch, UserGame } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { GameHistoryDto } from '../dto/games.dto';
 import { GameIdType, UserIdType, UserProfile } from './game.type';
 
 @Injectable()
@@ -36,6 +37,12 @@ export class GamesRepository {
         userId: userId,
         gameId: gameId,
       },
+    });
+  }
+
+  async getGameWatchById(gameWatchId: string): Promise<GameWatch> {
+    return this.prisma.gameWatch.findFirst({
+      where: { gameWatchId },
     });
   }
 
@@ -82,20 +89,40 @@ export class GamesRepository {
     });
   }
 
-  async getGameWatchById(gameWatchId: string): Promise<GameWatch> {
-    return this.prisma.gameWatch.findUnique({
-      where: { gameWatchId: gameWatchId },
-    });
-  }
-
-  async createGameHistory(
-    winnerId: string,
-    loserId: string,
-  ): Promise<GameHistory> {
+  async createGameHistory({
+    winnerId,
+    loserId,
+    winnerScore,
+    loserScore,
+  }: GameHistoryDto): Promise<GameHistory> {
     return this.prisma.gameHistory.create({
       data: {
         winnerUserGameId: winnerId,
         loserUserGameId: loserId,
+        winnerScore: winnerScore,
+        loserScore: loserScore,
+      },
+    });
+  }
+
+  async getUserGame(userId: string, gameId: string): Promise<UserGame> {
+    return this.prisma.userGame.findFirstOrThrow({
+      where: {
+        userId: userId,
+        gameId: gameId,
+      },
+    });
+  }
+
+  async createGameWatch(
+    userGameId1: string,
+    userGameId2: string,
+  ): Promise<GameWatch> {
+    return this.prisma.gameWatch.create({
+      data: {
+        currentViewer: 0,
+        userGameId1: userGameId1,
+        userGameId2: userGameId2,
       },
     });
   }

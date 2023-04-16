@@ -68,6 +68,16 @@ export class AccountService {
     });
 
     this.map.set(userId, code);
+
+    const verifyTimeOut = setTimeout(() => {
+      if (code === this.map.get(userId)) {
+        console.log('2차 메일 인증 실패');
+        // 소켓 통신으로 알려주거나 해야 될 듯
+      } else {
+        clearTimeout(verifyTimeOut);
+      }
+      this.map.delete(userId);
+    }, 10000);
   }
 
   async verifyCode(userId: string, inputCode: string): Promise<VerifySuccessMsgDto> {
@@ -78,10 +88,8 @@ export class AccountService {
 
     if (inputCode === storedCode) {
       this.map.delete(userId);
-      console.log({ success: true, message: 'Verification succeeded' });
       return { success: true, message: 'Verification succeeded' };
     } else {
-      console.log({ success: false, message: 'Token mismatch' });
       return { success: false, message: 'Token mismatch' };
     }
   }

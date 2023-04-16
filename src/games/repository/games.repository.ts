@@ -126,4 +126,12 @@ export class GamesRepository {
       },
     });
   }
+
+  async deleteGameWath(gameWatchId: string): Promise<GameWatch> {
+    return this.prisma.gameWatch.delete({
+      where: {
+        gameWatchId,
+      },
+    });
+  }
 }

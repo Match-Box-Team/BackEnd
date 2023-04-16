@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Game, GameWatch, User } from '@prisma/client';
+import { Game, GameWatch } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { GamesRepository } from './repository/games.repository';
-import { GameIdType, GameWatchesType, GamesType } from './repository/game.type';
+import { GameId, GameWatchesType, GameType } from './repository/game.type';
 import { GameHistoryDto } from './dto/games.dto';
+import { AccountService } from 'src/account/account.service';
 
 /**
  * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
@@ -11,7 +12,10 @@ import { GameHistoryDto } from './dto/games.dto';
 
 @Injectable()
 export class GamesService {
-  constructor(private repository: GamesRepository) {
+  constructor(
+    private accountService: AccountService,
+    private repository: GamesRepository,
+  ) {
     setInterval(() => this.processMatchmakingQueue(), 1000);
   }
 
@@ -21,10 +25,18 @@ export class GamesService {
   }
 
   async getGame(gameId: string): Promise<Game> {
-    return this.repository.getGame(gameId);
+    const game = await this.repository.getGame(gameId);
+    if (game === null) {
+      throw new NotFoundException('Game not found');
+    }
+    return game;
   }
 
-  async getGames(userId: string): Promise<GamesType[]> {
+  async getGames(userId: string): Promise<GameType[]> {
+    const user = await this.accountService.getUser(userId);
+    if (user === null) {
+      throw new NotFoundException('User not found');
+    }
     const games = await this.repository.getGames();
     const userGameIds = await this.repository.getUserGameIdsByUserId(userId);
 
@@ -37,23 +49,35 @@ export class GamesService {
     }));
   }
 
-  async buyGame(userId: string, gameId: string): Promise<GameIdType> {
+  async buyGame(userId: string, gameId: string): Promise<GameId> {
+    const user = await this.accountService.getUser(userId);
+    const game = await this.repository.getGame(gameId);
+    if (user === null || game === null) {
+      throw new NotFoundException('User or Game not found');
+    }
     const userGame = await this.repository.createUserGame(userId, gameId);
     return { gameId: userGame.gameId };
   }
 
   async getGameWatch(gameWatchId: string): Promise<GameWatch> {
-    return this.repository.getGameWatchById(gameWatchId);
+    const gameWatch = await this.repository.getGameWatchById(gameWatchId);
+    if (gameWatch === null) {
+      throw new NotFoundException('GameWatch not found');
+    }
+    return gameWatch;
   }
 
   async getGameWatches(gameId: string): Promise<GameWatchesType> {
     const game = await this.repository.getGame(gameId);
+    if (game === null) {
+      throw new NotFoundException('Game not found');
+    }
 
-    const gameWatchsWithSameGameId =
+    const gameWatchesWithSameGameId =
       await this.repository.getGameWatchsWithSameGameId(gameId);
 
     const Matches = await Promise.all(
-      gameWatchsWithSameGameId.map(async (gameWatch) => {
+      gameWatchesWithSameGameId.map(async (gameWatch) => {
         const gameWatchId = gameWatch.gameWatchId;
         const currentViewer = gameWatch.currentViewer;
         const user1 = await this.repository.getUserProfile(
@@ -83,6 +107,9 @@ export class GamesService {
     gameHistoryDto: GameHistoryDto,
   ): Promise<void> {
     const gameWatch = await this.repository.getGameWatchById(gameWatchId);
+    if (gameWatch === null) {
+      throw new NotFoundException('GameWatch not found');
+    }
     const winnerId = gameHistoryDto.winnerId;
     const loserId = gameHistoryDto.loserId;
     if (
@@ -90,7 +117,6 @@ export class GamesService {
         loserId === gameWatch.userGameId2) ||
       (winnerId === gameWatch.userGameId2 && loserId === gameWatch.userGameId1)
     ) {
-      console.log(gameWatchId);
       const gameHistory = await this.repository.createGameHistory(gameHistoryDto);
     } else {
       throw new NotFoundException('User matching is incorrect');
@@ -145,9 +171,6 @@ export class GamesService {
   async processMatchmakingQueue(): Promise<void> {
     for (const gameId of this.map.keys()) {
       const players = this.map.get(gameId);
-      players.map((socket) => {
-        console.log(socket.data.userId);
-      });
       while (players.length >= 2) {
         const player1 = players.shift();
         const player2 = players.shift();

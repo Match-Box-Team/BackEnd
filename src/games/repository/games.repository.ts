@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Game, GameHistory, GameWatch, UserGame } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { GameHistoryDto } from '../dto/games.dto';
-import { GameIdType, UserIdType, UserProfile } from './game.type';
+import { GameId, UserIdType, UserProfile } from './game.type';
 
 @Injectable()
 export class GamesRepository {
@@ -21,7 +21,7 @@ export class GamesRepository {
   }
 
   // 왜?? -> undefined는 where절에서 무시하는 것 같음
-  async getUserGameIdsByUserId(userId: string): Promise<GameIdType[]> {
+  async getUserGameIdsByUserId(userId: string): Promise<GameId[]> {
     if (userId == undefined) {
       throw new NotFoundException('userId is undefined');
     }
@@ -57,7 +57,7 @@ export class GamesRepository {
     });
   }
 
-  async getGameIdByUserGameId(userGameId: string): Promise<GameIdType> {
+  async getGameIdByUserGameId(userGameId: string): Promise<GameId> {
     return this.prisma.userGame.findUnique({
       where: { userGameId: userGameId },
       select: { gameId: true },

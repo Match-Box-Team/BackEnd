@@ -1,4 +1,9 @@
-export interface GamesType {
+export interface randomMatchDto {
+  userId: string;
+  gameId: string;
+}
+
+export interface GameType {
   gameId: string;
   name: string;
   price: number;
@@ -6,11 +11,11 @@ export interface GamesType {
   isBuy: boolean;
 }
 
-export interface GameIdType {
+export interface GameId {
   gameId: string;
 }
 
-export interface UserIdType {
+export interface UserId {
   userId: string;
 }
 

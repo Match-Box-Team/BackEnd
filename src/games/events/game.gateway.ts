@@ -8,16 +8,10 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { GameHistory } from '@prisma/client';
 import { Server, Socket } from 'socket.io';
 import { AccountService } from 'src/account/account.service';
-import { GameHistoryDto, gameWatchIdDto } from '../dto/games.dto';
 import { GamesService } from '../games.service';
-
-interface randomMatchProps {
-  userId: string;
-  gameId: string;
-}
+import { randomMatchDto } from '../repository/game.type';
 
 // cors 꼭꼭 해주기!
 @WebSocketGateway({ namespace: 'game', cors: true })
@@ -54,16 +48,17 @@ export class GameEventsGateway
 
   // 랜덤 게임 매칭
   @SubscribeMessage('randomMatch')
-  async randomMatch(client: Socket, { userId, gameId }: randomMatchProps) {
+  async randomMatch(client: Socket, { userId, gameId }: randomMatchDto) {
+    const user = await this.accountService.getUser(userId);
+    const game = await this.gamesService.getGame(gameId);
+    if (user === null || game === null || game.isPlayable === false) {
+      client.emit('matchFail');
+    }
+
     const userGame = await this.accountService.getUserGame(userId, gameId);
     if (userGame === null) {
       client.emit('matchFail');
       return;
-    }
-    const user = await this.accountService.getUser(userId);
-    const game = await this.gamesService.getGame(gameId);
-    if (game.isPlayable === false) {
-      client.emit('matchFail');
     }
 
     client.data.userId = userId;
@@ -71,7 +66,7 @@ export class GameEventsGateway
     client.data.gameId = gameId;
     client.data.gameName = game.name;
 
-    console.log(
+    this.logger.log(
       `match start! --- game: ${game.name} --- name: ${user.nickname} --- id: ${userId}`,
     );
     this.gamesService.addPlayerToQueue(client);
@@ -79,7 +74,7 @@ export class GameEventsGateway
 
   @SubscribeMessage('gameFinish')
   async gameFinish(client: Socket, gameWatchId: string) {
-    console.log("Game Finish");
+    this.logger.log("Game Finish");
     const gameWatch = await this.gamesService.getGameWatch(gameWatchId);
     this.gamesService.createGameHistory(gameWatch.gameWatchId, {
       winnerId: gameWatch.userGameId1,

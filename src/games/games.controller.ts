@@ -14,14 +14,14 @@ export class GamesController {
   // 게임샵 페이지 - 게임 목록 조회
   @Get()
   async getGames() {
-    const userId = '5f7ddd7f-6082-4579-a0a5-8dc5bbb22f4c';
-    return this.gamesService.getGames(userId);
+    const userId = 'd9a436fc-195f-41c6-b3fe-8300f4ad1fca';
+    return this.gamesService.getGamesByUserId(userId);
   }
 
   // 게임샵 페이지 - 게임 구매
   @Post(':gameId/buy')
   async buyGame(@Param() gameId: gameIdDto) {
-    const userId = '5f7ddd7f-6082-4579-a0a5-8dc5bbb22f4c';
+    const userId = 'd9a436fc-195f-41c6-b3fe-8300f4ad1fca';
     return this.gamesService.buyGame(userId, gameId.gameId);
   }
 

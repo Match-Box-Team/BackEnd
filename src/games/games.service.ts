@@ -32,7 +32,7 @@ export class GamesService {
     return game;
   }
 
-  async getGames(userId: string): Promise<GameType[]> {
+  async getGamesByUserId(userId: string): Promise<GameType[]> {
     const user = await this.accountService.getUser(userId);
     if (user === null) {
       throw new NotFoundException('User not found');

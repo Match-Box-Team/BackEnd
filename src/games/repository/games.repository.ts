@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Game, GameHistory, GameWatch, UserGame } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { GameHistoryDto } from '../dto/games.dto';
-import { GameId, UserIdType, UserProfile } from './game.type';
+import { GameId, UserId, UserProfile } from './game.type';
 
 @Injectable()
 export class GamesRepository {
@@ -50,7 +50,7 @@ export class GamesRepository {
     return this.prisma.gameWatch.findMany();
   }
 
-  async getUserIdByUserGameId(userGameId: string): Promise<UserIdType> {
+  async getUserIdByUserGameId(userGameId: string): Promise<UserId> {
     return this.prisma.userGame.findUnique({
       where: { userGameId: userGameId },
       select: { userId: true },

@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User, UserGame } from '@prisma/client';
 import { AccountRepository } from './repository/account.repository';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { VerifySuccessMsgDto } from './dto/verify-success-msg.dto';
 
 @Injectable()
 export class AccountService {
@@ -51,10 +52,10 @@ export class AccountService {
   // Map<email, code>
   private map = new Map<string, string>();
 
-  async sendVerificationEmail(userEmail: string) {
+  async sendVerificationEmail(userId: string, userEmail: string): Promise<void> {
     // 랜덤한 토큰 생성
-    const token = Math.random().toString(36).substring(2, 15);
-    console.log(userEmail, token);
+    const code = Math.random().toString(36).substring(2, 15);
+    console.log(userEmail, code);
 
     // 생성된 토큰과 함께 이메일 보내기
     await this.mailService.sendMail({
@@ -62,10 +63,26 @@ export class AccountService {
       subject: 'Verify Your Email Address',
       template: 'verification',
       context: {
-        token,
+        code,
       },
     });
 
-    // await this.userService.saveVerificationToken(userEmail, token);
+    this.map.set(userId, code);
+  }
+
+  async verifyCode(userId: string, inputCode: string): Promise<VerifySuccessMsgDto> {
+    const storedCode = this.map.get(userId);
+    if (storedCode === null) {
+      throw new NotFoundException('Token not found');
+    }
+
+    if (inputCode === storedCode) {
+      this.map.delete(userId);
+      console.log({ success: true, message: 'Verification succeeded' });
+      return { success: true, message: 'Verification succeeded' };
+    } else {
+      console.log({ success: false, message: 'Token mismatch' });
+      return { success: false, message: 'Token mismatch' };
+    }
   }
 }

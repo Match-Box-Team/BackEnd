@@ -1,9 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
+import { VerifySuccessMsgDto } from './dto/verify-success-msg.dto';
 import { VerifyCodeDto } from './dto/verify-code.dto';
-import { stringify } from 'querystring';
 
 @Controller('account')
 export class AccountController {
@@ -23,12 +22,15 @@ export class AccountController {
 
   @Post('sendEmail')
   async sendEmail(): Promise<void> {
+    const userId = 'd9a436fc-195f-41c6-b3fe-8300f4ad1fca';
     const email = 'rlawlsgh8113@naver.com';
-    this.accountService.sendVerificationEmail(email);
+    this.accountService.sendVerificationEmail(userId, email);
   }
 
-  // @Post()
-  // async verifyCode(@Body() verifyCodeDto: VerifyCodeDto): Promise<void> {
-  //     return this.accountService.verifyCode(verifyCodeDto.code);
-  // }
+  @Post('verifyCode')
+  async verifyCode(@Body() verifyCodeDto: VerifyCodeDto): Promise<VerifySuccessMsgDto> {
+
+    const userId = 'd9a436fc-195f-41c6-b3fe-8300f4ad1fca';
+    return this.accountService.verifyCode(userId, verifyCodeDto.code);
+  }
 }

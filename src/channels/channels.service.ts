@@ -13,7 +13,6 @@ export class ChannelsService {
     channels.sort((res1: FindPublicChannel, res2: FindPublicChannel): number => {
       return res1.count - res2.count;
     }).reverse();
-    channels.map((channel) => { channel.count = undefined; });
     return {channel: channels};
   }
 
@@ -45,7 +44,10 @@ export class ChannelsService {
           userChannel.channel.channelName = nickname1;
         }
       }
-      
+      users.map((user) => { 
+        user.userChannelId = undefined;
+        user.isAdmin = undefined; 
+      });
       userChannel.user = undefined;
       userChannel.lastChatTime = undefined;
       return {
@@ -117,6 +119,7 @@ export class ChannelsService {
     const userChannel =  await this.validateUserChannel(userId, channelId);
     const chats = await this.repository.findChatLogs(userChannel.channel.channelId);
     userChannel.channel.isDm = undefined;
+    userChannel.channel.count = undefined;
     return { 
       channel: userChannel.channel,
       chat: chats
@@ -226,6 +229,56 @@ export class ChannelsService {
     }};
   }
 
+  async memberListInChannel(userId: string, channelId: string) {
+    const userChannel = await this.validateUserChannel(userId, channelId);
+    const memberList = await this.repository.findUsersInChannel(channelId);
+    const result =  await Promise.all(memberList.map(async (member) => {
+      let isFriend = false;
+      
+      if (await this.repository.findFriendByUserIdAndBuddyId(userId, channelId)) {
+        isFriend = true;
+      }
+      return {
+        isAdmin: member.isAdmin,
+        user: member.user,
+        isFriend: isFriend
+      }
+    }));
+    return { userChannel: result };
+  }
+
+  async goOutChannel(userId: string, channelId: string) {
+    const userChannel = await this.validateUserChannel(userId, channelId);
+    
+    if (userChannel.channel.count === 1) {
+      // 만약 나가는 사람이 마지막 사람이라면 채널 삭제
+      await this.repository.deleteChannel(channelId);
+    } else {
+      if (userChannel.isOwner) {
+        const users = await this.repository.findUsersInChannel(channelId);
+        let userChannelId: string | null = null;
+        const admin = users.find((user) => user.isAdmin === true && user.user.userId !== userId);
+        
+        if (admin !== undefined) {
+          // 나가는 사람이 오너이면 오너 직책을 관리자에게 넘겨주고
+          userChannelId = admin.userChannelId;
+        } else {
+          // 만약 관리자가 없으며 그냥 아무한테 넘겨주고
+          const normal = users.find((user) => user.isAdmin === false);
+          userChannelId = normal.userChannelId;
+        }
+        await this.repository.updateOwner(userChannelId);
+        await this.repository.deleteUserChannel(userChannel.userChannelId);
+      }
+      else {
+        // 그게 아니면 그냥 나가고
+        await this.repository.deleteUserChannel(userChannel.userChannelId);
+      }
+    }
+    
+    
+  }
+
   /**
    * 소켓에서 사용하는 메소드
    */
@@ -247,7 +300,7 @@ export class ChannelsService {
     if (buddy === null) {
       return "wrong data";
     }
-    const banEachother = await this.repository.findBannEachOtherByBuddyId(userId, buddy.user.userId);
+    const banEachother = await this.repository.findBanEachOtherByBuddyId(userId, buddy.user.userId);
     if (banEachother.length > 0) {
       let banFriend = false;
       banEachother.map(ban => {

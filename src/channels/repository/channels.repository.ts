@@ -61,6 +61,8 @@ export class ChannelsRepository {
         channelId: channelId
       },
       select: {
+        userChannelId: true,
+        isAdmin: true,
         user: {
           select: {
             userId: true,
@@ -101,7 +103,8 @@ export class ChannelsRepository {
           select: {
             channelId: true,
             channelName: true,
-            isDm: true
+            isDm: true,
+            count: true
           }
         },
         user: {
@@ -181,12 +184,14 @@ export class ChannelsRepository {
         ]
       },
       select: {
+        userChannelId: true,
+        isAdmin: true,
         user: true
       }
     });
   }
 
-  async findBannEachOtherByBuddyId(userId: string, buddyId: string): Promise<Friend[]> {
+  async findBanEachOtherByBuddyId(userId: string, buddyId: string): Promise<Friend[]> {
     return await this.prisma.friend.findMany({
       where: {
         OR: [
@@ -207,6 +212,17 @@ export class ChannelsRepository {
         ]
       }
     });
+  }
+
+  async findFriendByUserIdAndBuddyId(userId: string, buddyId: string): Promise<Friend> {
+    return await this.prisma.friend.findFirst({
+      where: {
+        AND: [
+          { myId: userId },
+          { buddyId: buddyId }
+        ]
+      },
+    })
   }
 
   async findDmChannelByChannelName(meBuddy: string, buddyMe: string): Promise<Channel> {
@@ -289,6 +305,34 @@ export class ChannelsRepository {
       },
       data: {
         password: password
+      }
+    })
+  }
+
+  async deleteChannel(channelId: string) {
+    await this.prisma.channel.delete({
+      where: {
+        channelId: channelId
+      }
+    })
+  }
+
+  async deleteUserChannel(userChannelId: string) {
+    await this.prisma.userChannel.delete({
+      where: {
+        userChannelId: userChannelId
+      }
+    })
+  }
+
+  async updateOwner(userChannelId: string) {
+    await this.prisma.userChannel.update({
+      where: {
+        userChannelId: userChannelId
+      },
+      data: {
+        isOwner: true,
+        isAdmin: true
       }
     })
   }

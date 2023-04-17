@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, Request } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, Request, ParseIntPipe, Delete } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
 import { ChannelCreateDto, ChannelInviteDto, ChannelPasswordDto, DmDto } from './dto/channels.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
@@ -61,4 +61,17 @@ export class ChannelsController {
   async enterDm(@Body() dto: DmDto, @Request() req: ExpressRequest) {
     return await this.channelsService.enterDm(req['id']['id'], dto);
   }
+
+  @Get('/:channelId/friends')
+  @UseGuards(AuthGuard)
+  async memberListInChannel(@Param('channelId') channelId: string, @Request() req: ExpressRequest) {
+    return await this.channelsService.memberListInChannel(req['id']['id'], channelId);
+  }
+
+  @Delete('/:channelId')
+  @UseGuards(AuthGuard)
+  async goOutChannel(@Param('channelId') channelId: string, @Request() req: ExpressRequest) {
+    await this.channelsService.goOutChannel(req['id']['id'], channelId);
+  }
+
 }

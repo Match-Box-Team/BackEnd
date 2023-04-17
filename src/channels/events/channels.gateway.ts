@@ -12,24 +12,26 @@ import { Server, Socket } from 'socket.io';
 import { ChannelsService } from '../channels.service';
 
 interface EnterChannelMessage {
-  channelId: string
+  channelId: string;
 }
 
 interface ChatMessage {
-  channelId: string,
-  userId: string,
-  message: string
+  channelId: string;
+  userId: string;
+  message: string;
 }
 
-@WebSocketGateway()
-export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway({ cors: true })
+export class ChannelsEventsGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
   constructor(private channelService: ChannelsService) {}
 
   private logger = new Logger('ChannelGateway');
-  
+
   @SubscribeMessage('enterChannel')
   enterChannel(client: Socket, { channelId }: EnterChannelMessage) {
     console.log(channelId);
@@ -40,13 +42,15 @@ export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection
   chatMessage(client: Socket, { channelId, userId, message }: ChatMessage) {
     console.log(channelId);
 
-    client.to(channelId).emit('chat',  { channelId: channelId, userId: userId, message: message });
-    this.channelService.sendMessage();
+    client
+      .to(channelId)
+      .emit('chat', { channelId: channelId, userId: userId, message: message });
+    // this.channelService.sendMessage();
     // chat 로직 구현
     return {
-        channelId: channelId,
-        userId: userId,
-        message: message
+      channelId: channelId,
+      userId: userId,
+      message: message,
     };
   }
 

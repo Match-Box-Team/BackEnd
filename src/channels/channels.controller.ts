@@ -109,6 +109,38 @@ export class ChannelsController {
     return await this.channelsService.enterDm(req['id']['id'], dto);
   }
 
+  ///channels/:channelId/member/:userId/mute
+  @Patch('/:channelId/member/:userId/mute')
+  @UseGuards(AuthGuard)
+  async muteUser(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.channelsService.setUserMute(
+      req['id']['id'],
+      userId,
+      channelId,
+      true,
+    );
+  }
+
+  ///channels/:channelId/member/:userId/unmute
+  @Patch('/:channelId/member/:userId/unmute')
+  @UseGuards(AuthGuard)
+  async unmuteUser(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.channelsService.setUserMute(
+      req['id']['id'],
+      userId,
+      channelId,
+      false,
+    );
+  }
+
   @Get('/:channelId/friends')
   @UseGuards(AuthGuard)
   async memberListInChannel(

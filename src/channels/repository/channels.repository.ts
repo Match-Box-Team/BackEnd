@@ -103,6 +103,7 @@ export class ChannelsRepository {
       select: {
         userChannelId: true,
         isOwner: true,
+        isAdmin: true,
         isMute: true,
         channel: {
           select: {
@@ -310,6 +311,22 @@ export class ChannelsRepository {
       },
       data: {
         password: password,
+      },
+    });
+  }
+
+  async setUserMute(targetId: string, channelId: string, isMute: boolean) {
+    const userChannelOne: any = await this.findOneUserChannel(
+      targetId,
+      channelId,
+    );
+    const userChannelId = userChannelOne.userChannelId;
+    await this.prisma.userChannel.update({
+      where: {
+        userChannelId: userChannelId,
+      },
+      data: {
+        isMute: isMute,
       },
     });
   }

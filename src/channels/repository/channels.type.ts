@@ -14,7 +14,6 @@ interface UserChannelOne {
     image: string;
   };
 }
-
 interface FindChatLogs {
   chatId: string;
   message: string;
@@ -85,4 +84,8 @@ interface CreateChannelData {
   count: number;
   isPublic: boolean;
   isDm: boolean;
+}
+
+interface UserToken {
+  id: string;
 }

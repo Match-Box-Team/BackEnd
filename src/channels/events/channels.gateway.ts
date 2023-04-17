@@ -23,7 +23,7 @@ interface ChatMessage {
   time: Date
 }
 
-@WebSocketGateway({ namespace: 'channel' })
+@WebSocketGateway({ cors: true, namespace: 'channel' })
 export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -34,11 +34,11 @@ export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection
   
   // 채팅방에 들어갈 경우
   @SubscribeMessage('enterChannel')
-  async enterChannel(client: Socket, { channelId, userId }: EnterChannelMessage) {
-    const userChannel = await this.channelService.validateUserChannelNoThrow(userId, channelId);
+  async enterChannel(client: Socket, aa: EnterChannelMessage) {
+    const userChannel = await this.channelService.validateUserChannelNoThrow(aa.userId, aa.channelId);
     if (userChannel !== null) {
       client.data.userChannelId = userChannel.userChannelId;
-      client.join(channelId);
+      client.join(aa.channelId);
       return {return: "Success"};
     }
     return {return: "Not Found"};
@@ -49,6 +49,16 @@ export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection
   async chatMessage(client: Socket, { channelId, userId, message, time }: ChatMessage) {
     const userChannel = await this.channelService.validateUserChannelNoThrow(userId, channelId);
     if (client.data.userChannelId === userChannel.userChannelId) {
+      if (userChannel.channel.isDm) {
+        let banMessage: string | null = await this.channelService.isBanBuddyInDm(userId, channelId, userChannel.userChannelId);
+        if (banMessage !== null) {
+          return { cannotSend: banMessage };
+        }
+      } else {
+        if (userChannel.isMute) {
+          return { cannotSend: "is mute" };
+        }
+      }
       const user = await this.channelService.sendMessage(userChannel, message, time);
       client.to(channelId).emit('chat',  { channelId: channelId, user: user, message: message, time: time });
       return {

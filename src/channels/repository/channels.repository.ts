@@ -1,36 +1,107 @@
 import { Injectable } from '@nestjs/common';
+import { Channel, Chat, Friend, User, UserChannel } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { ChannelCreateDto } from '../dto/channels.dto';
 
 @Injectable()
 export class ChannelsRepository {
   constructor(private prisma: PrismaService) {}
 
   // 쿼리 작성
-  async findPublicList(): Promise<FindPublicChannels[]> {
+  async findChannelsByPublic(userId: string): Promise<FindPublicChannel[]> {
     return this.prisma.channel.findMany({
       where: {
-        isPublic: true,
-        isDm: false
+        AND: [
+          { isPublic: true },
+          { isDm: false },
+          { NOT: {
+            userChannels: {
+              some: { userId: userId },
+            },
+          } },
+        ]
       },
       select: {
         channelId: true,
-        channelName: true
+        channelName: true,
+        count: true
       }
+    });
+  }
+
+  async findUserChannelsWithChannel(userId: string): Promise<FindUserChannelsWithChannel[]> {
+    return this.prisma.userChannel.findMany({
+      where: {
+        userId: userId
+      },
+      select: {
+        userChannelId: true,
+        lastChatTime: true,
+        channel: {
+          select: {
+            channelId: true,
+            channelName: true,
+            isPublic: true,
+            isDm: true,
+            count: true
+          }
+        },
+        user: {
+          select: {
+            nickname: true,
+          }
+        }
+      }
+    });
+  }
+
+  async findUsersInChannel(channelId: string): Promise<FindUsersInChannel[]> {
+    return await this.prisma.userChannel.findMany({
+      where: {
+        channelId: channelId
+      },
+      select: {
+        user: {
+          select: {
+            userId: true,
+            nickname: true,
+            image: true
+          }
+        }
+      }
+    });
+  }
+
+  async findChatsByChannelId(channelId: string): Promise<Chat[]> {
+    return await this.prisma.chat.findMany({
+      where: {
+        userChannel: {
+          channelId: channelId
+        },
+      },
+      orderBy: [{
+        time: 'desc'
+      }]
     });
   }
 
   async findOneUserChannel(userId: string, channelId: string): Promise<UserChannelOne> {
     return await this.prisma.userChannel.findFirst({
       where: {
-        userId: userId,
-        channelId: channelId
+        AND: [
+          { userId: userId },
+          { channelId: channelId }
+        ]
       },
       select: {
         userChannelId: true,
+        isOwner: true,
+        isMute: true,
         channel: {
           select: {
             channelId: true,
             channelName: true,
+            isDm: true
           }
         },
         user: {
@@ -77,9 +148,106 @@ export class ChannelsRepository {
     });
   }
 
+  async findChannelByChannelId(channelId: string): Promise<Channel> {
+    return await this.prisma.channel.findFirst({
+      where: {
+        channelId: channelId
+      }
+    });
+  }
+
+  async findUserByNickname(nickname: string): Promise<User> {
+    return await this.prisma.user.findUnique({
+      where: {
+        nickname: nickname
+      }
+    });
+  }
+
+  async findUserByUserId(userId: string): Promise<User> {
+    return await this.prisma.user.findUnique({
+      where: {
+        userId: userId
+      }
+    });
+  }
+
+  async findBuddyInfoByChannelId(channelId: string, userChannelId: string): Promise<FindUsersInChannel> {
+    return await this.prisma.userChannel.findFirst({
+      where: {
+        AND: [
+          { channelId: channelId },
+          { userChannelId: {not: userChannelId }}
+        ]
+      },
+      select: {
+        user: true
+      }
+    });
+  }
+
+  async findBannEachOtherByBuddyId(userId: string, buddyId: string): Promise<Friend[]> {
+    return await this.prisma.friend.findMany({
+      where: {
+        OR: [
+          {
+            AND: [
+              { myId: userId },
+              { buddyId: buddyId },
+              { isBan: true }
+            ]
+          },
+          {
+            AND: [
+              { myId: buddyId },
+              { buddyId: userId },
+              { isBan: true }
+            ]
+          },
+        ]
+      }
+    });
+  }
+
+  async findDmChannelByChannelName(meBuddy: string, buddyMe: string): Promise<Channel> {
+    return await this.prisma.channel.findFirst({
+      where: {
+        OR: [
+          {channelName: meBuddy},
+          {channelName: buddyMe}
+        ]
+      }
+    });
+  }
+
   /**
    * Create, Delete, Update
    */
+  async createChannel(data: CreateChannelData): Promise<Channel> {
+    return await this.prisma.channel.create({
+      data: {
+        channelName: data.channelName,
+        password: data.password,
+        count: data.count,
+        isPublic: data.isPublic,
+        isDm: data.isDm
+      }
+    });
+  }
+
+  async createUserChannel(userChannelData: CreateUserChannelData) {
+    await this.prisma.userChannel.create({
+      data: {
+        isOwner: userChannelData.isOwner,
+        isAdmin: userChannelData.isAdmin,
+        isMute: userChannelData.isMute,
+        lastChatTime: userChannelData.lastChatTime,
+        userId: userChannelData.userId,
+        channelId: userChannelData.channelId
+      }
+    })
+  }
+
   async createChat(userChannelId: string, message: string, time: Date) {
     await this.prisma.chat.create({
       data: {
@@ -99,5 +267,29 @@ export class ChannelsRepository {
         lastChatTime: lastTime
       }
     });
+  }
+
+  async updateChannelCount(channelId: string) {
+    await this.prisma.channel.update({
+      where: {
+        channelId: channelId
+      },
+      data: {
+        count: {
+          increment: 1
+        }
+      }
+    });
+  }
+
+  async updateChannelPassword(channelId: string, password: string) {
+    await this.prisma.channel.update({
+      where: {
+        channelId: channelId
+      },
+      data: {
+        password: password
+      }
+    })
   }
 }

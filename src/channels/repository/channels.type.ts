@@ -1,19 +1,17 @@
 interface UserChannelOne {
     userChannelId: string,
+    isOwner: boolean,
+    isMute: boolean,
     channel: {
         channelId: string,
         channelName: string,
+        isDm: boolean,
     },
     user: {
         userId: string,
         nickname: string,
         image: string,
     }
-}
-
-interface FindPublicChannels {
-    channelId: string,
-    channelName: string
 }
 
 interface FindChatLogs {
@@ -30,3 +28,62 @@ interface FindChatLogs {
         }
     }
 }
+
+interface FindPublicChannel {
+    channelId: string,
+    channelName: string,
+    count: number
+}
+
+interface FindUsersInChannel {
+    user: {
+        userId: string,
+        nickname: string,
+        image: string
+    }
+}
+
+interface FindUserChannelsWithChannel {
+    userChannelId: string,
+    lastChatTime: Date,
+    channel: {
+        channelId: string,
+        channelName: string,
+        isPublic: boolean,
+        isDm: boolean,
+        count: number
+    },
+    user: {
+        nickname: string,
+    }
+}
+
+interface CreateUserChannelData {
+    isOwner: boolean,
+    isAdmin: boolean,
+    isMute: boolean,
+    lastChatTime: Date,
+    userId: string,
+    channelId:string,
+}
+
+interface ChannelListArrayType {
+    userChannel: FindUserChannelsWithChannel;
+    user: FindUsersInChannel[];
+    chat: {
+        computedChatCount: number;
+        time: Date;
+    };
+}
+
+interface CreateChannelData {
+    channelName: string,
+    password: string,
+    count: number,
+    isPublic: boolean,
+    isDm: boolean
+}
+
+interface UserToken {
+    id: string
+  }

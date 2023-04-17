@@ -2,6 +2,7 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class ChannelCreateDto {
   @IsString()
+  @IsNotEmpty()
   channelName: string;
   
   @IsString()
@@ -18,5 +19,12 @@ export class ChannelPasswordDto {
 
 export class ChannelInviteDto {
   @IsString()
+  @IsNotEmpty()
   userId: string;
+}
+
+export class DmDto {
+  @IsString()
+  @IsNotEmpty()
+  buddyId: string;
 }

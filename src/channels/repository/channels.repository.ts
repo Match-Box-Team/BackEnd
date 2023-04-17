@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Channel, Chat, User, UserChannel } from '@prisma/client';
+import { Channel, Chat, Friend, User, UserChannel } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { ChannelCreateDto } from '../dto/channels.dto';
 
@@ -8,11 +8,23 @@ export class ChannelsRepository {
   constructor(private prisma: PrismaService) {}
 
   // 쿼리 작성
-  async findChannelsByPublic(): Promise<Channel[]> {
+  async findChannelsByPublic(userId: string): Promise<FindPublicChannel[]> {
     return this.prisma.channel.findMany({
       where: {
-        isPublic: true,
-        isDm: false
+        AND: [
+          { isPublic: true },
+          { isDm: false },
+          { NOT: {
+            userChannels: {
+              some: { userId: userId },
+            },
+          } },
+        ]
+      },
+      select: {
+        channelId: true,
+        channelName: true,
+        count: true
       }
     });
   }
@@ -33,6 +45,11 @@ export class ChannelsRepository {
             isDm: true,
             count: true
           }
+        },
+        user: {
+          select: {
+            nickname: true,
+          }
         }
       }
     });
@@ -46,6 +63,7 @@ export class ChannelsRepository {
       select: {
         user: {
           select: {
+            userId: true,
             nickname: true,
             image: true
           }
@@ -70,16 +88,20 @@ export class ChannelsRepository {
   async findOneUserChannel(userId: string, channelId: string): Promise<UserChannelOne> {
     return await this.prisma.userChannel.findFirst({
       where: {
-        userId: userId,
-        channelId: channelId
+        AND: [
+          { userId: userId },
+          { channelId: channelId }
+        ]
       },
       select: {
         userChannelId: true,
+        isOwner: true,
         isMute: true,
         channel: {
           select: {
             channelId: true,
             channelName: true,
+            isDm: true
           }
         },
         user: {
@@ -150,17 +172,65 @@ export class ChannelsRepository {
     });
   }
 
+  async findBuddyInfoByChannelId(channelId: string, userChannelId: string): Promise<FindUsersInChannel> {
+    return await this.prisma.userChannel.findFirst({
+      where: {
+        AND: [
+          { channelId: channelId },
+          { userChannelId: {not: userChannelId }}
+        ]
+      },
+      select: {
+        user: true
+      }
+    });
+  }
+
+  async findBannEachOtherByBuddyId(userId: string, buddyId: string): Promise<Friend[]> {
+    return await this.prisma.friend.findMany({
+      where: {
+        OR: [
+          {
+            AND: [
+              { myId: userId },
+              { buddyId: buddyId },
+              { isBan: true }
+            ]
+          },
+          {
+            AND: [
+              { myId: buddyId },
+              { buddyId: userId },
+              { isBan: true }
+            ]
+          },
+        ]
+      }
+    });
+  }
+
+  async findDmChannelByChannelName(meBuddy: string, buddyMe: string): Promise<Channel> {
+    return await this.prisma.channel.findFirst({
+      where: {
+        OR: [
+          {channelName: meBuddy},
+          {channelName: buddyMe}
+        ]
+      }
+    });
+  }
+
   /**
    * Create, Delete, Update
    */
-  async createChannel(dto: ChannelCreateDto): Promise<Channel> {
+  async createChannel(data: CreateChannelData): Promise<Channel> {
     return await this.prisma.channel.create({
       data: {
-        channelName: dto.channelName,
-        password: dto.password,
-        count: 1,
-        isPublic: dto.isPublic,
-        isDm: false
+        channelName: data.channelName,
+        password: data.password,
+        count: data.count,
+        isPublic: data.isPublic,
+        isDm: data.isDm
       }
     });
   }
@@ -210,5 +280,16 @@ export class ChannelsRepository {
         }
       }
     });
+  }
+
+  async updateChannelPassword(channelId: string, password: string) {
+    await this.prisma.channel.update({
+      where: {
+        channelId: channelId
+      },
+      data: {
+        password: password
+      }
+    })
   }
 }

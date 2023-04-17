@@ -1,14 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { FriendsRepository } from './repository/friends.repository';
-import { FriendsAddDto } from './dto/friends-add.request';
+import { FriendsSetBanDto } from './dto/friends.dto';
+import { Friend } from '@prisma/client';
 
 @Injectable()
 export class FriendsService {
   constructor(private friendsRepository: FriendsRepository) {}
 
-  // 예시
-  async addFriend(dto: FriendsAddDto) {
-    // 로직 구현
-    // friendsRepository에서 쿼리문 찾아서 사용
+  async getBanFriendList(userId: string) {
+    const banFriend = await this.friendsRepository.findBanFriendByMyId(userId);
+    return { friend: banFriend };
+  }
+
+  async setBanFriend(userId: string, buddyId: string, dto: FriendsSetBanDto) {
+    const friend = await this.validateMyFriend(userId, buddyId);
+    await this.friendsRepository.updateFriendBan(friend.friendId, dto.isBan);
+  }
+
+  private async validateMyFriend(
+    userId: string,
+    buddyId: string,
+  ): Promise<Friend> {
+    const friend = await this.friendsRepository.findFriendByMyIdAndBuddyId(
+      userId,
+      buddyId,
+    );
+    if (friend === null) {
+      throw new NotFoundException('Not my buddy');
+    }
+    return friend;
   }
 }

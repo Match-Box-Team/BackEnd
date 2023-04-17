@@ -12,59 +12,84 @@ import { Server, Socket } from 'socket.io';
 import { ChannelsService } from '../channels.service';
 
 interface EnterChannelMessage {
-  channelId: string,
-  userId: string
+  channelId: string;
+  userId: string;
 }
 
 interface ChatMessage {
-  channelId: string,
-  userId: string,
-  message: string,
-  time: Date
+  channelId: string;
+  userId: string;
+  message: string;
+  time: Date;
 }
 
 @WebSocketGateway({ cors: true, namespace: 'channel' })
-export class ChannelsEventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class ChannelsEventsGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
   constructor(private channelService: ChannelsService) {}
 
   private logger = new Logger('ChannelGateway');
-  
+
   // 채팅방에 들어갈 경우
   @SubscribeMessage('enterChannel')
   async enterChannel(client: Socket, aa: EnterChannelMessage) {
-    const userChannel = await this.channelService.validateUserChannelNoThrow(aa.userId, aa.channelId);
+    const userChannel = await this.channelService.validateUserChannelNoThrow(
+      aa.userId,
+      aa.channelId,
+    );
     if (userChannel !== null) {
       client.data.userChannelId = userChannel.userChannelId;
       client.join(aa.channelId);
-      return {return: "Success"};
+      return { return: 'Success' };
     }
-    return {return: "Not Found"};
+    return { return: 'Not Found' };
   }
 
   // 채팅방 안에서 메시지 전송 및 수신
   @SubscribeMessage('chat')
-  async chatMessage(client: Socket, { channelId, userId, message, time }: ChatMessage) {
-    const userChannel = await this.channelService.validateUserChannelNoThrow(userId, channelId);
+  async chatMessage(
+    client: Socket,
+    { channelId, userId, message, time }: ChatMessage,
+  ) {
+    const userChannel = await this.channelService.validateUserChannelNoThrow(
+      userId,
+      channelId,
+    );
     if (client.data.userChannelId === userChannel.userChannelId) {
       if (userChannel.channel.isDm) {
-        let banMessage: string | null = await this.channelService.isBanBuddyInDm(userId, channelId, userChannel.userChannelId);
+        let banMessage: string | null =
+          await this.channelService.isBanBuddyInDm(
+            userId,
+            channelId,
+            userChannel.userChannelId,
+          );
         if (banMessage !== null) {
           return { cannotSend: banMessage };
         }
       } else {
         if (userChannel.isMute) {
-          return { cannotSend: "is mute" };
+          return { cannotSend: 'is mute' };
         }
       }
-      const user = await this.channelService.sendMessage(userChannel, message, time);
-      client.to(channelId).emit('chat',  { channelId: channelId, user: user, message: message, time: time });
+      const user = await this.channelService.sendMessage(
+        userChannel,
+        message,
+        time,
+      );
+      client.to(channelId).emit('chat', {
+        channelId: channelId,
+        user: user,
+        message: message,
+        time: time,
+      });
       return {
-          channelId: channelId,
-          user: user,
-          message: message
+        channelId: channelId,
+        user: user,
+        message: message,
       };
     }
   }

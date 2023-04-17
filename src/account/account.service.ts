@@ -1,18 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, UserGame } from '@prisma/client';
 import { AccountRepository } from './repository/account.repository';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from './dto/account.dto';
+import { UserEmail } from './repository/account.type';
 
 @Injectable()
 export class AccountService {
   constructor(private repository: AccountRepository) {}
 
-  /**
-   * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
-   */
-
-  async getUsers(): Promise<any> {
+  async getUsers(): Promise<User[]> {
     return this.repository.getUsers();
+  }
+
+  async getUser(userId: string): Promise<User> {
+    return this.repository.getUser(userId);
+  }
+
+  async getUserEmail(userId: string): Promise<UserEmail> {
+    return this.repository.getUserEmail(userId);
   }
 
   async updateUserProfile(
@@ -30,5 +35,9 @@ export class AccountService {
 
   async updateUserState(userId: string, status: string): Promise<User> {
     return this.repository.updateUserState(userId, status);
+  }
+
+  async getUserGame(userId: string, gameId: string): Promise<UserGame> {
+    return this.repository.getUserGame(userId, gameId);
   }
 }

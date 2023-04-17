@@ -13,5 +13,6 @@ import { AccountEventsGateway } from './events/account.gateway';
     AccountRepository,
     AccountEventsGateway,
   ],
+  exports: [AccountService],
 })
 export class AccountModule {}

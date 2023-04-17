@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, UserGame } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { UserEmail } from './account.type';
 
 @Injectable()
 export class AccountRepository {
@@ -9,6 +10,25 @@ export class AccountRepository {
   // 쿼리 작성
   async getUsers(): Promise<User[]> {
     return this.prisma.user.findMany();
+  }
+
+  async getUser(userId: string): Promise<User> {
+    return this.prisma.user.findUnique({
+      where: {
+        userId: userId,
+      },
+    });
+  }
+
+  async getUserEmail(userId: string): Promise<UserEmail> {
+    return this.prisma.user.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        email: true,
+      },
+    });
   }
 
   async updateUserProfile(params: {
@@ -28,8 +48,17 @@ export class AccountRepository {
       status: status,
     };
     return this.prisma.user.update({
-      where,
       data,
+      where,
+    });
+  }
+
+  async getUserGame(userId: string, gameId: string): Promise<UserGame> {
+    return this.prisma.userGame.findFirst({
+      where: {
+        userId: userId,
+        gameId: gameId,
+      },
     });
   }
 }

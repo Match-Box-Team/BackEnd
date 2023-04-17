@@ -52,6 +52,7 @@ model UserGame {
 model GameWatch {
   gameWatchId   String  @id @default(uuid()) @map("game_watch_id") @db.Uuid
   currentViewer Int     @map("current_viewer")
+
   userGameId1   String  @map("user_game_id1") @db.Uuid
   userGameId2   String  @map("user_game_id2") @db.Uuid
 
@@ -63,6 +64,9 @@ model GameHistory {
   gameHistoryId     String  @id @default(uuid()) @map("game_history_id") @db.Uuid
   winnerUserGameId  String  @map("winner_user_game_id") @db.Uuid
   loserUserGameId   String  @map("loser_user_game_id") @db.Uuid
+
+  winnerScore       Int     @map("winner_score")
+  loserScore        Int     @map("loser_score")
 
   winnerUserGame    UserGame  @relation(name: "winnerUserGame", fields: [winnerUserGameId], references: [userGameId], onDelete: Cascade)
   loserUserGame     UserGame  @relation(name: "loserUserGame", fields: [loserUserGameId], references: [userGameId], onDelete: Cascade)

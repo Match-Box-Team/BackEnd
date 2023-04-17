@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Game, Prisma, User, UserGame } from '@prisma/client';
+import { Prisma, User, UserGame } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { UserEmail } from './account.type';
 
 @Injectable()
 export class AccountRepository {
@@ -15,6 +16,17 @@ export class AccountRepository {
     return this.prisma.user.findUnique({
       where: {
         userId: userId,
+      },
+    });
+  }
+
+  async getUserEmail(userId: string): Promise<UserEmail> {
+    return this.prisma.user.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        email: true,
       },
     });
   }

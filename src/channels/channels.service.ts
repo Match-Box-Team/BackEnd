@@ -308,7 +308,7 @@ export class ChannelsService {
     }
 
     const userChannel2 = await this.validateUserChannel(userId, channelId);
-    if (userId === null) {
+    if (userChannel2 === null) {
       throw new NotFoundException('no such user');
     }
     if (userChannel2.isOwner === true) {

@@ -1,6 +1,17 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ChannelsRepository } from './repository/channels.repository';
-import { ChannelCreateDto, ChannelInviteDto, ChannelPasswordDto, DmDto } from './dto/channels.dto';
+import {
+  ChannelCreateDto,
+  ChannelInviteDto,
+  ChannelPasswordDto,
+  DmDto,
+} from './dto/channels.dto';
 import { Channel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -10,63 +21,88 @@ export class ChannelsService {
 
   async getPublicList(userId: string) {
     const channels = await this.repository.findChannelsByPublic(userId);
-    channels.sort((res1: FindPublicChannel, res2: FindPublicChannel): number => {
-      return res1.count - res2.count;
-    }).reverse();
-    channels.map((channel) => { channel.count = undefined; });
-    return {channel: channels};
+    channels
+      .sort((res1: FindPublicChannel, res2: FindPublicChannel): number => {
+        return res1.count - res2.count;
+      })
+      .reverse();
+    channels.map((channel) => {
+      channel.count = undefined;
+    });
+    return { channel: channels };
   }
 
   async getMyChannelList(userId: string) {
-    const userChannels = await this.repository.findUserChannelsWithChannel(userId);
-    const result = await Promise.all(userChannels.map(async (userChannel) => {
-      const users = await this.repository.findUsersInChannel(userChannel.channel.channelId);
-      const chats = await this.repository.findChatsByChannelId(userChannel.channel.channelId);
-      let notReadCount: number = 0;
-      let lastMessageTime: Date = userChannel.lastChatTime;
+    const userChannels = await this.repository.findUserChannelsWithChannel(
+      userId,
+    );
+    const result = await Promise.all(
+      userChannels.map(async (userChannel) => {
+        const users = await this.repository.findUsersInChannel(
+          userChannel.channel.channelId,
+        );
+        const chats = await this.repository.findChatsByChannelId(
+          userChannel.channel.channelId,
+        );
+        let notReadCount = 0;
+        let lastMessageTime: Date = userChannel.lastChatTime;
 
-      if (chats.length !== 0) {
-        chats.map(chat => {
-          if (chat.time > userChannel.lastChatTime) {
-            notReadCount++;
+        if (chats.length !== 0) {
+          chats.map((chat) => {
+            if (chat.time > userChannel.lastChatTime) {
+              notReadCount++;
+            }
+          });
+          lastMessageTime = chats.at(0).time;
+        }
+
+        if (userChannel.channel.isDm) {
+          const slash: number = userChannel.channel.channelName.indexOf('/');
+          const nickname1: string = userChannel.channel.channelName.substring(
+            0,
+            slash,
+          );
+          const nickname2: string = userChannel.channel.channelName.substring(
+            slash + 1,
+          );
+
+          if (nickname1 === userChannel.user.nickname) {
+            userChannel.channel.channelName = nickname2;
+          } else {
+            userChannel.channel.channelName = nickname1;
           }
-        });
-        lastMessageTime = chats.at(0).time;
-      }
+        }
 
-      if (userChannel.channel.isDm) {
-        let slash: number = userChannel.channel.channelName.indexOf('/');
-        let nickname1: string = userChannel.channel.channelName.substring(0, slash);
-        let nickname2: string = userChannel.channel.channelName.substring(slash + 1);
-        
-        if (nickname1 === userChannel.user.nickname) {
-          userChannel.channel.channelName = nickname2;
-        } else {
-          userChannel.channel.channelName = nickname1;
-        }
-      }
-      
-      userChannel.user = undefined;
-      userChannel.lastChatTime = undefined;
-      return {
-        userChannel: userChannel,
-        user: users.slice(0, 2),
-        chat: {
-          computedChatCount: notReadCount,
-          time: lastMessageTime,
-        }
-      };
-    }));
-    result.sort((res1: ChannelListArrayType, res2: ChannelListArrayType): number => {
-      return new Date(res1.chat.time).getTime() - new Date(res2.chat.time).getTime();
-    }).reverse();
+        userChannel.user = undefined;
+        userChannel.lastChatTime = undefined;
+        return {
+          userChannel: userChannel,
+          user: users.slice(0, 2),
+          chat: {
+            computedChatCount: notReadCount,
+            time: lastMessageTime,
+          },
+        };
+      }),
+    );
+    result
+      .sort(
+        (res1: ChannelListArrayType, res2: ChannelListArrayType): number => {
+          return (
+            new Date(res1.chat.time).getTime() -
+            new Date(res2.chat.time).getTime()
+          );
+        },
+      )
+      .reverse();
     return { channel: result };
   }
 
   async createChannel(userId: string, dto: ChannelCreateDto) {
-    if (dto.password === "") {
+    if (dto.password === '') {
       dto.password = null;
-    } else {// password 암호화
+    } else {
+      // password 암호화
       dto.password = await this.encryptPassword(dto.password);
     }
     const newChannelData: CreateChannelData = {
@@ -74,8 +110,8 @@ export class ChannelsService {
       password: dto.password,
       count: 1,
       isPublic: dto.isPublic,
-      isDm: false
-    }
+      isDm: false,
+    };
     const newChannel = await this.repository.createChannel(newChannelData);
     const userChannelData: CreateUserChannelData = {
       isOwner: true,
@@ -83,23 +119,33 @@ export class ChannelsService {
       isMute: false,
       lastChatTime: new Date(),
       userId: userId,
-      channelId: newChannel.channelId
-    }
+      channelId: newChannel.channelId,
+    };
     await this.repository.createUserChannel(userChannelData);
   }
 
-  async joinChannel(userId: string, channelId: string, dto: ChannelPasswordDto) {
+  async joinChannel(
+    userId: string,
+    channelId: string,
+    dto: ChannelPasswordDto,
+  ) {
     const channel = await this.validateChannel(channelId);
-    const userChannel = await this.validateUserChannelNoThrow(userId, channel.channelId);
+    const userChannel = await this.validateUserChannelNoThrow(
+      userId,
+      channel.channelId,
+    );
     if (channel.isDm) {
-      throw new ForbiddenException("This channel is for dm");
+      throw new ForbiddenException('This channel is for dm');
     }
     if (userChannel !== null) {
-      throw new ConflictException("Already joined");
+      throw new ConflictException('Already joined');
     }
     // password 복호화
-    if (channel.password !== null && !(await this.decryptPassword(dto.password, channel.password))) {
-      throw new BadRequestException("wrong password");
+    if (
+      channel.password !== null &&
+      !(await this.decryptPassword(dto.password, channel.password))
+    ) {
+      throw new BadRequestException('wrong password');
     }
     const userChannelData: CreateUserChannelData = {
       isOwner: false,
@@ -107,49 +153,60 @@ export class ChannelsService {
       isMute: false,
       lastChatTime: new Date(),
       userId: userId,
-      channelId: channel.channelId
-    }
+      channelId: channel.channelId,
+    };
     await this.repository.createUserChannel(userChannelData);
     await this.repository.updateChannelCount(channel.channelId);
   }
 
   async getChatLog(userId: string, channelId: string) {
-    const userChannel =  await this.validateUserChannel(userId, channelId);
-    const chats = await this.repository.findChatLogs(userChannel.channel.channelId);
+    const userChannel = await this.validateUserChannel(userId, channelId);
+    const chats = await this.repository.findChatLogs(
+      userChannel.channel.channelId,
+    );
     userChannel.channel.isDm = undefined;
-    return { 
+    return {
       channel: userChannel.channel,
-      chat: chats
+      chat: chats,
     };
   }
 
-  async searchUserForInvite(userId: string, channelId: string, nickname: string) {
-    const userChannel =  await this.validateUserChannel(userId, channelId);
+  async searchUserForInvite(
+    userId: string,
+    channelId: string,
+    nickname: string,
+  ) {
+    const userChannel = await this.validateUserChannel(userId, channelId);
     const user = await this.repository.findUserByNickname(nickname);
     if (!user) {
-      throw new NotFoundException("Not existed user");
+      throw new NotFoundException('Not existed user');
     }
-    const isOnChannel = await this.validateUserChannelNoThrow(user.userId, channelId) === null ? false : true;
+    const isOnChannel =
+      (await this.validateUserChannelNoThrow(user.userId, channelId)) === null
+        ? false
+        : true;
     return {
       userId: user.userId,
       nickname: user.nickname,
       image: user.image,
-      isOnChannel: isOnChannel
-    }
+      isOnChannel: isOnChannel,
+    };
   }
 
   // 일반 유저도 다른 유저 초대 가능
   async inviteUser(userId: string, channelId: string, dto: ChannelInviteDto) {
     const user = await this.repository.findUserByUserId(dto.userId);
     if (!user) {
-      throw new NotFoundException("Not existed user");
+      throw new NotFoundException('Not existed user');
     }
-    const userChannel =  await this.validateUserChannel(userId, channelId);
+    const userChannel = await this.validateUserChannel(userId, channelId);
     if (userChannel.channel.isDm) {
-      throw new ForbiddenException("This channel is for dm");
+      throw new ForbiddenException('This channel is for dm');
     }
-    if (await this.validateUserChannelNoThrow(user.userId, channelId) !== null) {
-      throw new ConflictException("Already joined");
+    if (
+      (await this.validateUserChannelNoThrow(user.userId, channelId)) !== null
+    ) {
+      throw new ConflictException('Already joined');
     }
     const userChannelData: CreateUserChannelData = {
       isOwner: false,
@@ -157,20 +214,24 @@ export class ChannelsService {
       isMute: false,
       lastChatTime: new Date(),
       userId: user.userId,
-      channelId: channelId
-    }
+      channelId: channelId,
+    };
     await this.repository.createUserChannel(userChannelData);
     await this.repository.updateChannelCount(channelId);
   }
 
-  async changeChannelPassword(userId: string, channelId: string, dto: ChannelPasswordDto) {
+  async changeChannelPassword(
+    userId: string,
+    channelId: string,
+    dto: ChannelPasswordDto,
+  ) {
     // 오너만 비밀번호 변경 가능
     const userChannel = await this.validateUserChannel(userId, channelId);
     if (!userChannel.isOwner) {
-      throw new ForbiddenException("Not a owner");
+      throw new ForbiddenException('Not a owner');
     }
     // 비밀번호 암호화
-    if (dto.password === "") {
+    if (dto.password === '') {
       dto.password = null;
     } else {
       dto.password = await this.encryptPassword(dto.password);
@@ -180,13 +241,16 @@ export class ChannelsService {
 
   async enterDm(userId: string, dto: DmDto) {
     const me = await this.repository.findUserByUserId(userId);
-    const buddy =await this.repository.findUserByUserId(dto.buddyId);
+    const buddy = await this.repository.findUserByUserId(dto.buddyId);
     if (buddy === null) {
-      throw new NotFoundException("Not existed buddy");
+      throw new NotFoundException('Not existed buddy');
     }
     const meBuddy = me.nickname + '/' + buddy.nickname;
     const buddyMe = buddy.nickname + '/' + me.nickname;
-    let channel: Channel = await this.repository.findDmChannelByChannelName(meBuddy, buddyMe);
+    let channel: Channel = await this.repository.findDmChannelByChannelName(
+      meBuddy,
+      buddyMe,
+    );
     console.log(channel);
     if (channel === null) {
       // 새로 만들 떄 친구와 본인 둘 다 userChannel에 넣기
@@ -195,8 +259,8 @@ export class ChannelsService {
         password: null,
         count: 2,
         isPublic: false,
-        isDm: true
-      }
+        isDm: true,
+      };
       channel = await this.repository.createChannel(newChannelData);
       const myUserChannelData: CreateUserChannelData = {
         isOwner: false,
@@ -204,36 +268,42 @@ export class ChannelsService {
         isMute: false,
         lastChatTime: new Date(),
         userId: me.userId,
-        channelId: channel.channelId
-      }
+        channelId: channel.channelId,
+      };
       const buddyUserChannelData: CreateUserChannelData = {
         isOwner: false,
         isAdmin: false,
         isMute: false,
         lastChatTime: new Date(),
         userId: buddy.userId,
-        channelId: channel.channelId
-      }
+        channelId: channel.channelId,
+      };
       await this.repository.createUserChannel(myUserChannelData);
       await this.repository.createUserChannel(buddyUserChannelData);
     }
-    return {channel: {
-      channelId: channel.channelId,
-      channelName: buddy.nickname,
-      isPublic: channel.isPublic,
-      isDm: channel.isDm,
-      count: channel.count
-    }};
+    return {
+      channel: {
+        channelId: channel.channelId,
+        channelName: buddy.nickname,
+        isPublic: channel.isPublic,
+        isDm: channel.isDm,
+        count: channel.count,
+      },
+    };
   }
 
   /**
    * 소켓에서 사용하는 메소드
    */
 
-  async sendMessage(userChannel: UserChannelOne, message: string, time: Date): Promise<UserOne> {
+  async sendMessage(
+    userChannel: UserChannelOne,
+    message: string,
+    time: Date,
+  ): Promise<UserOne> {
     await this.repository.createChat(userChannel.userChannelId, message, time);
     return {
-      user: userChannel.user
+      user: userChannel.user,
     };
   }
 
@@ -242,23 +312,33 @@ export class ChannelsService {
     await this.repository.updateLastChatTime(userChannelId, lastTime);
   }
 
-  async isBanBuddyInDm(userId: string, channelId: string, myUserChannelId: string): Promise<string | null> {
-    const buddy =  await this.repository.findBuddyInfoByChannelId(channelId, myUserChannelId);
+  async isBanBuddyInDm(
+    userId: string,
+    channelId: string,
+    myUserChannelId: string,
+  ): Promise<string | null> {
+    const buddy = await this.repository.findBuddyInfoByChannelId(
+      channelId,
+      myUserChannelId,
+    );
     if (buddy === null) {
-      return "wrong data";
+      return 'wrong data';
     }
-    const banEachother = await this.repository.findBannEachOtherByBuddyId(userId, buddy.user.userId);
+    const banEachother = await this.repository.findBannEachOtherByBuddyId(
+      userId,
+      buddy.user.userId,
+    );
     if (banEachother.length > 0) {
       let banFriend = false;
-      banEachother.map(ban => {
+      banEachother.map((ban) => {
         if (ban.myId === userId) {
           banFriend = true;
         }
       });
       if (banFriend) {
-        return "you ban friend";
+        return 'you ban friend';
       }
-      return "friend ban you";
+      return 'friend ban you';
     }
     return null;
   }
@@ -266,23 +346,35 @@ export class ChannelsService {
   /**
    * validation(검증) 메소드
    */
-  async validateUserChannel(userId: string, channelId: string): Promise<UserChannelOne> {
-    const userChannel = await this.repository.findOneUserChannel(userId, channelId);
+  async validateUserChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<UserChannelOne> {
+    const userChannel = await this.repository.findOneUserChannel(
+      userId,
+      channelId,
+    );
     if (userChannel === null) {
-      throw new NotFoundException("User is not existed channel");
+      throw new NotFoundException('User is not existed channel');
     }
     return userChannel;
   }
 
-  async validateUserChannelNoThrow(userId: string, channelId: string): Promise<UserChannelOne | null> {
-    const userChannel = await this.repository.findOneUserChannel(userId, channelId);
+  async validateUserChannelNoThrow(
+    userId: string,
+    channelId: string,
+  ): Promise<UserChannelOne | null> {
+    const userChannel = await this.repository.findOneUserChannel(
+      userId,
+      channelId,
+    );
     return userChannel;
   }
 
   async validateChannel(channelId: string): Promise<Channel> {
     const channel = await this.repository.findChannelByChannelId(channelId);
     if (channel === null) {
-      throw new NotFoundException("Not existed channel");
+      throw new NotFoundException('Not existed channel');
     }
     return channel;
   }
@@ -295,7 +387,10 @@ export class ChannelsService {
     return encrypt;
   }
 
-  private async decryptPassword(plainPassword: string, hasedPassword: string): Promise<boolean> {
+  private async decryptPassword(
+    plainPassword: string,
+    hasedPassword: string,
+  ): Promise<boolean> {
     const isSame = await bcrypt.compare(plainPassword, hasedPassword);
     return isSame;
   }

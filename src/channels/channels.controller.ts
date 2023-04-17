@@ -8,6 +8,8 @@ import {
   Query,
   UseGuards,
   Request,
+  ParseIntPipe,
+  Delete,
 } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
 import {
@@ -137,5 +139,26 @@ export class ChannelsController {
       channelId,
       false,
     );
+  }
+
+  @Get('/:channelId/friends')
+  @UseGuards(AuthGuard)
+  async memberListInChannel(
+    @Param('channelId') channelId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.channelsService.memberListInChannel(
+      req['id']['id'],
+      channelId,
+    );
+  }
+
+  @Delete('/:channelId')
+  @UseGuards(AuthGuard)
+  async goOutChannel(
+    @Param('channelId') channelId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    await this.channelsService.goOutChannel(req['id']['id'], channelId);
   }
 }

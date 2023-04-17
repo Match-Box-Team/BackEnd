@@ -65,6 +65,8 @@ export class ChannelsRepository {
         channelId: channelId,
       },
       select: {
+        userChannelId: true,
+        isAdmin: true,
         user: {
           select: {
             userId: true,
@@ -108,6 +110,7 @@ export class ChannelsRepository {
             channelId: true,
             channelName: true,
             isDm: true,
+            count: true,
           },
         },
         user: {
@@ -192,12 +195,14 @@ export class ChannelsRepository {
         ],
       },
       select: {
+        userChannelId: true,
+        isAdmin: true,
         user: true,
       },
     });
   }
 
-  async findBannEachOtherByBuddyId(
+  async findBanEachOtherByBuddyId(
     userId: string,
     buddyId: string,
   ): Promise<Friend[]> {
@@ -211,6 +216,17 @@ export class ChannelsRepository {
             AND: [{ myId: buddyId }, { buddyId: userId }, { isBan: true }],
           },
         ],
+      },
+    });
+  }
+
+  async findFriendByUserIdAndBuddyId(
+    userId: string,
+    buddyId: string,
+  ): Promise<Friend> {
+    return await this.prisma.friend.findFirst({
+      where: {
+        AND: [{ myId: userId }, { buddyId: buddyId }],
       },
     });
   }
@@ -311,6 +327,34 @@ export class ChannelsRepository {
       },
       data: {
         isMute: isMute,
+      },
+    });
+  }
+
+  async deleteChannel(channelId: string) {
+    await this.prisma.channel.delete({
+      where: {
+        channelId: channelId,
+      },
+    });
+  }
+
+  async deleteUserChannel(userChannelId: string) {
+    await this.prisma.userChannel.delete({
+      where: {
+        userChannelId: userChannelId,
+      },
+    });
+  }
+
+  async updateOwner(userChannelId: string) {
+    await this.prisma.userChannel.update({
+      where: {
+        userChannelId: userChannelId,
+      },
+      data: {
+        isOwner: true,
+        isAdmin: true,
       },
     });
   }

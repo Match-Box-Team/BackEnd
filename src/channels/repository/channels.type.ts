@@ -6,6 +6,7 @@ interface UserChannelOne {
         channelId: string,
         channelName: string,
         isDm: boolean,
+        count: number
     },
     user: {
         userId: string,
@@ -36,6 +37,8 @@ interface FindPublicChannel {
 }
 
 interface FindUsersInChannel {
+    userChannelId: string,
+    isAdmin: boolean,
     user: {
         userId: string,
         nickname: string,

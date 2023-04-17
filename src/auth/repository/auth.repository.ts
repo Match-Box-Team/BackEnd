@@ -14,7 +14,6 @@ export class AuthRepository {
         },
         update: {
           email: profile.email,
-          image: profile.image,
           phoneNumber: profile.phoneNumber,
           status: 'online',
         },

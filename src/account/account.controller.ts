@@ -19,22 +19,4 @@ export class AccountController {
   // ) {
   //   return this.accountService.updateUserProfile(userId, updateUserDto);
   // }
-
-  @Post('sendEmail')
-  async sendEmail(@Body() { userId }: UserId): Promise<void> {
-    this.accountService.sendVerificationEmail(userId);
-  }
-
-  @Post('verifyTimeOut')
-  async verifyTimeOut(@Body() { userId }: UserId) {
-    this.accountService.verifyTimeOut(userId);
-  }
-
-  @Post('verifyCode')
-  async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
-    return this.accountService.verifyCode(
-      verifyCodeDto.userId,
-      verifyCodeDto.code,
-    );
-  }
 }

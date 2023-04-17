@@ -25,9 +25,10 @@
 //   }
 // }
 
-import { Controller, Get, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express'; // Express 응답 객체를 가져옵니다.
+import { UserId, VerifyCodeDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -47,5 +48,23 @@ export class AuthController {
 
     res.setHeader('Set-Cookie', cookieHeader); // 헤더에 쿠키 설정
     res.redirect(301, 'http://127.0.0.1:3000/'); // 리다이렉트
+  }
+
+  @Post('sendEmail')
+  async sendEmail(@Body() { userId }: UserId): Promise<void> {
+    this.authService.sendVerificationEmail(userId);
+  }
+
+  @Post('verifyTimeOut')
+  async verifyTimeOut(@Body() { userId }: UserId) {
+    this.authService.verifyTimeOut(userId);
+  }
+
+  @Post('verifyCode')
+  async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
+    return this.authService.verifyCode(
+      verifyCodeDto.userId,
+      verifyCodeDto.code,
+    );
   }
 }

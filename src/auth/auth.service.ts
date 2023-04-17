@@ -1,8 +1,14 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { OAuthUserInfoDto } from './dto';
 import { AuthRepository } from './repository/auth.repository';
 import { JwtUtil } from './jwt/jwt.util';
 import { PrismaService } from 'prisma/prisma.service';
+import { MailerService } from '@nestjs-modules/mailer';
+import { AccountService } from 'src/account/account.service';
 
 @Injectable()
 export class AuthService {
@@ -10,6 +16,8 @@ export class AuthService {
     private authRepository: AuthRepository,
     private jwtUtil: JwtUtil,
     private prisma: PrismaService,
+    private accountServce: AccountService,
+    private mailService: MailerService,
   ) {}
 
   async getAccessTokenUrl(code: string): Promise<string> {
@@ -102,5 +110,48 @@ export class AuthService {
 
     const resJWT = this.jwtUtil.encode(payload);
     return resJWT;
+  }
+
+  /*
+   ** 이메일 인증
+   */
+
+  // Map<email, code>
+  private map = new Map<string, string>();
+
+  async sendVerificationEmail(userId: string): Promise<void> {
+    const userEmail = await this.accountServce.getUserEmail(userId);
+    if (userEmail === null) {
+      throw new NotFoundException('Not found user email');
+    }
+    const code = Math.random().toString(36).substring(2, 15);
+
+    await this.mailService.sendMail({
+      to: userEmail.email,
+      subject: 'Verify Your Email Address',
+      template: 'verification',
+      context: {
+        code,
+      },
+    });
+    this.map.set(userId, code);
+  }
+
+  async verifyTimeOut(userId: string) {
+    this.map.delete(userId);
+  }
+
+  async verifyCode(userId: string, inputCode: string) {
+    const storedCode = this.map.get(userId);
+    if (storedCode === null) {
+      throw new NotFoundException('User not has code');
+    }
+
+    if (inputCode === storedCode) {
+      this.map.delete(userId);
+      return { success: true, message: 'Verification succeeded' };
+    } else {
+      return { success: false, message: 'Token mismatch' };
+    }
   }
 }

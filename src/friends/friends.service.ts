@@ -6,9 +6,7 @@ import { FriendsAddDto } from './dto/friends-add.request';
 export class FriendsService {
   constructor(private friendsRepository: FriendsRepository) {}
 
-  // 예시
-  async addFriend(dto: FriendsAddDto) {
-    // 로직 구현
-    // friendsRepository에서 쿼리문 찾아서 사용
+  async addFriend(userID: string, friendID: FriendsAddDto) {
+    return await this.friendsRepository.addFrirend(userID, friendID);
   }
 }

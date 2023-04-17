@@ -5,7 +5,7 @@ import * as jwt from 'jsonwebtoken';
 export class JwtUtil {
   private secret = process.env.JWT_SECRET;
   private jwtOptions = {
-    expiresIn: '1h',
+    expiresIn: '24h',
   };
 
   encode(payload: any): string {

@@ -11,7 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { AccountService } from 'src/account/account.service';
 import { GamesService } from '../games.service';
-import { randomMatchDto } from '../repository/game.type';
+import { GameWatchId, UserId, randomMatchDto } from '../repository/game.type';
 
 // cors 꼭꼭 해주기!
 @WebSocketGateway({ namespace: 'game', cors: true })
@@ -73,8 +73,8 @@ export class GameEventsGateway
   }
 
   @SubscribeMessage('gameFinish')
-  async gameFinish(client: Socket, gameWatchId: string) {
-    this.logger.log("Game Finish");
+  async gameFinish(client: Socket, { gameWatchId }: GameWatchId) {
+    this.logger.log('Game Finish');
     const gameWatch = await this.gamesService.getGameWatch(gameWatchId);
     this.gamesService.createGameHistory(gameWatch.gameWatchId, {
       winnerId: gameWatch.userGameId1,
@@ -86,7 +86,8 @@ export class GameEventsGateway
 
   // 게임 떠나기
   @SubscribeMessage('leaveMatch')
-  handleLeaveMatch(client: Socket) {
-    this.gamesService.removePlayerToQueue(client);
+  handleLeaveMatch(client: Socket, { userId }: UserId) {
+    client.emit('matchFail');
+    this.gamesService.removePlayerToQueue(client, userId);
   }
 }

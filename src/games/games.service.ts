@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Game, GameWatch } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { GamesRepository } from './repository/games.repository';
@@ -19,26 +23,20 @@ export class GamesService {
     setInterval(() => this.processMatchmakingQueue(), 1000);
   }
 
-  // api들
-  async get(): Promise<Game[]> {
-    return this.repository.getGames();
-  }
-
   async getGame(gameId: string): Promise<Game> {
     const game = await this.repository.getGame(gameId);
     if (game === null) {
-      throw new NotFoundException('Game not found');
+      throw new NotFoundException('Not found game');
     }
     return game;
   }
 
   async getGamesByUserId(userId: string): Promise<GameType[]> {
-    const user = await this.accountService.getUser(userId);
-    if (user === null) {
-      throw new NotFoundException('User not found');
-    }
     const games = await this.repository.getGames();
     const userGameIds = await this.repository.getUserGameIdsByUserId(userId);
+    if (userGameIds === null) {
+      throw new NotFoundException('Not found userGameIds');
+    }
 
     return games.map((game) => ({
       gameId: game.gameId,
@@ -50,19 +48,21 @@ export class GamesService {
   }
 
   async buyGame(userId: string, gameId: string): Promise<GameId> {
-    const user = await this.accountService.getUser(userId);
     const game = await this.repository.getGame(gameId);
-    if (user === null || game === null) {
-      throw new NotFoundException('User or Game not found');
+    if (game === null) {
+      throw new NotFoundException('Not found game');
     }
     const userGame = await this.repository.createUserGame(userId, gameId);
+    if (userGame === null) {
+      throw new NotFoundException('Not found userGame');
+    }
     return { gameId: userGame.gameId };
   }
 
   async getGameWatch(gameWatchId: string): Promise<GameWatch> {
     const gameWatch = await this.repository.getGameWatchById(gameWatchId);
     if (gameWatch === null) {
-      throw new NotFoundException('GameWatch not found');
+      throw new NotFoundException('Not found gameWatch');
     }
     return gameWatch;
   }
@@ -70,7 +70,7 @@ export class GamesService {
   async getGameWatches(gameId: string): Promise<GameWatchesType> {
     const game = await this.repository.getGame(gameId);
     if (game === null) {
-      throw new NotFoundException('Game not found');
+      throw new NotFoundException('Not found game');
     }
 
     const gameWatchesWithSameGameId =
@@ -102,29 +102,6 @@ export class GamesService {
     };
   }
 
-  async createGameHistory(
-    gameWatchId: string,
-    gameHistoryDto: GameHistoryDto,
-  ): Promise<void> {
-    const gameWatch = await this.repository.getGameWatchById(gameWatchId);
-    if (gameWatch === null) {
-      throw new NotFoundException('GameWatch not found');
-    }
-    const checkGameWatchthis = await this.repository.deleteGameWath(gameWatchId);
-
-    const winnerId = gameHistoryDto.winnerId;
-    const loserId = gameHistoryDto.loserId;
-    if (
-      (winnerId === gameWatch.userGameId1 &&
-        loserId === gameWatch.userGameId2) ||
-      (winnerId === gameWatch.userGameId2 && loserId === gameWatch.userGameId1)
-    ) {
-      const gameHistory = await this.repository.createGameHistory(gameHistoryDto);
-    } else {
-      throw new NotFoundException('User matching is incorrect');
-    }
-  }
-
   /*
    ** 소켓 관련
    */
@@ -153,12 +130,16 @@ export class GamesService {
   }
 
   // 게임 매칭 큐에서 제거
-  removePlayerToQueue(player: Socket): void {
+  removePlayerToQueue(player: Socket, userId: string): void {
     const gameId = player.data.gameId;
+    if (this.map.get(gameId) === undefined) {
+      return;
+    }
+
     const players = this.map.get(gameId);
     this.map.set(
       gameId,
-      players.filter((socket) => socket.data.userId !== player.data.userId),
+      players.filter((player) => player.data.userId !== userId),
     );
     console.log(
       `User ${player.data.nickname} deleted to ${
@@ -173,7 +154,7 @@ export class GamesService {
   async processMatchmakingQueue(): Promise<void> {
     for (const gameId of this.map.keys()) {
       const players = this.map.get(gameId);
-      while (players.length >= 2) {
+      while (players && players.length >= 2) {
         const player1 = players.shift();
         const player2 = players.shift();
         const userGame1 = await this.repository.getUserGame(
@@ -200,13 +181,46 @@ export class GamesService {
         setTimeout(() => {
           if (players.length === 1 && this.map.get(gameId)[0] === player) {
             player.emit('matchFail');
-            this.removePlayerToQueue(player);
+            this.removePlayerToQueue(player, player.data.userId);
             console.log(
               `User ${player.data.nickname} removed from matchmaking queue due to timeout`,
             );
           }
-        }, 5000);
+        }, 10000);
       }
+    }
+  }
+
+  async createGameHistory(
+    gameWatchId: string,
+    gameHistoryDto: GameHistoryDto,
+  ): Promise<void> {
+    const gameWatch = await this.repository.getGameWatchById(gameWatchId);
+    if (gameWatch === null) {
+      throw new NotFoundException('Not found gameWatch');
+    }
+    const deletedGameWatchth = await this.repository.deleteGameWatch(
+      gameWatchId,
+    );
+    if (deletedGameWatchth === null) {
+      throw new BadRequestException('Failed delete gameWatch');
+    }
+
+    const winnerId = gameHistoryDto.winnerId;
+    const loserId = gameHistoryDto.loserId;
+    if (
+      (winnerId === gameWatch.userGameId1 &&
+        loserId === gameWatch.userGameId2) ||
+      (winnerId === gameWatch.userGameId2 && loserId === gameWatch.userGameId1)
+    ) {
+      const gameHistory = await this.repository.createGameHistory(
+        gameHistoryDto,
+      );
+      if (gameHistory === null) {
+        throw new BadRequestException('Failed create gameHistory');
+      }
+    } else {
+      throw new BadRequestException('User matching is incorrect');
     }
   }
 }

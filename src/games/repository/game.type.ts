@@ -19,6 +19,10 @@ export interface UserId {
   userId: string;
 }
 
+export interface GameWatchId {
+  gameWatchId: string;
+}
+
 export interface GameWatchesType {
   gameId: string;
   gameName: string;

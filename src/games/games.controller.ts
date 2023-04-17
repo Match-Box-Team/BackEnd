@@ -1,45 +1,51 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { GamesService } from './games.service';
 import { GameHistoryDto, gameIdDto, gameWatchIdDto } from './dto/games.dto';
+import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { Request } from 'express';
 
 @Controller('games')
 export class GamesController {
   constructor(private gamesService: GamesService) {}
 
-  @Get('get')
-  async get() {
-    return this.gamesService.get();
-  }
-
   // 게임샵 페이지 - 게임 목록 조회
   @Get()
-  async getGames() {
-    const userId = 'd9a436fc-195f-41c6-b3fe-8300f4ad1fca';
+  @UseGuards(AuthGuard)
+  async getGames(@Req() req: Request) {
+    const userId = req['id']['id'];
     return this.gamesService.getGamesByUserId(userId);
   }
 
   // 게임샵 페이지 - 게임 구매
   @Post(':gameId/buy')
-  async buyGame(@Param() gameId: gameIdDto) {
-    const userId = 'd9a436fc-195f-41c6-b3fe-8300f4ad1fca';
+  @UseGuards(AuthGuard)
+  async buyGame(@Req() req: Request, @Param() gameId: gameIdDto) {
+    const userId = req['id']['id'];
     return this.gamesService.buyGame(userId, gameId.gameId);
   }
 
   // 관전 목록 페이지 - 게임 관전 목록 조회
   @Get(':gameId')
+  @UseGuards(AuthGuard)
   async getGameWatches(@Param() gameId: gameIdDto) {
     return this.gamesService.getGameWatches(gameId.gameId);
   }
 
   // 게임 종료
   @Post(':gameWatchId')
+  @UseGuards(AuthGuard)
   async createGameHistory(
-    @Param() gameWatchId: gameWatchIdDto,
+    @Param() { gameWatchId }: gameWatchIdDto,
     @Body() gameHistoryDto: GameHistoryDto,
   ) {
-    return this.gamesService.createGameHistory(
-      gameWatchId.gameWatchId,
-      gameHistoryDto,
-    );
+    return this.gamesService.createGameHistory(gameWatchId, gameHistoryDto);
   }
 }

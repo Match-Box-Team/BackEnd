@@ -4,7 +4,6 @@ import { AuthService } from './auth.service';
 import { AuthRepository } from './repository/auth.repository';
 import { PrismaService } from 'prisma/prisma.service';
 import { JwtUtil } from './jwt/jwt.util';
-// import { PrismaModule } from '../prisma/prisma.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import * as path from 'path';

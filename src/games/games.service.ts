@@ -120,13 +120,13 @@ export class GamesService {
     } else {
       this.map.set(gameId, [player]);
     }
-    console.log(
-      `User ${userId} added to ${
-        player.data.gameName
-      } matchmaking queue. Current queue length: ${
-        this.map.get(gameId).length
-      }`,
-    );
+    // console.log(
+    //   `User ${userId} added to ${
+    //     player.data.gameName
+    //   } matchmaking queue. Current queue length: ${
+    //     this.map.get(gameId).length
+    //   }`,
+    // );
   }
 
   // 게임 매칭 큐에서 제거
@@ -141,13 +141,13 @@ export class GamesService {
       gameId,
       players.filter((player) => player.data.userId !== userId),
     );
-    console.log(
-      `User ${player.data.nickname} deleted to ${
-        player.data.gameName
-      } matchmaking queue. Current queue length: ${
-        this.map.get(gameId).length
-      }`,
-    );
+    // console.log(
+    //   `User ${player.data.nickname} deleted to ${
+    //     player.data.gameName
+    //   } matchmaking queue. Current queue length: ${
+    //     this.map.get(gameId).length
+    //   }`,
+    // );
   }
 
   // 1초마다 유저 2명 이상 있으면 매칭 해줌
@@ -169,9 +169,9 @@ export class GamesService {
           userGame1.userGameId,
           userGame2.userGameId,
         );
-        console.log(
-          `Matched ${player1.data.nickname} and ${player2.data.nickname} with room name ${gameWatch.gameWatchId}`,
-        );
+        // console.log(
+        //   `Matched ${player1.data.nickname} and ${player2.data.nickname} with room name ${gameWatch.gameWatchId}`,
+        // );
         player1.emit('matchSuccess', { roomName: gameWatch.gameWatchId });
         player2.emit('matchSuccess', { roomName: gameWatch.gameWatchId });
       }
@@ -182,9 +182,9 @@ export class GamesService {
           if (players.length === 1 && this.map.get(gameId)[0] === player) {
             player.emit('matchFail');
             this.removePlayerToQueue(player, player.data.userId);
-            console.log(
-              `User ${player.data.nickname} removed from matchmaking queue due to timeout`,
-            );
+            // console.log(
+            //   `User ${player.data.nickname} removed from matchmaking queue due to timeout`,
+            // );
           }
         }, 10000);
       }

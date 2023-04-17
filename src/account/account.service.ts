@@ -1,9 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User, UserGame } from '@prisma/client';
 import { AccountRepository } from './repository/account.repository';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { MailerService } from '@nestjs-modules/mailer';
-import { VerifySuccessMsgDto } from './dto/verify-success-msg.dto';
+import { UpdateUserDto } from './dto/account.dto';
 
 @Injectable()
 export class AccountService {
@@ -11,10 +10,6 @@ export class AccountService {
     private mailService: MailerService,
     private repository: AccountRepository,
   ) {}
-
-  /**
-   * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
-   */
 
   async getUsers(): Promise<User[]> {
     return this.repository.getUsers();
@@ -52,38 +47,32 @@ export class AccountService {
   // Map<email, code>
   private map = new Map<string, string>();
 
-  async sendVerificationEmail(userId: string, userEmail: string): Promise<void> {
-    // 랜덤한 토큰 생성
+  async sendVerificationEmail(userId: string): Promise<void> {
+    const userEmail = await this.repository.getUserEmail(userId);
+    if (userEmail === null) {
+      throw new NotFoundException('Not found user email');
+    }
     const code = Math.random().toString(36).substring(2, 15);
-    console.log(userEmail, code);
 
-    // 생성된 토큰과 함께 이메일 보내기
     await this.mailService.sendMail({
-      to: userEmail,
+      to: userEmail.email,
       subject: 'Verify Your Email Address',
       template: 'verification',
       context: {
         code,
       },
     });
-
     this.map.set(userId, code);
-
-    const verifyTimeOut = setTimeout(() => {
-      if (code === this.map.get(userId)) {
-        console.log('2차 메일 인증 실패');
-        // 소켓 통신으로 알려주거나 해야 될 듯
-      } else {
-        clearTimeout(verifyTimeOut);
-      }
-      this.map.delete(userId);
-    }, 10000);
   }
 
-  async verifyCode(userId: string, inputCode: string): Promise<VerifySuccessMsgDto> {
+  async verifyTimeOut(userId: string) {
+    this.map.delete(userId);
+  }
+
+  async verifyCode(userId: string, inputCode: string) {
     const storedCode = this.map.get(userId);
     if (storedCode === null) {
-      throw new NotFoundException('Token not found');
+      throw new NotFoundException('User not has code');
     }
 
     if (inputCode === storedCode) {

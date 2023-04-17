@@ -21,7 +21,8 @@ export class FriendsController {
   @Get('/banned')
   @UseGuards(AuthGuard)
   async getBanFriendList(@Request() req: ExpressRequest) {
-    return this.friendsService.getBanFriendList(req['id']['id']);
+    const userId: string = req['id']['id'];
+    return this.friendsService.getBanFriendList(userId);
   }
 
   @Patch('/:buddyId/banned')
@@ -31,6 +32,7 @@ export class FriendsController {
     @Body() dto: FriendsSetBanDto,
     @Request() req: ExpressRequest,
   ) {
-    return this.friendsService.setBanFriend(req['id']['id'], buddyId, dto);
+    const userId: string = req['id']['id'];
+    return this.friendsService.setBanFriend(userId, buddyId, dto);
   }
 }

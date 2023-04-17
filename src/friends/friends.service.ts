@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { FriendsRepository } from './repository/friends.repository';
 import { FriendsSetBanDto } from './dto/friends.dto';
 import { Friend } from '@prisma/client';
@@ -14,6 +18,11 @@ export class FriendsService {
 
   async setBanFriend(userId: string, buddyId: string, dto: FriendsSetBanDto) {
     const friend = await this.validateMyFriend(userId, buddyId);
+    if (friend.isBan === dto.isBan) {
+      throw new ConflictException(
+        'Your friend is already ' + (dto.isBan ? 'banned' : 'unbanned'),
+      );
+    }
     await this.friendsRepository.updateFriendBan(friend.friendId, dto.isBan);
   }
 

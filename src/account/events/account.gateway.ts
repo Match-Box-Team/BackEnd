@@ -15,7 +15,7 @@ interface LoginMessage {
   userId: string;
 }
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: true })
 export class AccountEventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -37,16 +37,19 @@ export class AccountEventsGateway
   }
 
   // 소켓 연결이 끊기면 실행, user state offline으로 업데이트
-  handleDisconnect(@ConnectedSocket() client: Socket) {
-    const userId = client.data.userId;
-    this.accountService.updateUserState(userId, 'offline');
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
+    const users = await this.accountService.getUsers();
+    const userId = client.data.userId ? client.data.userId : users[0].userId;
     this.logger.log(`${client.id} 소켓 연결 해제`);
+    await this.accountService.updateUserState(userId, 'offline');
   }
 
   // 로그인 시 user state online으로 업데이트
   @SubscribeMessage('login')
-  login(client: Socket, { userId }: LoginMessage) {
+  async login(client: Socket, { userId }: LoginMessage) {
+    const user = await this.accountService.getUser(userId);
+    console.log(`login name: ${user.nickname} --- id: ${userId}`);
     client.data.userId = userId;
-    this.accountService.updateUserState(userId, 'online');
+    await this.accountService.updateUserState(userId, 'online');
   }
 }

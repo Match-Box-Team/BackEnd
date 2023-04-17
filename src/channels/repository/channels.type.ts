@@ -1,6 +1,7 @@
 interface UserChannelOne {
   userChannelId: string;
   isOwner: boolean;
+  isAdmin: boolean;
   isMute: boolean;
   channel: {
     channelId: string;
@@ -84,8 +85,4 @@ interface CreateChannelData {
   count: number;
   isPublic: boolean;
   isDm: boolean;
-}
-
-interface UserToken {
-  id: string;
 }

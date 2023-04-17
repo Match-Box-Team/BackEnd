@@ -85,7 +85,7 @@ model Friend {
 model Channel {
   channelId     String  @id @default(uuid()) @map("channel_id") @db.Uuid
   channelName   String  @map("channel_name")
-  password      String
+  password      String?
   count         Int
   isPublic      Boolean @map("is_public")
   isDm          Boolean @map("is_dm")

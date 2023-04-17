@@ -1,14 +1,30 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { FriendsModule } from './friends/friends.module';
 import { GamesModule } from './games/games.module';
 import { ChannelsModule } from './channels/channels.module';
 import { AccountModule } from './account/account.module';
+import { AuthModule } from './auth/auth.module';
+import { AuthGuard } from './auth/guard/auth.guard';
+import { JwtService } from '@nestjs/jwt';
+import { APP_PIPE } from '@nestjs/core';
 
 @Module({
-  imports: [FriendsModule, GamesModule, ChannelsModule, AccountModule],
+  imports: [
+    FriendsModule,
+    GamesModule,
+    ChannelsModule,
+    AccountModule,
+    AuthModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AuthGuard, JwtService,
+    AppService,
+    {
+      provide: APP_PIPE,
+      useClass: ValidationPipe,
+    },
+  ],
 })
 export class AppModule {}

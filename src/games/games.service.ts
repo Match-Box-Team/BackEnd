@@ -112,7 +112,7 @@ export class GamesService {
 
   // 게임 매칭 큐에 추가
   addPlayerToQueue(player: Socket): void {
-    const userId = player.data.userId;
+    // const userId = player.data.userId;
     const gameId = player.data.gameId;
     const players = this.map.get(gameId);
     if (players) {

@@ -1,6 +1,21 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ChannelsService } from './channels.service';
-import { ChannelCreateDto, ChannelInviteDto, ChannelPasswordDto, DmDto } from './dto/channels.dto';
+import {
+  ChannelCreateDto,
+  ChannelInviteDto,
+  ChannelPasswordDto,
+  DmDto,
+} from './dto/channels.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Request as ExpressRequest } from 'express';
 
@@ -22,43 +37,105 @@ export class ChannelsController {
 
   @Post('')
   @UseGuards(AuthGuard)
-  async createChannel(@Body() dto: ChannelCreateDto, @Request() req: ExpressRequest) {
+  async createChannel(
+    @Body() dto: ChannelCreateDto,
+    @Request() req: ExpressRequest,
+  ) {
     await this.channelsService.createChannel(req['id']['id'], dto);
   }
 
   @Post('/:channelId/join')
   @UseGuards(AuthGuard)
-  async joinChannel(@Param('channelId') channelId: string, @Body() dto: ChannelPasswordDto, @Request() req: ExpressRequest) {
+  async joinChannel(
+    @Param('channelId') channelId: string,
+    @Body() dto: ChannelPasswordDto,
+    @Request() req: ExpressRequest,
+  ) {
     await this.channelsService.joinChannel(req['id']['id'], channelId, dto);
   }
 
   @Get('/:channelId')
   @UseGuards(AuthGuard)
-  async getChatLog(@Param('channelId') channelId: string, @Request() req: ExpressRequest) {
+  async getChatLog(
+    @Param('channelId') channelId: string,
+    @Request() req: ExpressRequest,
+  ) {
     return await this.channelsService.getChatLog(req['id']['id'], channelId);
   }
 
   @Get('/:channelId/invite')
   @UseGuards(AuthGuard)
-  async searchUserForInvite(@Param('channelId') channelId: string, @Query('nickname') nickname: string, @Request() req: ExpressRequest) {
-    return await this.channelsService.searchUserForInvite(req['id']['id'], channelId, nickname);
+  async searchUserForInvite(
+    @Param('channelId') channelId: string,
+    @Query('nickname') nickname: string,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.channelsService.searchUserForInvite(
+      req['id']['id'],
+      channelId,
+      nickname,
+    );
   }
 
   @Post('/:channelId/invite')
   @UseGuards(AuthGuard)
-  async inviteUser(@Param('channelId') channelId: string, @Body() dto: ChannelInviteDto, @Request() req: ExpressRequest) {
+  async inviteUser(
+    @Param('channelId') channelId: string,
+    @Body() dto: ChannelInviteDto,
+    @Request() req: ExpressRequest,
+  ) {
     await this.channelsService.inviteUser(req['id']['id'], channelId, dto);
   }
 
   @Patch('/:channelId')
   @UseGuards(AuthGuard)
-  async changeChannelPassword(@Param('channelId') channelId: string, @Body() dto: ChannelPasswordDto, @Request() req: ExpressRequest) {
-    await this.channelsService.changeChannelPassword(req['id']['id'], channelId, dto);
+  async changeChannelPassword(
+    @Param('channelId') channelId: string,
+    @Body() dto: ChannelPasswordDto,
+    @Request() req: ExpressRequest,
+  ) {
+    await this.channelsService.changeChannelPassword(
+      req['id']['id'],
+      channelId,
+      dto,
+    );
   }
 
   @Post('/dm')
   @UseGuards(AuthGuard)
   async enterDm(@Body() dto: DmDto, @Request() req: ExpressRequest) {
     return await this.channelsService.enterDm(req['id']['id'], dto);
+  }
+
+  ///channels/:channelId/member/:userId/mute
+  @Patch('/:channelId/member/:userId/mute')
+  @UseGuards(AuthGuard)
+  async muteUser(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.channelsService.setUserMute(
+      req['id']['id'],
+      userId,
+      channelId,
+      true,
+    );
+  }
+
+  ///channels/:channelId/member/:userId/unmute
+  @Patch('/:channelId/member/:userId/unmute')
+  @UseGuards(AuthGuard)
+  async unmuteUser(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.channelsService.setUserMute(
+      req['id']['id'],
+      userId,
+      channelId,
+      false,
+    );
   }
 }

@@ -14,25 +14,29 @@ export class ChannelsRepository {
         AND: [
           { isPublic: true },
           { isDm: false },
-          { NOT: {
-            userChannels: {
-              some: { userId: userId },
+          {
+            NOT: {
+              userChannels: {
+                some: { userId: userId },
+              },
             },
-          } },
-        ]
+          },
+        ],
       },
       select: {
         channelId: true,
         channelName: true,
-        count: true
-      }
+        count: true,
+      },
     });
   }
 
-  async findUserChannelsWithChannel(userId: string): Promise<FindUserChannelsWithChannel[]> {
+  async findUserChannelsWithChannel(
+    userId: string,
+  ): Promise<FindUserChannelsWithChannel[]> {
     return this.prisma.userChannel.findMany({
       where: {
-        userId: userId
+        userId: userId,
       },
       select: {
         userChannelId: true,
@@ -43,32 +47,32 @@ export class ChannelsRepository {
             channelName: true,
             isPublic: true,
             isDm: true,
-            count: true
-          }
+            count: true,
+          },
         },
         user: {
           select: {
             nickname: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
   }
 
   async findUsersInChannel(channelId: string): Promise<FindUsersInChannel[]> {
     return await this.prisma.userChannel.findMany({
       where: {
-        channelId: channelId
+        channelId: channelId,
       },
       select: {
         user: {
           select: {
             userId: true,
             nickname: true,
-            image: true
-          }
-        }
-      }
+            image: true,
+          },
+        },
+      },
     });
   }
 
@@ -76,22 +80,24 @@ export class ChannelsRepository {
     return await this.prisma.chat.findMany({
       where: {
         userChannel: {
-          channelId: channelId
+          channelId: channelId,
         },
       },
-      orderBy: [{
-        time: 'desc'
-      }]
+      orderBy: [
+        {
+          time: 'desc',
+        },
+      ],
     });
   }
 
-  async findOneUserChannel(userId: string, channelId: string): Promise<UserChannelOne> {
+  async findOneUserChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<UserChannelOne> {
     return await this.prisma.userChannel.findFirst({
       where: {
-        AND: [
-          { userId: userId },
-          { channelId: channelId }
-        ]
+        AND: [{ userId: userId }, { channelId: channelId }],
       },
       select: {
         userChannelId: true,
@@ -101,17 +107,17 @@ export class ChannelsRepository {
           select: {
             channelId: true,
             channelName: true,
-            isDm: true
-          }
+            isDm: true,
+          },
         },
         user: {
           select: {
             userId: true,
             nickname: true,
             image: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
   }
 
@@ -120,9 +126,9 @@ export class ChannelsRepository {
       where: {
         userChannel: {
           channel: {
-            channelId: channelId
-          }
-        }
+            channelId: channelId,
+          },
+        },
       },
       select: {
         chatId: true,
@@ -137,86 +143,86 @@ export class ChannelsRepository {
                 userId: true,
                 nickname: true,
                 image: true,
-              }
-            }
+              },
+            },
           },
         },
       },
-      orderBy: [{
-        time: 'asc'
-      }]
+      orderBy: [
+        {
+          time: 'asc',
+        },
+      ],
     });
   }
 
   async findChannelByChannelId(channelId: string): Promise<Channel> {
     return await this.prisma.channel.findFirst({
       where: {
-        channelId: channelId
-      }
+        channelId: channelId,
+      },
     });
   }
 
   async findUserByNickname(nickname: string): Promise<User> {
     return await this.prisma.user.findUnique({
       where: {
-        nickname: nickname
-      }
+        nickname: nickname,
+      },
     });
   }
 
   async findUserByUserId(userId: string): Promise<User> {
     return await this.prisma.user.findUnique({
       where: {
-        userId: userId
-      }
+        userId: userId,
+      },
     });
   }
 
-  async findBuddyInfoByChannelId(channelId: string, userChannelId: string): Promise<FindUsersInChannel> {
+  async findBuddyInfoByChannelId(
+    channelId: string,
+    userChannelId: string,
+  ): Promise<FindUsersInChannel> {
     return await this.prisma.userChannel.findFirst({
       where: {
         AND: [
           { channelId: channelId },
-          { userChannelId: {not: userChannelId }}
-        ]
+          { userChannelId: { not: userChannelId } },
+        ],
       },
       select: {
-        user: true
-      }
+        user: true,
+      },
     });
   }
 
-  async findBannEachOtherByBuddyId(userId: string, buddyId: string): Promise<Friend[]> {
+  async findBannEachOtherByBuddyId(
+    userId: string,
+    buddyId: string,
+  ): Promise<Friend[]> {
     return await this.prisma.friend.findMany({
       where: {
         OR: [
           {
-            AND: [
-              { myId: userId },
-              { buddyId: buddyId },
-              { isBan: true }
-            ]
+            AND: [{ myId: userId }, { buddyId: buddyId }, { isBan: true }],
           },
           {
-            AND: [
-              { myId: buddyId },
-              { buddyId: userId },
-              { isBan: true }
-            ]
+            AND: [{ myId: buddyId }, { buddyId: userId }, { isBan: true }],
           },
-        ]
-      }
+        ],
+      },
     });
   }
 
-  async findDmChannelByChannelName(meBuddy: string, buddyMe: string): Promise<Channel> {
+  async findDmChannelByChannelName(
+    meBuddy: string,
+    buddyMe: string,
+  ): Promise<Channel> {
     return await this.prisma.channel.findFirst({
       where: {
-        OR: [
-          {channelName: meBuddy},
-          {channelName: buddyMe}
-        ]
-      }
+        OR: [{ channelName: meBuddy }, { channelName: buddyMe }],
+      },
     });
   }
 
@@ -230,8 +236,8 @@ export class ChannelsRepository {
         password: data.password,
         count: data.count,
         isPublic: data.isPublic,
-        isDm: data.isDm
-      }
+        isDm: data.isDm,
+      },
     });
   }
 
@@ -243,9 +249,9 @@ export class ChannelsRepository {
         isMute: userChannelData.isMute,
         lastChatTime: userChannelData.lastChatTime,
         userId: userChannelData.userId,
-        channelId: userChannelData.channelId
-      }
-    })
+        channelId: userChannelData.channelId,
+      },
+    });
   }
 
   async createChat(userChannelId: string, message: string, time: Date) {
@@ -253,43 +259,59 @@ export class ChannelsRepository {
       data: {
         userChannelId: userChannelId,
         message: message,
-        time: time
-      }
+        time: time,
+      },
     });
   }
 
   async updateLastChatTime(userChannelId: string, lastTime: Date) {
     await this.prisma.userChannel.update({
       where: {
-        userChannelId: userChannelId
+        userChannelId: userChannelId,
       },
       data: {
-        lastChatTime: lastTime
-      }
+        lastChatTime: lastTime,
+      },
     });
   }
 
   async updateChannelCount(channelId: string) {
     await this.prisma.channel.update({
       where: {
-        channelId: channelId
+        channelId: channelId,
       },
       data: {
         count: {
-          increment: 1
-        }
-      }
+          increment: 1,
+        },
+      },
     });
   }
 
   async updateChannelPassword(channelId: string, password: string) {
     await this.prisma.channel.update({
       where: {
-        channelId: channelId
+        channelId: channelId,
       },
       data: {
-        password: password
-      }
-    })
+        password: password,
+      },
+    });
+  }
+
+  async setUserMute(targetId: string, channelId: string, isMute: boolean) {
+    const userChannelOne: any = await this.findOneUserChannel(
+      targetId,
+      channelId,
+    );
+    const userChannelId = userChannelOne.userChannelId;
+    await this.prisma.userChannel.update({
+      where: {
+        userChannelId: userChannelId,
+      },
+      data: {
+        isMute: isMute,
+      },
+    });
   }
 }

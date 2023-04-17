@@ -300,11 +300,21 @@ export class ChannelsService {
     isMute: boolean,
   ): Promise<UserChannelOne> {
     const userChannel = await this.validateUserChannel(reqId, channelId);
-    if (userChannel.isOwner === false) {
-      console.log('채널 관리자가 아닙니다.');
-    } else {
-      console.log('채널 관리자입니다.');
+    if (userChannel === null) {
+      throw new NotFoundException('not joined channel');
     }
+    if (userChannel.isAdmin === false) {
+      throw new ForbiddenException('not admin user');
+    }
+
+    const userChannel2 = await this.validateUserChannel(userId, channelId);
+    if (userId === null) {
+      throw new NotFoundException('no such user');
+    }
+    if (userChannel2.isOwner === true) {
+      throw new ForbiddenException('cannot mute owner');
+    }
+
     await this.repository.setUserMute(userId, channelId, isMute);
     return userChannel;
   }

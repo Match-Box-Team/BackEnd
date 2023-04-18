@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, UserGame } from '@prisma/client';
 import { AccountRepository } from './repository/account.repository';
 import { UpdateUserDto } from './dto/account.dto';
 import { MyPage, UserEmail } from './repository/account.type';

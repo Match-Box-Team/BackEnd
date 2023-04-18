@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, UserGame } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { UserEmail, UserInfo } from './account.type';
 

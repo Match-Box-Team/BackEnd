@@ -18,6 +18,13 @@ import { FriendsSetBanDto } from './dto/friends.dto';
 export class FriendsController {
   constructor(private friendsService: FriendsService) {}
 
+  @Get('')
+  @UseGuards(AuthGuard)
+  async getFriendList(@Request() req: ExpressRequest) {
+    const userId: string = req['id']['id'];
+    return this.friendsService.getFriendsList(userId);
+  }
+
   @Get('/banned')
   @UseGuards(AuthGuard)
   async getBanFriendList(@Request() req: ExpressRequest) {

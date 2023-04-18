@@ -30,13 +30,19 @@ export class FriendsService {
     userId: string,
     friendId: string,
   ): Promise<Friend> {
-    const friend = await this.friendsRepository.findFriendByFriendIdAndMyId(
+    const friends = await this.friendsRepository.findFriendByFriendIdAndMyId(
       friendId,
       userId,
     );
-    if (friend === null) {
-      throw new NotFoundException('Not my buddy');
+    if (friends === null) {
+      throw new NotFoundException('no friends');
     }
-    return friend;
+    return friends;
+  }
+
+  // GET /friends
+  async getFriendsList(userId: string) {
+    const friendsList = await this.friendsRepository.findFriendsByMyId(userId);
+    return { friends: friendsList };
   }
 }

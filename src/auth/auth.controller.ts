@@ -75,12 +75,15 @@ export class AuthController {
   }
 
   @Post('verifyTimeOut')
-  async verifyTimeOut(@Body() { userId }: UserId) {
+  async verifyTimeOut(@Body() { userId }: UserId): Promise<void> {
     await this.authService.verifyTimeOut(userId);
   }
 
   @Post('verifyCode')
-  async verifyCode(@Body() verifyCodeDto: VerifyCodeDto, @Res() res: Response) {
+  async verifyCode(
+    @Body() verifyCodeDto: VerifyCodeDto,
+    @Res() res: Response,
+  ): Promise<void> {
     const userId = verifyCodeDto.userId;
     const isVerify = await this.authService.verifyCode(
       userId,

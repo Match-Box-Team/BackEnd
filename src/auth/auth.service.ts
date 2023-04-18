@@ -33,12 +33,10 @@ export class AuthService {
 
   public addAuthInfo(userId: string, authInfo: OAuthUserInfoDto): void {
     this.authInfoMap.set(userId, authInfo);
-    console.log(this.authInfoMap);
   }
 
   public deleteAuthInfo(userId: string): void {
     this.authInfoMap.delete(userId);
-    console.log(this.authInfoMap);
   }
 
   async getAccessTokenUrl(code: string): Promise<string> {
@@ -158,11 +156,11 @@ export class AuthService {
     this.emailMap.set(userId, code);
   }
 
-  async verifyTimeOut(userId: string) {
+  verifyTimeOut(userId: string): void {
     this.emailMap.delete(userId);
   }
 
-  async verifyCode(userId: string, inputCode: string): Promise<boolean> {
+  verifyCode(userId: string, inputCode: string): boolean {
     const storedCode = this.emailMap.get(userId);
     if (!storedCode) {
       throw new NotFoundException('User not has code');

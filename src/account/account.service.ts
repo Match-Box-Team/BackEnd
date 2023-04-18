@@ -14,7 +14,7 @@ export class AccountService {
 
   async getUsers(): Promise<User[]> {
     const users = await this.repository.getUsers();
-    if (users === null) {
+    if (!users) {
       throw new NotFoundException('Not Found users');
     }
     return users;

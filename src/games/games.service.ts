@@ -4,15 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Game, GameWatch, UserGame } from '@prisma/client';
+import { Game, GameHistory, GameWatch, UserGame } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { GamesRepository } from './repository/games.repository';
 import { GameId, GameWatchesType, GameType } from './repository/game.type';
 import { GameHistoryDto } from './dto/games.dto';
-
-/**
- * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
- */
 
 @Injectable()
 export class GamesService {
@@ -200,7 +196,7 @@ export class GamesService {
   async createGameHistory(
     gameWatchId: string,
     gameHistoryDto: GameHistoryDto,
-  ): Promise<void> {
+  ): Promise<GameHistory> {
     const gameWatch = await this.repository.getGameWatchById(gameWatchId);
     if (gameWatch === null) {
       throw new NotFoundException('Not found gameWatch');
@@ -225,6 +221,7 @@ export class GamesService {
       if (gameHistory === null) {
         throw new BadRequestException('Failed create gameHistory');
       }
+      return gameHistory;
     } else {
       throw new BadRequestException('User matching is incorrect');
     }

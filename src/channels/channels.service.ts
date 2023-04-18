@@ -384,6 +384,51 @@ export class ChannelsService {
     }
   }
 
+  //friend 로직 수정
+
+  async kickUser(
+    userId: string,
+    targetId: string,
+    channelId: string,
+  ): Promise<UserChannelOne> {
+    const userChannel = await this.validateUserChannel(userId, channelId);
+
+    // 관리자나 오너인지 확인
+    if (userChannel.isOwner === false || userChannel.isAdmin === false) {
+      throw new BadRequestException('사용자가 오너이거나 관리자가 아닙니다');
+    }
+
+    // 한 명 밖에 안 남았을 땐 채널 삭제
+    if (userChannel.channel.count === 1) {
+      await this.repository.deleteChannel(channelId);
+      return;
+    }
+
+    // 오너일 경우 다른 사람에게 오너를 부여
+    const targetChannel = await this.validateUserChannel(targetId, channelId);
+    if (targetChannel.isOwner === true) {
+      const users = await this.repository.findUsersInChannel(channelId);
+      let userChannelId: string | null = null;
+      const admin = users.find(
+        (user) => user.isAdmin === true && user.user.userId !== targetId,
+      );
+
+      if (admin !== undefined) {
+        // 오너 직책을 관리자에게 넘겨주고
+        userChannelId = admin.userChannelId;
+      } else {
+        // 만약 관리자가 없으며 그냥 아무한테 넘겨주고
+        const normal = users.find((user) => user.isAdmin === false);
+        userChannelId = normal.userChannelId;
+      }
+
+      await this.repository.updateOwner(userChannelId);
+    }
+
+    await this.repository.deleteUserChannel(userChannel.userChannelId);
+    await this.repository.removeUserCountInChannel(channelId);
+  }
+
   /**
    * 소켓에서 사용하는 메소드
    */

@@ -374,4 +374,30 @@ export class ChannelsRepository {
       },
     });
   }
+
+  async addUserCountInChannel(channelId: string) {
+    await this.prisma.channel.update({
+      where: {
+        channelId: channelId,
+      },
+      data: {
+        count: {
+          increment: 1,
+        },
+      },
+    });
+  }
+
+  async removeUserCountInChannel(channelId: string) {
+    await this.prisma.channel.update({
+      where: {
+        channelId: channelId,
+      },
+      data: {
+        count: {
+          decrement: 1,
+        },
+      },
+    });
+  }
 }

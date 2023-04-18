@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -34,9 +35,6 @@ export class GamesService {
   async getGamesByUserId(userId: string): Promise<GameType[]> {
     const games = await this.repository.getGames();
     const userGameIds = await this.repository.getUserGameIdsByUserId(userId);
-    if (userGameIds === null) {
-      throw new NotFoundException('Not found userGameIds');
-    }
 
     return games.map((game) => ({
       gameId: game.gameId,
@@ -52,11 +50,13 @@ export class GamesService {
     if (game === null) {
       throw new NotFoundException('Not found game');
     }
-    const userGame = await this.repository.createUserGame(userId, gameId);
-    if (userGame === null) {
-      throw new NotFoundException('Not found userGame');
+    const userGame = await this.repository.getUserGame(userId, gameId);
+    if (userGame) {
+      throw new ConflictException('Already exist userGame');
     }
-    return { gameId: userGame.gameId };
+
+    const newUserGame = await this.repository.createUserGame(userId, gameId);
+    return { gameId: newUserGame.gameId };
   }
 
   async getGameWatch(gameWatchId: string): Promise<GameWatch> {
@@ -110,6 +110,7 @@ export class GamesService {
   // Map<gameId, [socket...]>
   private map = new Map<string, Socket[]>();
 
+  // TODO: 유저 중복 처리 필요함!!!
   // 게임 매칭 큐에 추가
   addPlayerToQueue(player: Socket): void {
     // const userId = player.data.userId;

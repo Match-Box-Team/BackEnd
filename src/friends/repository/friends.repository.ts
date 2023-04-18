@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Friend } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { FriendsAddDto } from '../dto/friends.dto';
+import { FriendUserInfo, FriendsInfoData } from './friends.type';
 
 @Injectable()
 export class FriendsRepository {
@@ -99,6 +100,35 @@ export class FriendsRepository {
             status: true,
           },
         },
+      },
+    });
+  }
+
+  async findFriendUserInfo(userId: string): Promise<FriendUserInfo> {
+    return this.prisma.user.findUnique({
+      where: {
+        userId: userId,
+      },
+      select: {
+        nickname: true,
+        intraId: true,
+        image: true,
+      },
+    });
+  }
+
+  async getUserGameWinCount(userGameId: string): Promise<number> {
+    return this.prisma.gameHistory.count({
+      where: {
+        winnerUserGameId: userGameId,
+      },
+    });
+  }
+
+  async getUserGameLoseCount(userGameId: string): Promise<number> {
+    return this.prisma.gameHistory.count({
+      where: {
+        loserUserGameId: userGameId,
       },
     });
   }

@@ -1,4 +1,5 @@
 interface FriendsInfoData {
+  friendId: string;
   buddyId: string;
   buddy: {
     nickname: string;

@@ -12,6 +12,7 @@ export class FriendsRepository {
         AND: [{ myId: userId }, { isBan: true }],
       },
       select: {
+        friendId: true,
         buddyId: true,
         buddy: {
           select: {
@@ -24,13 +25,13 @@ export class FriendsRepository {
     });
   }
 
-  async findFriendByMyIdAndBuddyId(
+  async findFriendByFriendIdAndMyId(
+    friendId: string,
     userId: string,
-    buddyId: string,
   ): Promise<Friend> {
     return await this.prisma.friend.findFirst({
       where: {
-        AND: [{ myId: userId }, { buddyId: buddyId }],
+        AND: [{ friendId: friendId }, { myId: userId }],
       },
     });
   }

@@ -242,8 +242,10 @@ export class ChannelsRepository {
     });
   }
 
-  async createUserChannel(userChannelData: CreateUserChannelData) {
-    await this.prisma.userChannel.create({
+  async createUserChannel(
+    userChannelData: CreateUserChannelData,
+  ): Promise<UserChannel> {
+    return await this.prisma.userChannel.create({
       data: {
         isOwner: userChannelData.isOwner,
         isAdmin: userChannelData.isAdmin,

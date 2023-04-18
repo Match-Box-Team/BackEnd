@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User, UserGame } from '@prisma/client';
 import { AccountRepository } from './repository/account.repository';
 import { UpdateUserDto } from './dto/account.dto';
@@ -9,15 +9,35 @@ export class AccountService {
   constructor(private repository: AccountRepository) {}
 
   async getUsers(): Promise<User[]> {
-    return this.repository.getUsers();
+    const users = await this.repository.getUsers();
+    if (users === null) {
+      throw new NotFoundException('Not Found users');
+    }
+    return users;
   }
 
   async getUser(userId: string): Promise<User> {
-    return this.repository.getUser(userId);
+    const user = await this.repository.getUser(userId);
+    if (user === null) {
+      throw new NotFoundException('Not Found user');
+    }
+    return user;
+  }
+
+  async getUserByIntraId(intraId: string): Promise<User> {
+    const user = await this.repository.getUserByIntraId(intraId);
+    if (user === null) {
+      throw new NotFoundException('Not Found user');
+    }
+    return user;
   }
 
   async getUserEmail(userId: string): Promise<UserEmail> {
-    return this.repository.getUserEmail(userId);
+    const userEmail = await this.repository.getUserEmail(userId);
+    if (userEmail === null) {
+      throw new NotFoundException('Not Found user email');
+    }
+    return userEmail;
   }
 
   async updateUserProfile(

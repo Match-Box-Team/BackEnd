@@ -5,6 +5,8 @@ import { PrismaService } from 'prisma/prisma.service';
 import { ChannelsRepository } from './repository/channels.repository';
 import { ChannelsEventsGateway } from './events/channels.gateway';
 import { JwtService } from '@nestjs/jwt';
+import { AccountService } from 'src/account/account.service';
+import { AccountRepository } from 'src/account/repository/account.repository';
 
 @Module({
   controllers: [ChannelsController],
@@ -14,6 +16,8 @@ import { JwtService } from '@nestjs/jwt';
     ChannelsEventsGateway,
     ChannelsRepository,
     JwtService,
+    AccountService,
+    AccountRepository,
   ],
 })
 export class ChannelsModule {}

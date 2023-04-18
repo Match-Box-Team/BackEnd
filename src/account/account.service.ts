@@ -40,4 +40,8 @@ export class AccountService {
   async getUserGame(userId: string, gameId: string): Promise<UserGame> {
     return this.repository.getUserGame(userId, gameId);
   }
+
+  async getUserByNickname(nickname: string) {
+    return await this.repository.getUserByNickname(nickname);
+  }
 }

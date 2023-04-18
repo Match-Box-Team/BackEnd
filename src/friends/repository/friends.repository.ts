@@ -75,4 +75,23 @@ export class FriendsRepository {
       },
     });
   }
+
+  async findFriendsByMyId(userId: string): Promise<FriendsInfoData[]> {
+    return await this.prisma.friend.findMany({
+      where: {
+        AND: [{ myId: userId }, { isBan: false }],
+      },
+      select: {
+        friendId: true,
+        buddyId: true,
+        buddy: {
+          select: {
+            nickname: true,
+            image: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
 }

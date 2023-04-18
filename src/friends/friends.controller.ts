@@ -8,6 +8,7 @@ import {
   Patch,
   Request,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { FriendsService } from './friends.service';
@@ -19,7 +20,7 @@ export class FriendsController {
   constructor(private friendsService: FriendsService) {}
 
   @Post('')
-  @UsePipes(ValidationPipe)
+  @UseGuards(AuthGuard)
   async addNewFriend(
     @Request() requset: ExpressRequest,
     @Body() friendID: FriendsAddDto,
@@ -27,13 +28,22 @@ export class FriendsController {
     return this.friendsService.addFriend(requset['id']['id'], friendID);
   }
 
+  @Get('')
+  @UseGuards(AuthGuard)
+  async getFriendList(@Request() req: ExpressRequest) {
+    const userId: string = req['id']['id'];
+    return this.friendsService.getFriendsList(userId);
+  }
+
   @Get('/banned')
+  @UseGuards(AuthGuard)
   async getBanFriendList(@Request() req: ExpressRequest) {
     const userId: string = req['id']['id'];
     return this.friendsService.getBanFriendList(userId);
   }
 
   @Patch('/:friendId/banned')
+  @UseGuards(AuthGuard)
   async setBanFriend(
     @Param('friendId') friendId: string,
     @Body() dto: FriendsSetBanDto,

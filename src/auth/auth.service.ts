@@ -80,6 +80,7 @@ export class AuthService {
       email: info.email,
       image: info.image.link,
       intraId: info.login,
+      nickName: info.login,
       phoneNumber: info.phone !== 'hidden' ? info.phone : null,
     };
 

@@ -28,6 +28,11 @@ export class GamesService {
     return game;
   }
 
+  async getGames(): Promise<Game[]> {
+    const games = await this.repository.getGames();
+    return games;
+  }
+
   async getUserGame(userId: string, gameId: string): Promise<UserGame> {
     return this.repository.getUserGame(userId, gameId);
   }

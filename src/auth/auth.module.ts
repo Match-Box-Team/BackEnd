@@ -9,6 +9,8 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import * as path from 'path';
 import { AccountService } from 'src/account/account.service';
 import { AccountRepository } from 'src/account/repository/account.repository';
+import { GamesService } from 'src/games/games.service';
+import { GamesRepository } from 'src/games/repository/games.repository';
 
 @Module({
   imports: [
@@ -34,12 +36,14 @@ import { AccountRepository } from 'src/account/repository/account.repository';
   ],
   controllers: [AuthController],
   providers: [
+    PrismaService,
     AuthService,
     AuthRepository,
-    PrismaService,
-    JwtUtil,
+    GamesService,
+    GamesRepository,
     AccountService,
     AccountRepository,
+    JwtUtil,
   ],
 })
 export class AuthModule {}

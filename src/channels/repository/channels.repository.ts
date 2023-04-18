@@ -167,21 +167,21 @@ export class ChannelsRepository {
     });
   }
 
-  async findUserByNickname(nickname: string): Promise<User> {
-    return await this.prisma.user.findUnique({
-      where: {
-        nickname: nickname,
-      },
-    });
-  }
+  // async findUserByNickname(nickname: string): Promise<User> {
+  //   return await this.prisma.user.findUnique({
+  //     where: {
+  //       nickname: nickname,
+  //     },
+  //   });
+  // }
 
-  async findUserByUserId(userId: string): Promise<User> {
-    return await this.prisma.user.findUnique({
-      where: {
-        userId: userId,
-      },
-    });
-  }
+  // async findUserByUserId(userId: string): Promise<User> {
+  //   return await this.prisma.user.findUnique({
+  //     where: {
+  //       userId: userId,
+  //     },
+  //   });
+  // }
 
   async findBuddyInfoByChannelId(
     channelId: string,
@@ -192,6 +192,7 @@ export class ChannelsRepository {
         AND: [
           { channelId: channelId },
           { userChannelId: { not: userChannelId } },
+          { channel: { isDm: true } },
         ],
       },
       select: {

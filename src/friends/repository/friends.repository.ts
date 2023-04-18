@@ -36,6 +36,14 @@ export class FriendsRepository {
     });
   }
 
+  async findFriendByBuddyId(userId: string, buddyId: string): Promise<Friend> {
+    return await this.prisma.friend.findFirst({
+      where: {
+        AND: [{ myId: userId }, { buddyId: buddyId }],
+      },
+    });
+  }
+
   /**
    * Create, Update, Delete
    */

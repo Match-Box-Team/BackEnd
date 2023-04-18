@@ -8,6 +8,7 @@ import {
   Request,
   UseGuards,
   Param,
+  Query,
 } from '@nestjs/common';
 import { FriendsService } from './friends.service';
 import { Request as ExpressRequest } from 'express';
@@ -34,5 +35,15 @@ export class FriendsController {
   ) {
     const userId: string = req['id']['id'];
     return this.friendsService.setBanFriend(userId, friendId, dto);
+  }
+
+  @Get('')
+  @UseGuards(AuthGuard)
+  async searchFriendForAdd(
+    @Query('nickname') nickname: string,
+    @Request() req: ExpressRequest,
+  ) {
+    const userId: string = req['id']['id'];
+    return this.friendsService.searchFriendForAdd(userId, nickname);
   }
 }

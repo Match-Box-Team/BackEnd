@@ -11,6 +11,16 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('verify')
+  verify(): string {
+    return '2차 인증 페이지';
+  }
+
+  @Get('verifyFail')
+  verifyFail(): string {
+    return '2차 인증 실패';
+  }
+
   private createOauthUrl(): string {
     const clientId = process.env.OAUTH_APP_URL;
     const redirectUri = encodeURIComponent(

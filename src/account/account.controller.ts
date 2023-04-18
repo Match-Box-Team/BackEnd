@@ -1,22 +1,29 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { AccountService } from './account.service';
+import { UpdateUserDto } from './dto/account.dto';
+import { MyPage } from './repository/account.type';
+import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { Request } from 'express';
 import { User } from '@prisma/client';
-import { UserId, VerifyCodeDto } from './dto/account.dto';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Get()
-  async getUsers(): Promise<User[]> {
-    return this.accountService.getUsers();
+  @UseGuards(AuthGuard)
+  async getMyPage(@Req() req: Request): Promise<MyPage> {
+    const userId = req['id']['id'];
+    return await this.accountService.getMyPage(userId);
   }
 
-  // @Patch(':userId')
-  // async updateUserProfile(
-  //   @Param('userId') userId: string,
-  //   @Body() updateUserDto: UpdateUserDto,
-  // ) {
-  //   return this.accountService.updateUserProfile(userId, updateUserDto);
-  // }
+  @Patch()
+  @UseGuards(AuthGuard)
+  async updateUserProfile(
+    @Req() req: Request,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<User> {
+    const userId = req['id']['id'];
+    return await this.accountService.updateUserProfile(userId, updateUserDto);
+  }
 }

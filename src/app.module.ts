@@ -19,7 +19,10 @@ import { APP_PIPE } from '@nestjs/core';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AuthGuard, JwtService,
+  providers: [
+    AppService,
+    AuthGuard,
+    JwtService,
     AppService,
     {
       provide: APP_PIPE,

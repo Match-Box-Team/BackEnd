@@ -4,6 +4,9 @@ import { AccountService } from './account.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { AccountRepository } from './repository/account.repository';
 import { AccountEventsGateway } from './events/account.gateway';
+import { JwtService } from '@nestjs/jwt';
+import { GamesService } from 'src/games/games.service';
+import { GamesRepository } from 'src/games/repository/games.repository';
 
 @Module({
   controllers: [AccountController],
@@ -12,6 +15,9 @@ import { AccountEventsGateway } from './events/account.gateway';
     PrismaService,
     AccountRepository,
     AccountEventsGateway,
+    JwtService,
+    GamesRepository,
+    GamesService,
   ],
   exports: [AccountService],
 })

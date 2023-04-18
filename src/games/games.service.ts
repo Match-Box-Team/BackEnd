@@ -4,23 +4,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Game, GameWatch } from '@prisma/client';
+import { Game, GameHistory, GameWatch, UserGame } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { GamesRepository } from './repository/games.repository';
 import { GameId, GameWatchesType, GameType } from './repository/game.type';
 import { GameHistoryDto } from './dto/games.dto';
-import { AccountService } from 'src/account/account.service';
-
-/**
- * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
- */
 
 @Injectable()
 export class GamesService {
-  constructor(
-    private accountService: AccountService,
-    private repository: GamesRepository,
-  ) {
+  constructor(private repository: GamesRepository) {
     setInterval(() => this.processMatchmakingQueue(), 1000);
   }
 
@@ -30,6 +22,15 @@ export class GamesService {
       throw new NotFoundException('Not found game');
     }
     return game;
+  }
+
+  async getGames(): Promise<Game[]> {
+    const games = await this.repository.getGames();
+    return games;
+  }
+
+  async getUserGame(userId: string, gameId: string): Promise<UserGame> {
+    return this.repository.getUserGame(userId, gameId);
   }
 
   async getGamesByUserId(userId: string): Promise<GameType[]> {
@@ -195,7 +196,7 @@ export class GamesService {
   async createGameHistory(
     gameWatchId: string,
     gameHistoryDto: GameHistoryDto,
-  ): Promise<void> {
+  ): Promise<GameHistory> {
     const gameWatch = await this.repository.getGameWatchById(gameWatchId);
     if (gameWatch === null) {
       throw new NotFoundException('Not found gameWatch');
@@ -220,6 +221,7 @@ export class GamesService {
       if (gameHistory === null) {
         throw new BadRequestException('Failed create gameHistory');
       }
+      return gameHistory;
     } else {
       throw new BadRequestException('User matching is incorrect');
     }

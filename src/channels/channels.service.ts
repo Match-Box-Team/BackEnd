@@ -390,9 +390,11 @@ export class ChannelsService {
         }
         await this.repository.updateOwner(userChannelId);
         await this.repository.deleteUserChannel(userChannel.userChannelId);
+        await this.repository.removeUserCountInChannel(channelId);
       } else {
         // 그게 아니면 그냥 나가고
         await this.repository.deleteUserChannel(userChannel.userChannelId);
+        await this.repository.removeUserCountInChannel(channelId);
       }
     }
   }

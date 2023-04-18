@@ -10,6 +10,9 @@ export class OAuthUserInfoDto {
   @IsString()
   intraId: string;
 
+  @IsString()
+  nickName: string;
+
   @IsOptional()
   @IsString()
   phoneNumber: string;

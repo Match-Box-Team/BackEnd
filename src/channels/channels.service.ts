@@ -384,18 +384,22 @@ export class ChannelsService {
     }
   }
 
-  //friend 로직 수정
-
   async kickUser(
     userId: string,
     targetId: string,
     channelId: string,
   ): Promise<UserChannelOne> {
     const userChannel = await this.validateUserChannel(userId, channelId);
+    const targetChannel = await this.validateUserChannel(targetId, channelId);
 
     // 관리자나 오너인지 확인
-    if (userChannel.isOwner === false || userChannel.isAdmin === false) {
+    if (userChannel.isOwner !== true && userChannel.isAdmin !== true) {
       throw new BadRequestException('사용자가 오너이거나 관리자가 아닙니다');
+    }
+
+    // 킥하려는 대상이 운영자일 때 예외처리
+    if (targetChannel.isOwner === true && userId != targetId) {
+      throw new BadRequestException('오너를 쫒아낼 수 없습니다');
     }
 
     // 한 명 밖에 안 남았을 땐 채널 삭제
@@ -405,7 +409,6 @@ export class ChannelsService {
     }
 
     // 오너일 경우 다른 사람에게 오너를 부여
-    const targetChannel = await this.validateUserChannel(targetId, channelId);
     if (targetChannel.isOwner === true) {
       const users = await this.repository.findUsersInChannel(channelId);
       let userChannelId: string | null = null;
@@ -425,7 +428,7 @@ export class ChannelsService {
       await this.repository.updateOwner(userChannelId);
     }
 
-    await this.repository.deleteUserChannel(userChannel.userChannelId);
+    await this.repository.deleteUserChannel(targetChannel.userChannelId);
     await this.repository.removeUserCountInChannel(channelId);
   }
 

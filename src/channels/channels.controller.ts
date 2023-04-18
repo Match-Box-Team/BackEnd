@@ -161,4 +161,15 @@ export class ChannelsController {
   ) {
     await this.channelsService.goOutChannel(req['id']['id'], channelId);
   }
+
+  //channels/:channelId/member/:userId/admin
+  @Patch('/:channelId/member/:userId/admin')
+  @UseGuards(AuthGuard)
+  async setAdmin(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    await this.channelsService.setAdmin(req['id']['id'], userId, channelId);
+  }
 }

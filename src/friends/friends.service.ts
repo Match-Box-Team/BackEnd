@@ -4,12 +4,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FriendsRepository } from './repository/friends.repository';
-import { FriendsSetBanDto } from './dto/friends.dto';
+import { FriendsAddDto, FriendsSetBanDto } from './dto/friends.dto';
 import { Friend } from '@prisma/client';
 
 @Injectable()
 export class FriendsService {
   constructor(private friendsRepository: FriendsRepository) {}
+
+  async addFriend(userID: string, friendID: FriendsAddDto) {
+    return await this.friendsRepository.addFrirend(userID, friendID);
+  }
 
   async getBanFriendList(userId: string) {
     const banFriend = await this.friendsRepository.findBanFriendByMyId(userId);

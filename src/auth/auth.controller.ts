@@ -71,12 +71,12 @@ export class AuthController {
 
   @Post('sendEmail')
   async sendEmail(@Body() { userId }: UserId): Promise<void> {
-    this.authService.sendVerificationEmail(userId);
+    await this.authService.sendVerificationEmail(userId);
   }
 
   @Post('verifyTimeOut')
   async verifyTimeOut(@Body() { userId }: UserId) {
-    this.authService.verifyTimeOut(userId);
+    await this.authService.verifyTimeOut(userId);
   }
 
   @Post('verifyCode')

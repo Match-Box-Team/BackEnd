@@ -91,4 +91,21 @@ export class AccountRepository {
       where,
     });
   }
+
+  async getUserGame(userId: string, gameId: string): Promise<UserGame> {
+    return this.prisma.userGame.findFirst({
+      where: {
+        userId: userId,
+        gameId: gameId,
+      },
+    });
+  }
+
+  async getUserByNickname(nickname: string): Promise<User> {
+    return await this.prisma.user.findUnique({
+      where: {
+        nickname: nickname,
+      },
+    });
+  }
 }

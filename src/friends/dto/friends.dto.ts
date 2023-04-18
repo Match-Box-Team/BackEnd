@@ -5,3 +5,8 @@ export class FriendsSetBanDto {
   @IsNotEmpty()
   isBan: boolean;
 }
+
+export class FriendsAddDto {
+  @IsNotEmpty()
+  userId: string;
+}

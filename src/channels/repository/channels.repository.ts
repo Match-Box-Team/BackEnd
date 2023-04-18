@@ -167,22 +167,6 @@ export class ChannelsRepository {
     });
   }
 
-  async findUserByNickname(nickname: string): Promise<User> {
-    return await this.prisma.user.findUnique({
-      where: {
-        nickname: nickname,
-      },
-    });
-  }
-
-  async findUserByUserId(userId: string): Promise<User> {
-    return await this.prisma.user.findUnique({
-      where: {
-        userId: userId,
-      },
-    });
-  }
-
   async findBuddyInfoByChannelId(
     channelId: string,
     userChannelId: string,
@@ -192,6 +176,7 @@ export class ChannelsRepository {
         AND: [
           { channelId: channelId },
           { userChannelId: { not: userChannelId } },
+          { channel: { isDm: true } },
         ],
       },
       select: {
@@ -355,6 +340,22 @@ export class ChannelsRepository {
       data: {
         isOwner: true,
         isAdmin: true,
+      },
+    });
+  }
+
+  async setAdmin(targetId: string, channelId: string, isAdmin: boolean) {
+    const userChannelOne: UserChannelOne = await this.findOneUserChannel(
+      targetId,
+      channelId,
+    );
+    const userChannelId = userChannelOne.userChannelId;
+    await this.prisma.userChannel.update({
+      where: {
+        userChannelId: userChannelId,
+      },
+      data: {
+        isAdmin: isAdmin,
       },
     });
   }

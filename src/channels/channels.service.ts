@@ -14,10 +14,14 @@ import {
 } from './dto/channels.dto';
 import { Channel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { AccountService } from 'src/account/account.service';
 
 @Injectable()
 export class ChannelsService {
-  constructor(private repository: ChannelsRepository) {}
+  constructor(
+    private repository: ChannelsRepository,
+    private accountService: AccountService,
+  ) {}
 
   async getPublicList(userId: string) {
     const channels = await this.repository.findChannelsByPublic(userId);
@@ -41,7 +45,7 @@ export class ChannelsService {
         const chats = await this.repository.findChatsByChannelId(
           userChannel.channel.channelId,
         );
-        let notReadCount: number = 0;
+        let notReadCount = 0;
         let lastMessageTime: Date = userChannel.lastChatTime;
 
         if (chats.length !== 0) {
@@ -54,12 +58,12 @@ export class ChannelsService {
         }
 
         if (userChannel.channel.isDm) {
-          let slash: number = userChannel.channel.channelName.indexOf('/');
-          let nickname1: string = userChannel.channel.channelName.substring(
+          const slash: number = userChannel.channel.channelName.indexOf('/');
+          const nickname1: string = userChannel.channel.channelName.substring(
             0,
             slash,
           );
-          let nickname2: string = userChannel.channel.channelName.substring(
+          const nickname2: string = userChannel.channel.channelName.substring(
             slash + 1,
           );
 
@@ -178,9 +182,12 @@ export class ChannelsService {
     nickname: string,
   ) {
     const userChannel = await this.validateUserChannel(userId, channelId);
-    const user = await this.repository.findUserByNickname(nickname);
-    if (!user) {
+    const user = await this.accountService.getUserByNickname(nickname);
+    if (user === null) {
       throw new NotFoundException('Not existed user');
+    }
+    if (user.userId === userId) {
+      throw new NotFoundException('Input nickname is my nickname');
     }
     const isOnChannel =
       (await this.validateUserChannelNoThrow(user.userId, channelId)) === null
@@ -196,8 +203,11 @@ export class ChannelsService {
 
   // 일반 유저도 다른 유저 초대 가능
   async inviteUser(userId: string, channelId: string, dto: ChannelInviteDto) {
-    const user = await this.repository.findUserByUserId(dto.userId);
-    if (!user) {
+    if (userId === dto.userId) {
+      throw new NotFoundException('Input userId is my userId');
+    }
+    const user = await this.accountService.getUser(dto.userId);
+    if (user === null) {
       throw new NotFoundException('Not existed user');
     }
     const userChannel = await this.validateUserChannel(userId, channelId);
@@ -241,8 +251,11 @@ export class ChannelsService {
   }
 
   async enterDm(userId: string, dto: DmDto) {
-    const me = await this.repository.findUserByUserId(userId);
-    const buddy = await this.repository.findUserByUserId(dto.buddyId);
+    if (userId === dto.buddyId) {
+      throw new NotFoundException('Input buddyId is my userId');
+    }
+    const me = await this.accountService.getUser(userId);
+    const buddy = await this.accountService.getUser(dto.buddyId);
     if (buddy === null) {
       throw new NotFoundException('Not existed buddy');
     }
@@ -317,6 +330,18 @@ export class ChannelsService {
 
     await this.repository.setUserMute(userId, channelId, isMute);
     return userChannel;
+  }
+
+  async setAdmin(reqId: string, userId: string, channelId: string) {
+    const userChannel = await this.validateUserChannel(reqId, channelId);
+    if (userChannel.isOwner === false) {
+      throw new ForbiddenException('not channel owner');
+    }
+    const adminCandiadate = await this.validateUserChannel(userId, channelId);
+    if (adminCandiadate.isAdmin === true) {
+      throw new ForbiddenException('already admin');
+    }
+    await this.repository.setAdmin(userId, channelId, true);
   }
 
   async memberListInChannel(userId: string, channelId: string) {

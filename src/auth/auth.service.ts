@@ -20,6 +20,25 @@ export class AuthService {
     private mailService: MailerService,
   ) {}
 
+  // map<userId, accessToken>
+  private authInfoMap = new Map<string, OAuthUserInfoDto>();
+
+  public getAuthInfo(userId: string): OAuthUserInfoDto {
+    const authInfo = this.authInfoMap.get(userId);
+    if (!authInfo) {
+      throw new NotFoundException('Not found access info');
+    }
+    return authInfo;
+  }
+
+  public addAuthInfo(userId: string, authInfo: OAuthUserInfoDto): void {
+    this.authInfoMap.set(userId, authInfo);
+  }
+
+  public deleteAuthInfo(userId: string): void {
+    this.authInfoMap.delete(userId);
+  }
+
   async getAccessTokenUrl(code: string): Promise<string> {
     const redirect_url = 'http://127.0.0.1:3000/auth/callback';
     const fullUrl = `https://api.intra.42.fr/oauth/token`;
@@ -117,7 +136,7 @@ export class AuthService {
    */
 
   // Map<email, code>
-  private map = new Map<string, string>();
+  private emailMap = new Map<string, string>();
 
   async sendVerificationEmail(userId: string): Promise<void> {
     const userEmail = await this.accountServce.getUserEmail(userId);
@@ -134,24 +153,23 @@ export class AuthService {
         code,
       },
     });
-    this.map.set(userId, code);
+    this.emailMap.set(userId, code);
   }
 
-  async verifyTimeOut(userId: string) {
-    this.map.delete(userId);
+  verifyTimeOut(userId: string): void {
+    this.emailMap.delete(userId);
   }
 
-  async verifyCode(userId: string, inputCode: string) {
-    const storedCode = this.map.get(userId);
-    if (storedCode === null) {
+  verifyCode(userId: string, inputCode: string): boolean {
+    const storedCode = this.emailMap.get(userId);
+    if (!storedCode) {
       throw new NotFoundException('User not has code');
     }
-
     if (inputCode === storedCode) {
-      this.map.delete(userId);
-      return { success: true, message: 'Verification succeeded' };
+      this.emailMap.delete(userId);
+      return true;
     } else {
-      return { success: false, message: 'Token mismatch' };
+      return false;
     }
   }
 }

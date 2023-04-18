@@ -160,7 +160,7 @@ export class ChannelsService {
       channelId: channel.channelId,
     };
     await this.repository.createUserChannel(userChannelData);
-    await this.repository.updateChannelCount(channel.channelId);
+    await this.repository.addUserCountInChannel(channel.channelId);
   }
 
   async getChatLog(userId: string, channelId: string) {
@@ -228,7 +228,7 @@ export class ChannelsService {
       channelId: channelId,
     };
     await this.repository.createUserChannel(userChannelData);
-    await this.repository.updateChannelCount(channelId);
+    await this.repository.addUserCountInChannel(channelId);
   }
 
   async changeChannelPassword(

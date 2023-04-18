@@ -10,7 +10,7 @@ export class AuthRepository {
     try {
       await this.prisma.user.upsert({
         where: {
-          nickname: profile.nickName,
+          email: profile.email,
         },
         update: {
           email: profile.email,

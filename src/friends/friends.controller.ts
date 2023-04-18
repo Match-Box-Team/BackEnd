@@ -2,22 +2,39 @@ import {
   Body,
   Controller,
   Post,
+  UsePipes,
+  ValidationPipe,
   Get,
-  Delete,
   Patch,
   Request,
-  UseGuards,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { FriendsService } from './friends.service';
 import { Request as ExpressRequest } from 'express';
+import { FriendsService } from './friends.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { FriendsSetBanDto } from './dto/friends.dto';
+import { FriendsAddDto, FriendsSetBanDto } from './dto/friends.dto';
 
 @Controller('friends')
 export class FriendsController {
   constructor(private friendsService: FriendsService) {}
+
+  @Post('')
+  @UseGuards(AuthGuard)
+  async addNewFriend(
+    @Request() requset: ExpressRequest,
+    @Body() friendID: FriendsAddDto,
+  ) {
+    return this.friendsService.addFriend(requset['id']['id'], friendID);
+  }
+
+  @Get('')
+  @UseGuards(AuthGuard)
+  async getFriendList(@Request() req: ExpressRequest) {
+    const userId: string = req['id']['id'];
+    return this.friendsService.getFriendsList(userId);
+  }
 
   @Get('/banned')
   @UseGuards(AuthGuard)

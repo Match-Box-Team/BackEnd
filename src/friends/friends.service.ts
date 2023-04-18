@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FriendsRepository } from './repository/friends.repository';
-import { FriendsSetBanDto } from './dto/friends.dto';
+import { FriendsAddDto, FriendsSetBanDto } from './dto/friends.dto';
 import { Friend } from '@prisma/client';
 import { AccountService } from 'src/account/account.service';
 
@@ -14,6 +14,10 @@ export class FriendsService {
     private friendsRepository: FriendsRepository,
     private accountServce: AccountService,
   ) {}
+
+  async addFriend(userID: string, friendID: FriendsAddDto) {
+    return await this.friendsRepository.addFrirend(userID, friendID);
+  }
 
   async getBanFriendList(userId: string) {
     const banFriend = await this.friendsRepository.findBanFriendByMyId(userId);
@@ -54,13 +58,19 @@ export class FriendsService {
     userId: string,
     friendId: string,
   ): Promise<Friend> {
-    const friend = await this.friendsRepository.findFriendByFriendIdAndMyId(
+    const friends = await this.friendsRepository.findFriendByFriendIdAndMyId(
       friendId,
       userId,
     );
-    if (friend === null) {
-      throw new NotFoundException('Not my buddy');
+    if (friends === null) {
+      throw new NotFoundException('no friends');
     }
-    return friend;
+    return friends;
+  }
+
+  // GET /friends
+  async getFriendsList(userId: string) {
+    const friendsList = await this.friendsRepository.findFriendsByMyId(userId);
+    return { friends: friendsList };
   }
 }

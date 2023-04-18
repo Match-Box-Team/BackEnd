@@ -26,9 +26,6 @@ export class ChannelsService {
         return res1.count - res2.count;
       })
       .reverse();
-    channels.map((channel) => {
-      channel.count = undefined;
-    });
     return { channel: channels };
   }
 
@@ -44,7 +41,7 @@ export class ChannelsService {
         const chats = await this.repository.findChatsByChannelId(
           userChannel.channel.channelId,
         );
-        let notReadCount = 0;
+        let notReadCount: number = 0;
         let lastMessageTime: Date = userChannel.lastChatTime;
 
         if (chats.length !== 0) {
@@ -57,12 +54,12 @@ export class ChannelsService {
         }
 
         if (userChannel.channel.isDm) {
-          const slash: number = userChannel.channel.channelName.indexOf('/');
-          const nickname1: string = userChannel.channel.channelName.substring(
+          let slash: number = userChannel.channel.channelName.indexOf('/');
+          let nickname1: string = userChannel.channel.channelName.substring(
             0,
             slash,
           );
-          const nickname2: string = userChannel.channel.channelName.substring(
+          let nickname2: string = userChannel.channel.channelName.substring(
             slash + 1,
           );
 
@@ -72,7 +69,10 @@ export class ChannelsService {
             userChannel.channel.channelName = nickname1;
           }
         }
-
+        users.map((user) => {
+          user.userChannelId = undefined;
+          user.isAdmin = undefined;
+        });
         userChannel.user = undefined;
         userChannel.lastChatTime = undefined;
         return {

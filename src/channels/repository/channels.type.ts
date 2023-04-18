@@ -86,7 +86,3 @@ interface CreateChannelData {
   isPublic: boolean;
   isDm: boolean;
 }
-
-interface UserToken {
-  id: string;
-}

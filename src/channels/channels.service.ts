@@ -41,7 +41,7 @@ export class ChannelsService {
         const chats = await this.repository.findChatsByChannelId(
           userChannel.channel.channelId,
         );
-        let notReadCount: number = 0;
+        let notReadCount = 0;
         let lastMessageTime: Date = userChannel.lastChatTime;
 
         if (chats.length !== 0) {
@@ -54,12 +54,12 @@ export class ChannelsService {
         }
 
         if (userChannel.channel.isDm) {
-          let slash: number = userChannel.channel.channelName.indexOf('/');
-          let nickname1: string = userChannel.channel.channelName.substring(
+          const slash: number = userChannel.channel.channelName.indexOf('/');
+          const nickname1: string = userChannel.channel.channelName.substring(
             0,
             slash,
           );
-          let nickname2: string = userChannel.channel.channelName.substring(
+          const nickname2: string = userChannel.channel.channelName.substring(
             slash + 1,
           );
 
@@ -317,6 +317,27 @@ export class ChannelsService {
 
     await this.repository.setUserMute(userId, channelId, isMute);
     return userChannel;
+  }
+
+  async setAdmin(reqId: string, userId: string, channelId: string) {
+    const userChannel = await this.validateUserChannel(reqId, channelId);
+    if (userChannel === null) {
+      throw new NotFoundException('not joined channel');
+    }
+    if (userChannel.isOwner === false) {
+      throw new ForbiddenException('not channel owner');
+    }
+    const adminCandiadate = await this.validateUserChannel(userId, channelId);
+    if (adminCandiadate === null) {
+      throw new NotFoundException('no such user');
+    }
+    if (adminCandiadate.isAdmin === true) {
+      throw new ForbiddenException('already admin');
+    }
+    if (adminCandiadate.isOwner === true) {
+      throw new ForbiddenException('cannot set owner as admin');
+    }
+    await this.repository.setAdmin(userId, channelId, true);
   }
 
   async memberListInChannel(userId: string, channelId: string) {

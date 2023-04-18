@@ -358,4 +358,20 @@ export class ChannelsRepository {
       },
     });
   }
+
+  async setAdmin(targetId: string, channelId: string, isAdmin: boolean) {
+    const userChannelOne: UserChannelOne = await this.findOneUserChannel(
+      targetId,
+      channelId,
+    );
+    const userChannelId = userChannelOne.userChannelId;
+    await this.prisma.userChannel.update({
+      where: {
+        userChannelId: userChannelId,
+      },
+      data: {
+        isAdmin: isAdmin,
+      },
+    });
+  }
 }

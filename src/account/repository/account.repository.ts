@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User, UserGame } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
-import { UserEmail } from './account.type';
+import { UserEmail, UserInfo } from './account.type';
 
 @Injectable()
 export class AccountRepository {
@@ -35,6 +35,37 @@ export class AccountRepository {
       },
       select: {
         email: true,
+      },
+    });
+  }
+
+  async getUserInfo(userId: string): Promise<UserInfo> {
+    return this.prisma.user.findUnique({
+      where: {
+        userId: userId,
+      },
+      select: {
+        nickname: true,
+        intraId: true,
+        image: true,
+        phoneNumber: true,
+        email: true,
+      },
+    });
+  }
+
+  async getUserGameWinCount(userGameId: string): Promise<number> {
+    return this.prisma.gameHistory.count({
+      where: {
+        winnerUserGameId: userGameId,
+      },
+    });
+  }
+
+  async getUserGameLoseCount(userGameId: string): Promise<number> {
+    return this.prisma.gameHistory.count({
+      where: {
+        loserUserGameId: userGameId,
       },
     });
   }

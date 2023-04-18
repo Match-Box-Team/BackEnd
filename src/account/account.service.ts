@@ -56,8 +56,4 @@ export class AccountService {
   async updateUserState(userId: string, status: string): Promise<User> {
     return this.repository.updateUserState(userId, status);
   }
-
-  async getUserGame(userId: string, gameId: string): Promise<UserGame> {
-    return this.repository.getUserGame(userId, gameId);
-  }
 }

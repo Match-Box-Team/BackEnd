@@ -106,7 +106,7 @@ export class GamesRepository {
   }
 
   async getUserGame(userId: string, gameId: string): Promise<UserGame> {
-    return this.prisma.userGame.findFirstOrThrow({
+    return this.prisma.userGame.findFirst({
       where: {
         userId: userId,
         gameId: gameId,

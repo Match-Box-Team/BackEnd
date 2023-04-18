@@ -4,12 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Game, GameWatch } from '@prisma/client';
+import { Game, GameWatch, UserGame } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { GamesRepository } from './repository/games.repository';
 import { GameId, GameWatchesType, GameType } from './repository/game.type';
 import { GameHistoryDto } from './dto/games.dto';
-import { AccountService } from 'src/account/account.service';
 
 /**
  * 쿼리 작성(구현)은 repository 파일에서 하고, service에서 사용
@@ -17,10 +16,7 @@ import { AccountService } from 'src/account/account.service';
 
 @Injectable()
 export class GamesService {
-  constructor(
-    private accountService: AccountService,
-    private repository: GamesRepository,
-  ) {
+  constructor(private repository: GamesRepository) {
     setInterval(() => this.processMatchmakingQueue(), 1000);
   }
 
@@ -30,6 +26,10 @@ export class GamesService {
       throw new NotFoundException('Not found game');
     }
     return game;
+  }
+
+  async getUserGame(userId: string, gameId: string): Promise<UserGame> {
+    return this.repository.getUserGame(userId, gameId);
   }
 
   async getGamesByUserId(userId: string): Promise<GameType[]> {

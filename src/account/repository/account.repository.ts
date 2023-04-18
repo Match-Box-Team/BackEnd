@@ -60,13 +60,4 @@ export class AccountRepository {
       where,
     });
   }
-
-  async getUserGame(userId: string, gameId: string): Promise<UserGame> {
-    return this.prisma.userGame.findFirst({
-      where: {
-        userId: userId,
-        gameId: gameId,
-      },
-    });
-  }
 }

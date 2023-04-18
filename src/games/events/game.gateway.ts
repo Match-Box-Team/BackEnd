@@ -56,7 +56,7 @@ export class GameEventsGateway
       return;
     }
 
-    const userGame = await this.accountService.getUserGame(userId, gameId);
+    const userGame = await this.gamesService.getUserGame(userId, gameId);
     if (userGame === null) {
       client.emit('matchFail');
       return;

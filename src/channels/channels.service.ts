@@ -325,9 +325,6 @@ export class ChannelsService {
       throw new ForbiddenException('not channel owner');
     }
     const adminCandiadate = await this.validateUserChannel(userId, channelId);
-    if (adminCandiadate.isAdmin === true) {
-      throw new ForbiddenException('already admin');
-    }
     if (adminCandiadate.isOwner === true) {
       throw new ForbiddenException('cannot set owner as admin');
     }

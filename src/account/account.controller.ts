@@ -1,16 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
-import { VerifyCodeDto } from './dto/verify-code.dto';
-import { stringify } from 'querystring';
+import { UserId, VerifyCodeDto } from './dto/account.dto';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Get()
-  async getUser(): Promise<User[]> {
+  async getUsers(): Promise<User[]> {
     return this.accountService.getUsers();
   }
 
@@ -20,10 +18,5 @@ export class AccountController {
   //   @Body() updateUserDto: UpdateUserDto,
   // ) {
   //   return this.accountService.updateUserProfile(userId, updateUserDto);
-  // }
-
-  // @Post()
-  // async verifyCode(@Body() verifyCodeDto: VerifyCodeDto): Promise<void> {
-  //     return this.accountService.verifyCode(verifyCodeDto.code);
   // }
 }

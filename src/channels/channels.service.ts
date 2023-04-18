@@ -26,9 +26,6 @@ export class ChannelsService {
         return res1.count - res2.count;
       })
       .reverse();
-    channels.map((channel) => {
-      channel.count = undefined;
-    });
     return { channel: channels };
   }
 
@@ -72,7 +69,10 @@ export class ChannelsService {
             userChannel.channel.channelName = nickname1;
           }
         }
-
+        users.map((user) => {
+          user.userChannelId = undefined;
+          user.isAdmin = undefined;
+        });
         userChannel.user = undefined;
         userChannel.lastChatTime = undefined;
         return {
@@ -317,6 +317,18 @@ export class ChannelsService {
 
     await this.repository.setUserMute(userId, channelId, isMute);
     return userChannel;
+  }
+
+  async setAdmin(reqId: string, userId: string, channelId: string) {
+    const userChannel = await this.validateUserChannel(reqId, channelId);
+    if (userChannel.isOwner === false) {
+      throw new ForbiddenException('not channel owner');
+    }
+    const adminCandiadate = await this.validateUserChannel(userId, channelId);
+    if (adminCandiadate.isAdmin === true) {
+      throw new ForbiddenException('already admin');
+    }
+    await this.repository.setAdmin(userId, channelId, true);
   }
 
   async memberListInChannel(userId: string, channelId: string) {

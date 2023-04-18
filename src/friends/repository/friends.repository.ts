@@ -1,6 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Friend } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
-import { FriendsAddDto } from '../dto/friends-add.request';
+import { FriendsAddDto } from '../dto/friends.dto';
 
 @Injectable()
 export class FriendsRepository {
@@ -28,5 +30,49 @@ export class FriendsRepository {
     } catch (error) {
       throw new ConflictException('친구 추가 실패');
     }
+  }
+
+  async findBanFriendByMyId(userId: string): Promise<FriendsInfoData[]> {
+    return await this.prisma.friend.findMany({
+      where: {
+        AND: [{ myId: userId }, { isBan: true }],
+      },
+      select: {
+        friendId: true,
+        buddyId: true,
+        buddy: {
+          select: {
+            nickname: true,
+            image: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findFriendByFriendIdAndMyId(
+    friendId: string,
+    userId: string,
+  ): Promise<Friend> {
+    return await this.prisma.friend.findFirst({
+      where: {
+        AND: [{ friendId: friendId }, { myId: userId }],
+      },
+    });
+  }
+
+  /**
+   * Create, Update, Delete
+   */
+  async updateFriendBan(friendId: string, isBan: boolean) {
+    await this.prisma.friend.update({
+      where: {
+        friendId: friendId,
+      },
+      data: {
+        isBan: isBan,
+      },
+    });
   }
 }

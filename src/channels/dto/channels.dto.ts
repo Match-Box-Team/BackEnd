@@ -4,7 +4,7 @@ export class ChannelCreateDto {
   @IsString()
   @IsNotEmpty()
   channelName: string;
-  
+
   @IsString()
   password: string;
 

@@ -8,7 +8,12 @@ import { JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [ChannelsController],
-  providers: [ChannelsService, PrismaService, ChannelsEventsGateway, 
-    ChannelsRepository, JwtService],
+  providers: [
+    ChannelsService,
+    PrismaService,
+    ChannelsEventsGateway,
+    ChannelsRepository,
+    JwtService,
+  ],
 })
 export class ChannelsModule {}

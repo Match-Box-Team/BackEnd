@@ -36,14 +36,14 @@ export class ChannelsEventsGateway
 
   // 채팅방에 들어갈 경우
   @SubscribeMessage('enterChannel')
-  async enterChannel(client: Socket, aa: EnterChannelMessage) {
+  async enterChannel(client: Socket, enterChannelData: EnterChannelMessage) {
     const userChannel = await this.channelService.validateUserChannelNoThrow(
-      aa.userId,
-      aa.channelId,
+      enterChannelData.userId,
+      enterChannelData.channelId,
     );
     if (userChannel !== null) {
       client.data.userChannelId = userChannel.userChannelId;
-      client.join(aa.channelId);
+      client.join(enterChannelData.channelId);
       return { return: 'Success' };
     }
     return { return: 'Not Found' };
@@ -61,7 +61,7 @@ export class ChannelsEventsGateway
     );
     if (client.data.userChannelId === userChannel.userChannelId) {
       if (userChannel.channel.isDm) {
-        const banMessage: string | null =
+        let banMessage: string | null =
           await this.channelService.isBanBuddyInDm(
             userId,
             channelId,

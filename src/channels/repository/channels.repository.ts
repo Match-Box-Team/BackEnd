@@ -7,7 +7,6 @@ import { ChannelCreateDto } from '../dto/channels.dto';
 export class ChannelsRepository {
   constructor(private prisma: PrismaService) {}
 
-  // 쿼리 작성
   async findChannelsByPublic(userId: string): Promise<FindPublicChannel[]> {
     return this.prisma.channel.findMany({
       where: {
@@ -104,6 +103,7 @@ export class ChannelsRepository {
       select: {
         userChannelId: true,
         isOwner: true,
+        isAdmin: true,
         isMute: true,
         channel: {
           select: {

@@ -20,6 +20,14 @@ export class AccountRepository {
     });
   }
 
+  async getUserByIntraId(intraId: string): Promise<User> {
+    return this.prisma.user.findFirst({
+      where: {
+        intraId,
+      },
+    });
+  }
+
   async getUserEmail(userId: string): Promise<UserEmail> {
     return this.prisma.user.findUnique({
       where: {

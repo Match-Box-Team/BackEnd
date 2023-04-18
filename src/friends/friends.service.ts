@@ -54,6 +54,12 @@ export class FriendsService {
     };
   }
 
+  // GET /friends
+  async getFriendsList(userId: string) {
+    const friendsList = await this.friendsRepository.findFriendsByMyId(userId);
+    return { friends: friendsList };
+  }
+
   private async validateMyFriend(
     userId: string,
     friendId: string,
@@ -66,11 +72,5 @@ export class FriendsService {
       throw new NotFoundException('no friends');
     }
     return friends;
-  }
-
-  // GET /friends
-  async getFriendsList(userId: string) {
-    const friendsList = await this.friendsRepository.findFriendsByMyId(userId);
-    return { friends: friendsList };
   }
 }

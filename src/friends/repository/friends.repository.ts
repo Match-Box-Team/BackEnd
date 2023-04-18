@@ -18,7 +18,7 @@ export class FriendsRepository {
       });
 
       // 기존 친구 관계가 없으면 새로운 친구 관계를 생성한다
-      if (existingFriend === undefined) {
+      if (existingFriend === null) {
         await this.prisma.friend.create({
           data: {
             myId: userID,

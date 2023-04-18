@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -12,6 +13,10 @@ export class FriendsService {
   constructor(private friendsRepository: FriendsRepository) {}
 
   async addFriend(userID: string, friendID: FriendsAddDto) {
+    if (userID === friendID.userId) {
+      throw new BadRequestException('자기자신을 친구로 추가할 수 없습니다');
+    }
+
     return await this.friendsRepository.addFrirend(userID, friendID);
   }
 

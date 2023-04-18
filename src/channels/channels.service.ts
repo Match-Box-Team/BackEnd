@@ -321,16 +321,10 @@ export class ChannelsService {
 
   async setAdmin(reqId: string, userId: string, channelId: string) {
     const userChannel = await this.validateUserChannel(reqId, channelId);
-    if (userChannel === null) {
-      throw new NotFoundException('not joined channel');
-    }
     if (userChannel.isOwner === false) {
       throw new ForbiddenException('not channel owner');
     }
     const adminCandiadate = await this.validateUserChannel(userId, channelId);
-    if (adminCandiadate === null) {
-      throw new NotFoundException('no such user');
-    }
     if (adminCandiadate.isAdmin === true) {
       throw new ForbiddenException('already admin');
     }

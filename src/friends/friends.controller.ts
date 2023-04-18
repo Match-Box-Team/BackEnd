@@ -25,14 +25,14 @@ export class FriendsController {
     return this.friendsService.getBanFriendList(userId);
   }
 
-  @Patch('/:buddyId/banned')
+  @Patch('/:friendId/banned')
   @UseGuards(AuthGuard)
   async setBanFriend(
-    @Param('buddyId') buddyId: string,
+    @Param('friendId') friendId: string,
     @Body() dto: FriendsSetBanDto,
     @Request() req: ExpressRequest,
   ) {
     const userId: string = req['id']['id'];
-    return this.friendsService.setBanFriend(userId, buddyId, dto);
+    return this.friendsService.setBanFriend(userId, friendId, dto);
   }
 }

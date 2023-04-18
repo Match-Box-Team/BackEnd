@@ -16,8 +16,8 @@ export class FriendsService {
     return { friend: banFriend };
   }
 
-  async setBanFriend(userId: string, buddyId: string, dto: FriendsSetBanDto) {
-    const friend = await this.validateMyFriend(userId, buddyId);
+  async setBanFriend(userId: string, friendId: string, dto: FriendsSetBanDto) {
+    const friend = await this.validateMyFriend(userId, friendId);
     if (friend.isBan === dto.isBan) {
       throw new ConflictException(
         'Your friend is already ' + (dto.isBan ? 'banned' : 'unbanned'),
@@ -28,11 +28,11 @@ export class FriendsService {
 
   private async validateMyFriend(
     userId: string,
-    buddyId: string,
+    friendId: string,
   ): Promise<Friend> {
-    const friend = await this.friendsRepository.findFriendByMyIdAndBuddyId(
+    const friend = await this.friendsRepository.findFriendByFriendIdAndMyId(
+      friendId,
       userId,
-      buddyId,
     );
     if (friend === null) {
       throw new NotFoundException('Not my buddy');

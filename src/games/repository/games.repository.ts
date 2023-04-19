@@ -134,4 +134,19 @@ export class GamesRepository {
       },
     });
   }
+
+  async getGameWatchByUserIdAndGameWatchId(
+    userId: string,
+    gameWatchId: string,
+  ): Promise<GameWatch> {
+    return await this.prisma.gameWatch.findFirst({
+      where: {
+        gameWatchId: gameWatchId,
+        OR: [
+          { userGame1: { userId: userId } },
+          { userGame2: { userId: userId } },
+        ],
+      },
+    });
+  }
 }

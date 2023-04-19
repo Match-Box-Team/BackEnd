@@ -13,6 +13,7 @@ import {
 import { Friend, Game, UserGame } from '@prisma/client';
 import { AccountService } from 'src/account/account.service';
 import { GamesRepository } from 'src/games/repository/games.repository';
+import { GamesService } from 'src/games/games.service';
 
 @Injectable()
 export class FriendsService {
@@ -20,6 +21,7 @@ export class FriendsService {
     private friendsRepository: FriendsRepository,
     private accountServce: AccountService,
     private gameRepository: GamesRepository,
+    private gameService: GamesService,
   ) {}
 
   async addFriend(userID: string, friendID: FriendsAddDto) {
@@ -126,6 +128,49 @@ export class FriendsService {
       gameId: gameInfo.gameId,
       name: gameInfo.name,
       gameHistory: friendGameHistoryInfo,
+    };
+  }
+
+  async getFriendDetails(reqId: string, friendId: string) {
+    const friend = await this.validateMyFriend(reqId, friendId);
+
+    const userId = friend.buddyId;
+    const userInfo = await this.friendsRepository.findFriendUserInfo(userId);
+
+    const games = await this.gameService.getGames();
+
+    const userGameData = await Promise.all(
+      games.map(async (game) => {
+        const gameData = {
+          gameId: game.gameId,
+          name: game.name,
+        };
+        const userGame = await this.gameService.getUserGame(
+          userId,
+          game.gameId,
+        );
+        let history;
+        if (userGame === null) {
+          history = null;
+        } else {
+          history = {
+            wincounts: this.friendsRepository.getUserGameWinCount(
+              userGame.userGameId,
+            ),
+            loseCounts: await this.friendsRepository.getUserGameLoseCount(
+              userGame.userGameId,
+            ),
+          };
+        }
+        return {
+          game: gameData,
+          gameHistory: history,
+        };
+      }),
+    );
+    return {
+      user: userInfo,
+      userGame: userGameData,
     };
   }
 }

@@ -61,6 +61,11 @@ export class ChannelsEventsGateway
       userId,
       createChatData.channelId,
     );
+    const userChannelId = client.data.userChannelId;
+    if (userChannelId !== undefined) {
+      client.emit('error', { NotFoundException: 'You are not in any channel' });
+      return;
+    }
     if (userChannel.channel.isDm) {
       let banMessage: string | null = await this.channelService.isBanBuddyInDm(
         userId,
@@ -109,12 +114,8 @@ export class ChannelsEventsGateway
   handleDisconnect(@ConnectedSocket() client: Socket) {
     this.logger.log(`${client.id} 소켓 연결 해제`);
     const user = client.data.user;
-    if (!user) {
-      return;
-    }
-    const userId = client.data.user['id'];
     const userChannelId = client.data.userChannelId;
-    if (userChannelId !== undefined) {
+    if (user !== undefined && userChannelId !== undefined) {
       this.channelService.updateLastViewTime(userChannelId);
     }
   }

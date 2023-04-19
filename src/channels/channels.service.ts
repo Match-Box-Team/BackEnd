@@ -39,24 +39,23 @@ export class ChannelsService {
     );
     const result = await Promise.all(
       userChannels.map(async (userChannel) => {
-        const users = await this.repository.findUsersInChannel(
-          userChannel.channel.channelId,
-        );
+        // 가장 최신 채팅 시간과 안읽은 채팅 개수
         const chats = await this.repository.findChatsByChannelId(
           userChannel.channel.channelId,
         );
         let notReadCount = 0;
-        let lastMessageTime: Date = userChannel.lastChatTime;
+        // "fake message" 시간
+        let lastMessageTime: Date = chats.at(0).time;
 
-        if (chats.length !== 0) {
+        if (chats.length !== 1) {
           chats.map((chat) => {
             if (chat.time > userChannel.lastChatTime) {
               notReadCount++;
             }
           });
-          lastMessageTime = chats.at(0).time;
+          lastMessageTime = chats.at(-1).time;
         }
-
+        // 채널이 dm일 경우 상대방 이름 추출
         if (userChannel.channel.isDm) {
           const slash: number = userChannel.channel.channelName.indexOf('/');
           const nickname1: string = userChannel.channel.channelName.substring(
@@ -73,6 +72,10 @@ export class ChannelsService {
             userChannel.channel.channelName = nickname1;
           }
         }
+        // 채널의 멤버 최대 2명 추출
+        const users = await this.repository.findUsersInChannel(
+          userChannel.channel.channelId,
+        );
         users.map((user) => {
           user.userChannelId = undefined;
           user.isAdmin = undefined;
@@ -125,7 +128,19 @@ export class ChannelsService {
       userId: userId,
       channelId: newChannel.channelId,
     };
-    await this.repository.createUserChannel(userChannelData);
+    const userChannel = await this.repository.createUserChannel(
+      userChannelData,
+    );
+    // 채널 목록에서 각 채널의 최신 메시지 시간과 안읽은 채팅 개수를 세서 표시해준다.
+    // 이때 최신 메시지 시간은 채팅 내역 중 가장 최신 채팅의 시간을 표시해준다.
+    // 이렇게 할 경우, 채팅 내역이 아무것도 없을 때 last_chat_time로 대신 보여주는데,
+    // 채팅방을 들어가고(소켓연결) 채팅방 나올 때(소켓 연결 끊김)마다 last_chat_time을 업데이트해주므로 적합하지 않다.
+    // => 채팅방을 생성하자마자 "fake message" chat 테이블에 넣는 방법을 선택
+    await this.repository.createChat(
+      userChannel.userChannelId,
+      'Fake Message',
+      new Date(),
+    );
   }
 
   async joinChannel(
@@ -168,6 +183,9 @@ export class ChannelsService {
     const chats = await this.repository.findChatLogs(
       userChannel.channel.channelId,
     );
+    // 채팅방 생성 시 만든 fake message 빼고 로그 반환
+    //  - 채팅방을 만들자마자 넣은 데이터이므로 가장 첫번째로 들어가있음.
+    chats.shift();
     userChannel.channel.isDm = undefined;
     userChannel.channel.count = undefined;
     return {
@@ -292,8 +310,15 @@ export class ChannelsService {
         userId: buddy.userId,
         channelId: channel.channelId,
       };
-      await this.repository.createUserChannel(myUserChannelData);
+      const userChannel = await this.repository.createUserChannel(
+        myUserChannelData,
+      );
       await this.repository.createUserChannel(buddyUserChannelData);
+      await this.repository.createChat(
+        userChannel.userChannelId,
+        'Fake Message',
+        new Date(),
+      );
     }
     return {
       channel: {

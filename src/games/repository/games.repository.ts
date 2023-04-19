@@ -16,6 +16,14 @@ export class GamesRepository {
     });
   }
 
+  async getGameByName(gameName: string): Promise<Game> {
+    return this.prisma.game.findFirstOrThrow({
+      where: {
+        name: gameName,
+      },
+    });
+  }
+
   async getGames(): Promise<Game[]> {
     return this.prisma.game.findMany();
   }
@@ -90,6 +98,22 @@ export class GamesRepository {
   }
 
   async createGameHistory({
+    winnerId,
+    loserId,
+    winnerScore,
+    loserScore,
+  }: GameHistoryDto): Promise<GameHistory> {
+    return this.prisma.gameHistory.create({
+      data: {
+        winnerUserGameId: winnerId,
+        loserUserGameId: loserId,
+        winnerScore: winnerScore,
+        loserScore: loserScore,
+      },
+    });
+  }
+
+  async getGameHistory({
     winnerId,
     loserId,
     winnerScore,

@@ -6,14 +6,16 @@ import {
 } from '@nestjs/common';
 import { FriendsRepository } from './repository/friends.repository';
 import { FriendsAddDto, FriendsSetBanDto } from './dto/friends.dto';
-import { Friend } from '@prisma/client';
+import { Friend, Game, UserGame } from '@prisma/client';
 import { AccountService } from 'src/account/account.service';
+import { GamesRepository } from 'src/games/repository/games.repository';
 
 @Injectable()
 export class FriendsService {
   constructor(
     private friendsRepository: FriendsRepository,
     private accountServce: AccountService,
+    private gameRepository: GamesRepository,
   ) {}
 
   async addFriend(userID: string, friendID: FriendsAddDto) {
@@ -77,5 +79,30 @@ export class FriendsService {
   async getFriendsList(userId: string) {
     const friendsList = await this.friendsRepository.findFriendsByMyId(userId);
     return { friends: friendsList };
+  }
+
+  async searchGameHistoyOfFriend(frinedId: string, gameName: string) {
+    //게임 이름으로 게임 아이디를 찾아낸다
+    let gameInfo: Game;
+    try {
+      gameInfo = await this.gameRepository.getGameByName(gameName);
+    } catch (error) {
+      throw new NotFoundException('해당하는 게임이 없습니다');
+    }
+
+    //게임 아이디와 친구 아이디로 친구가 해당 게임을 가지고 있는 지 확인한다
+    let userGameInfo: UserGame;
+    try {
+      userGameInfo = await this.gameRepository.getUserGame(
+        frinedId,
+        gameInfo.gameId,
+      );
+    } catch (error) {
+      throw new NotFoundException(
+        '해당하는 친구가 게임을 가지고 있지 않습니다',
+      );
+    }
+
+    //유저 게임 히스토리에서 해당하는 친구의 전적을 모두 가져온다
   }
 }

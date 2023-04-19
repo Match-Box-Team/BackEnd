@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { OAuthUserInfoDto } from './dto';
@@ -9,6 +10,8 @@ import { JwtUtil } from './jwt/jwt.util';
 import { PrismaService } from 'prisma/prisma.service';
 import { MailerService } from '@nestjs-modules/mailer';
 import { AccountService } from 'src/account/account.service';
+import axios from 'axios';
+import * as fs from 'fs-extra';
 
 @Injectable()
 export class AuthService {
@@ -129,6 +132,23 @@ export class AuthService {
 
     const resJWT = this.jwtUtil.encode(payload);
     return resJWT;
+  }
+
+  // 이미지 저장
+  async downloadAndSaveImage(
+    imageUrl: string,
+    filePath: string,
+  ): Promise<void> {
+    try {
+      const response = await axios.get(imageUrl, {
+        responseType: 'arraybuffer',
+      });
+      // outputFile은 성공시 Promise<undefined> 실패 시 Error 객체를 반환함
+      // 그렇기에 try, catch로 파일 저장 성공 여부를 알 수 있다
+      await fs.outputFile(filePath, response.data);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to save intra image');
+    }
   }
 
   /*

@@ -47,7 +47,7 @@ export class AccountEventsGateway
 
   // 로그인 시 user state online으로 업데이트
   @SubscribeMessage('login')
-  async login(client: Socket, {}) {
+  async login(client: Socket) {
     const userId = client.data.user['id'];
     const user = await this.accountService.getUser(userId);
     console.log(`login name: ${user.nickname} --- id: ${userId}`);

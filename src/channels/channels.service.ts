@@ -310,8 +310,15 @@ export class ChannelsService {
         userId: buddy.userId,
         channelId: channel.channelId,
       };
-      await this.repository.createUserChannel(myUserChannelData);
+      const userChannel = await this.repository.createUserChannel(
+        myUserChannelData,
+      );
       await this.repository.createUserChannel(buddyUserChannelData);
+      await this.repository.createChat(
+        userChannel.userChannelId,
+        'Fake Message',
+        new Date(),
+      );
     }
     return {
       channel: {

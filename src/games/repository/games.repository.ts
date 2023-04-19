@@ -2,7 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Game, GameHistory, GameWatch, UserGame } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { GameHistoryDto } from '../dto/games.dto';
-import { GameId, UserId, UserProfile } from './game.type';
+import {
+  GameHistoryResponseDto,
+  GameId,
+  UserId,
+  UserProfile,
+} from './game.type';
 
 @Injectable()
 export class GamesRepository {
@@ -12,6 +17,14 @@ export class GamesRepository {
     return this.prisma.game.findUnique({
       where: {
         gameId: gameId,
+      },
+    });
+  }
+
+  async getGameByName(gameName: string): Promise<Game> {
+    return this.prisma.game.findFirstOrThrow({
+      where: {
+        name: gameName,
       },
     });
   }
@@ -103,6 +116,76 @@ export class GamesRepository {
         loserScore: loserScore,
       },
     });
+  }
+
+  async getGameHistory({
+    winnerId,
+    loserId,
+    winnerScore,
+    loserScore,
+  }: GameHistoryDto): Promise<GameHistory> {
+    return this.prisma.gameHistory.create({
+      data: {
+        winnerUserGameId: winnerId,
+        loserUserGameId: loserId,
+        winnerScore: winnerScore,
+        loserScore: loserScore,
+      },
+    });
+  }
+
+  async getGameHistoryById(userId: string): Promise<GameHistoryResponseDto[]> {
+    const gameHistories = await this.prisma.gameHistory.findMany({
+      where: {
+        OR: [{ winnerUserGameId: userId }, { loserUserGameId: userId }],
+      },
+      orderBy: {
+        createAt: 'desc',
+      },
+      select: {
+        winnerUserGame: {
+          select: {
+            user: {
+              select: {
+                userId: true,
+                nickname: true,
+                image: true,
+              },
+            },
+          },
+        },
+        winnerScore: true,
+        loserUserGame: {
+          select: {
+            user: {
+              select: {
+                userId: true,
+                nickname: true,
+                image: true,
+              },
+            },
+          },
+        },
+        loserScore: true,
+      },
+    });
+
+    return gameHistories.map(
+      (gameHistory): GameHistoryResponseDto => ({
+        winner: {
+          userId: gameHistory.winnerUserGame.user.userId,
+          nickname: gameHistory.winnerUserGame.user.nickname,
+          image: gameHistory.winnerUserGame.user.image,
+          score: gameHistory.winnerScore,
+        },
+        loser: {
+          userId: gameHistory.loserUserGame.user.userId,
+          nickname: gameHistory.loserUserGame.user.nickname,
+          image: gameHistory.loserUserGame.user.image,
+          score: gameHistory.loserScore,
+        },
+      }),
+    );
   }
 
   async getUserGame(userId: string, gameId: string): Promise<UserGame> {

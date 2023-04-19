@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Post,
-  UsePipes,
-  ValidationPipe,
   Get,
   Patch,
   Request,
@@ -62,6 +60,18 @@ export class FriendsController {
   ) {
     const userId: string = req['id']['id'];
     return this.friendsService.searchFriendForAdd(userId, nickname);
+  }
+
+  @Get(':friendId/history')
+  @UseGuards(AuthGuard)
+  async getGameHistoryOfFriend(
+    @Param('friendId') frinedId: string,
+    @Query('game') gameName: string,
+  ) {
+    return await this.friendsService.searchGameHistoyOfFriend(
+      frinedId,
+      gameName,
+    );
   }
 
   @Get('/:friendId')

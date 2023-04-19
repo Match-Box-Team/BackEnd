@@ -154,6 +154,7 @@ export class GamesRepository {
             },
           },
         },
+        winnerScore: true,
         loserUserGame: {
           select: {
             user: {
@@ -165,6 +166,7 @@ export class GamesRepository {
             },
           },
         },
+        loserScore: true,
       },
     });
 
@@ -174,11 +176,13 @@ export class GamesRepository {
           userId: gameHistory.winnerUserGame.user.userId,
           nickname: gameHistory.winnerUserGame.user.nickname,
           image: gameHistory.winnerUserGame.user.image,
+          score: gameHistory.winnerScore,
         },
         loser: {
           userId: gameHistory.loserUserGame.user.userId,
           nickname: gameHistory.loserUserGame.user.nickname,
           image: gameHistory.loserUserGame.user.image,
+          score: gameHistory.loserScore,
         },
       }),
     );

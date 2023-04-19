@@ -52,6 +52,7 @@ export class UserInfoForHistoryDto {
   userId: string;
   nickname: string;
   image: string;
+  score: number;
 }
 
 export class GameHistoryResponseDto {

@@ -113,8 +113,8 @@ export class FriendsService {
     //유저 게임 히스토리에서 해당하는 친구의 전적을 모두 가져온다
     let friendGameHistoryInfo;
     try {
-      friendGameHistoryInfo = this.gameRepository.getGameHistoryById(
-        userGameInfo.userId,
+      friendGameHistoryInfo = await this.gameRepository.getGameHistoryById(
+        userGameInfo.userGameId,
       );
     } catch (error) {
       throw new ConflictException(

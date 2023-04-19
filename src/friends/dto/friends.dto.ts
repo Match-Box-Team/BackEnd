@@ -19,11 +19,13 @@ export class FriendGameHistoryDto {
       userId: string;
       nickname: string;
       image: string;
+      score: number;
     };
     loser: {
       userId: string;
       nickname: string;
       image: string;
+      score: number;
     };
   }[];
 }

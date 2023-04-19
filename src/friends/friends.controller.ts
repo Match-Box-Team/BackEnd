@@ -63,4 +63,14 @@ export class FriendsController {
     const userId: string = req['id']['id'];
     return this.friendsService.searchFriendForAdd(userId, nickname);
   }
+
+  @Get('/:friendId')
+  @UseGuards(AuthGuard)
+  async getFriendDetails(
+    @Param('friendId') friendId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    const reqId: string = req['id']['id'];
+    return this.friendsService.getFriendDetails(reqId, friendId);
+  }
 }

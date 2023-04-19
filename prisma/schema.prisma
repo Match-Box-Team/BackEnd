@@ -68,6 +68,8 @@ model GameHistory {
   winnerScore       Int     @map("winner_score")
   loserScore        Int     @map("loser_score")
 
+  createAt          DateTime  @default(now()) @map("create_at")
+
   winnerUserGame    UserGame  @relation(name: "winnerUserGame", fields: [winnerUserGameId], references: [userGameId], onDelete: Cascade)
   loserUserGame     UserGame  @relation(name: "loserUserGame", fields: [loserUserGameId], references: [userGameId], onDelete: Cascade)
 }

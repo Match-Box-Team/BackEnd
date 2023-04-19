@@ -53,15 +53,17 @@ export class AuthController {
     const user = await this.accountService.getUserByIntraId(info.intraId);
     this.authService.addAuthInfo(user.userId, info);
 
-    // 유저 이미지 저장
-    const imageUrl = info.image;
-
     const fileName = `${info.intraId}.jpg`; // 파일 이름
     const filePath = path.join(userImagePath, fileName);
 
     // 로그인할 때마다 다시 인트라 이미지로 프로필이 수정되는 것을 막음
     if (user.image !== filePath) {
-      await this.authService.downloadAndSaveImage(imageUrl, filePath);
+      // 42 auth로 가져온 유저 이미지
+      const imageUrlFromAccessToken = info.image;
+      await this.authService.downloadAndSaveImage(
+        imageUrlFromAccessToken,
+        filePath,
+      );
       await this.accountService.updateUserImagePath(user.userId, filePath);
     }
 

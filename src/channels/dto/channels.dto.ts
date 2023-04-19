@@ -15,6 +15,7 @@ export class ChannelCreateDto {
   password: string;
 
   @IsBoolean()
+  @IsNotEmpty()
   isPublic: boolean;
 }
 

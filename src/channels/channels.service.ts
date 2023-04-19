@@ -160,7 +160,7 @@ export class ChannelsService {
       channelId: channel.channelId,
     };
     await this.repository.createUserChannel(userChannelData);
-    await this.repository.updateChannelCount(channel.channelId);
+    await this.repository.addUserCountInChannel(channel.channelId);
   }
 
   async getChatLog(userId: string, channelId: string) {
@@ -228,7 +228,7 @@ export class ChannelsService {
       channelId: channelId,
     };
     await this.repository.createUserChannel(userChannelData);
-    await this.repository.updateChannelCount(channelId);
+    await this.repository.addUserCountInChannel(channelId);
   }
 
   async changeChannelPassword(
@@ -390,11 +390,61 @@ export class ChannelsService {
         }
         await this.repository.updateOwner(userChannelId);
         await this.repository.deleteUserChannel(userChannel.userChannelId);
+        await this.repository.removeUserCountInChannel(channelId);
       } else {
         // 그게 아니면 그냥 나가고
         await this.repository.deleteUserChannel(userChannel.userChannelId);
+        await this.repository.removeUserCountInChannel(channelId);
       }
     }
+  }
+
+  async kickUser(
+    userId: string,
+    targetId: string,
+    channelId: string,
+  ): Promise<UserChannelOne> {
+    const userChannel = await this.validateUserChannel(userId, channelId);
+    const targetChannel = await this.validateUserChannel(targetId, channelId);
+
+    // 관리자나 오너인지 확인
+    if (userChannel.isOwner !== true && userChannel.isAdmin !== true) {
+      throw new BadRequestException('사용자가 오너이거나 관리자가 아닙니다');
+    }
+
+    // 킥하려는 대상이 운영자일 때 예외처리
+    if (targetChannel.isOwner === true && userId != targetId) {
+      throw new BadRequestException('오너를 쫒아낼 수 없습니다');
+    }
+
+    // 한 명 밖에 안 남았을 땐 채널 삭제
+    if (userChannel.channel.count === 1) {
+      await this.repository.deleteChannel(channelId);
+      return;
+    }
+
+    // 오너일 경우 다른 사람에게 오너를 부여
+    if (targetChannel.isOwner === true) {
+      const users = await this.repository.findUsersInChannel(channelId);
+      let userChannelId: string | null = null;
+      const admin = users.find(
+        (user) => user.isAdmin === true && user.user.userId !== targetId,
+      );
+
+      if (admin !== undefined) {
+        // 오너 직책을 관리자에게 넘겨주고
+        userChannelId = admin.userChannelId;
+      } else {
+        // 만약 관리자가 없으며 그냥 아무한테 넘겨주고
+        const normal = users.find((user) => user.isAdmin === false);
+        userChannelId = normal.userChannelId;
+      }
+
+      await this.repository.updateOwner(userChannelId);
+    }
+
+    await this.repository.deleteUserChannel(targetChannel.userChannelId);
+    await this.repository.removeUserCountInChannel(channelId);
   }
 
   /**

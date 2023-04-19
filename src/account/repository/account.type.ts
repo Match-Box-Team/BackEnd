@@ -2,6 +2,10 @@ export interface UserEmail {
   email: string;
 }
 
+export interface IntraId {
+  intraId: string;
+}
+
 export interface UserInfo {
   nickname: string;
   intraId: string;

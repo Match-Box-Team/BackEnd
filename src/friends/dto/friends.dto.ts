@@ -12,3 +12,22 @@ export class FriendsAddDto {
   @IsNotEmpty()
   userId: string;
 }
+
+export class FriendGameHistoryDto {
+  gameId: string;
+  name: string;
+  gameHistory: {
+    winner: {
+      userId: string;
+      nickname: string;
+      image: string;
+      score: number;
+    };
+    loser: {
+      userId: string;
+      nickname: string;
+      image: string;
+      score: number;
+    };
+  }[];
+}

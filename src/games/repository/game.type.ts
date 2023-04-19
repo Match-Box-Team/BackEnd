@@ -46,3 +46,15 @@ export interface UserProfile {
   nickname: string;
   image: string;
 }
+
+export class UserInfoForHistoryDto {
+  userId: string;
+  nickname: string;
+  image: string;
+  score: number;
+}
+
+export class GameHistoryResponseDto {
+  winner: UserInfoForHistoryDto;
+  loser: UserInfoForHistoryDto;
+}

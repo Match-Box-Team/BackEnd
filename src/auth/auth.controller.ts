@@ -30,6 +30,8 @@ import { AuthService } from './auth.service';
 import { Response } from 'express'; // Express 응답 객체를 가져옵니다.
 import { UserId, VerifyCodeDto } from './dto/auth.dto';
 import { AccountService } from 'src/account/account.service';
+import * as path from 'path';
+import { userImagePath } from 'src/app.controller';
 
 @Controller('auth')
 export class AuthController {
@@ -47,8 +49,23 @@ export class AuthController {
     const info = await this.authService.getUserInfo(accessToken);
     await this.authService.saveUserInfo(info);
 
+    // 2차 인증 때 JWT 토큰 생성을 위해서 유저 정보를 Map에 저장
     const user = await this.accountService.getUserByIntraId(info.intraId);
     this.authService.addAuthInfo(user.userId, info);
+
+    const fileName = `${info.intraId}.jpg`; // 파일 이름
+    const filePath = path.join(userImagePath, fileName);
+
+    // 로그인할 때마다 다시 인트라 이미지로 프로필이 수정되는 것을 막음
+    if (user.image !== filePath) {
+      // 42 auth로 가져온 유저 이미지
+      const imageUrlFromAccessToken = info.image;
+      await this.authService.downloadAndSaveImage(
+        imageUrlFromAccessToken,
+        filePath,
+      );
+      await this.accountService.updateUserImagePath(user.userId, filePath);
+    }
 
     // 아래는 1차 인증만 있을 때의 코드
     // 매번 메일 인증하기는 번거로우니 일단 사용
@@ -85,10 +102,7 @@ export class AuthController {
     @Res() res: Response,
   ): Promise<void> {
     const userId = verifyCodeDto.userId;
-    const isVerify = await this.authService.verifyCode(
-      userId,
-      verifyCodeDto.code,
-    );
+    const isVerify = this.authService.verifyCode(userId, verifyCodeDto.code);
     // 인증 실패 시 다시 2차 인증 페이지로 리다이랙트 해줘야 함
     // 프론트할 때 수정 필요
     if (isVerify === false) {

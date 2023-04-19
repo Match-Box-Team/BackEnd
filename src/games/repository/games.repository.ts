@@ -2,7 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Game, GameHistory, GameWatch, UserGame } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { GameHistoryDto } from '../dto/games.dto';
-import { GameId, UserId, UserProfile } from './game.type';
+import {
+  GameHistoryResponseDto,
+  GameId,
+  UserId,
+  UserProfile,
+} from './game.type';
 
 @Injectable()
 export class GamesRepository {
@@ -127,6 +132,56 @@ export class GamesRepository {
         loserScore: loserScore,
       },
     });
+  }
+
+  async getGameHistoryById(userId: string): Promise<GameHistoryResponseDto[]> {
+    const gameHistories = await this.prisma.gameHistory.findMany({
+      where: {
+        OR: [{ winnerUserGameId: userId }, { loserUserGameId: userId }],
+      },
+      orderBy: {
+        createAt: 'desc',
+      },
+      select: {
+        winnerUserGame: {
+          select: {
+            user: {
+              select: {
+                userId: true,
+                nickname: true,
+                image: true,
+              },
+            },
+          },
+        },
+        loserUserGame: {
+          select: {
+            user: {
+              select: {
+                userId: true,
+                nickname: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return gameHistories.map(
+      (gameHistory): GameHistoryResponseDto => ({
+        winner: {
+          userId: gameHistory.winnerUserGame.user.userId,
+          nickname: gameHistory.winnerUserGame.user.nickname,
+          image: gameHistory.winnerUserGame.user.image,
+        },
+        loser: {
+          userId: gameHistory.loserUserGame.user.userId,
+          nickname: gameHistory.loserUserGame.user.nickname,
+          image: gameHistory.loserUserGame.user.image,
+        },
+      }),
+    );
   }
 
   async getUserGame(userId: string, gameId: string): Promise<UserGame> {

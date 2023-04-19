@@ -5,7 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FriendsRepository } from './repository/friends.repository';
-import { FriendsAddDto, FriendsSetBanDto } from './dto/friends.dto';
+import {
+  FriendGameHistoryDto,
+  FriendsAddDto,
+  FriendsSetBanDto,
+} from './dto/friends.dto';
 import { Friend, Game, UserGame } from '@prisma/client';
 import { AccountService } from 'src/account/account.service';
 import { GamesRepository } from 'src/games/repository/games.repository';
@@ -81,7 +85,10 @@ export class FriendsService {
     return { friends: friendsList };
   }
 
-  async searchGameHistoyOfFriend(frinedId: string, gameName: string) {
+  async searchGameHistoyOfFriend(
+    frinedId: string,
+    gameName: string,
+  ): Promise<FriendGameHistoryDto> {
     //게임 이름으로 게임 아이디를 찾아낸다
     let gameInfo: Game;
     try {
@@ -104,5 +111,21 @@ export class FriendsService {
     }
 
     //유저 게임 히스토리에서 해당하는 친구의 전적을 모두 가져온다
+    let friendGameHistoryInfo;
+    try {
+      friendGameHistoryInfo = this.gameRepository.getGameHistoryById(
+        userGameInfo.userId,
+      );
+    } catch (error) {
+      throw new ConflictException(
+        'DB에서 게임 히스토리를 조회하는데 실패했습니다',
+      );
+    }
+
+    return {
+      gameId: gameInfo.gameId,
+      name: gameInfo.name,
+      gameHistory: friendGameHistoryInfo,
+    };
   }
 }

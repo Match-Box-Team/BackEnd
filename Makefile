@@ -12,7 +12,6 @@ clean:
 	sudo docker-compose down
 
 fclean: clean
-	docker-compose down
 
 ffclean: clean
 	docker system prune -af

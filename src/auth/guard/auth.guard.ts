@@ -10,6 +10,11 @@ import { WsException } from '@nestjs/websockets';
 import { Request } from 'express';
 import { Socket } from 'socket.io';
 
+interface JwtAuth {
+  request: Socket | Request;
+  token: string;
+}
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
@@ -17,40 +22,18 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (context.getType() === 'http') {
       const request = context.switchToHttp().getRequest();
-      const token = this.extractToken(request.headers.authorization);
-
-      if (!token) {
-        throw new UnauthorizedException();
-      }
-      try {
-        const payload = await this.jwtService.verifyAsync(token, {
-          secret: process.env.JWT_SECRET,
-        });
-        request['id'] = payload;
-      } catch {
-        throw new UnauthorizedException();
-      }
+      const data: JwtAuth = {
+        request: request,
+        token: this.extractToken(request.headers.authorization),
+      };
+      return await this.authenticateToken(data);
     } else if (context.getType() === 'ws') {
       const client: Socket = context.switchToWs().getClient();
-      const token = this.extractToken(client.handshake.headers.authorization);
-
-      if (!token) {
-        client.emit('error', {
-          UnauthorizedException: 'Unauthorized access when socket connection',
-        });
-        return false;
-      }
-      try {
-        const payload = await this.jwtService.verifyAsync(token, {
-          secret: process.env.JWT_SECRET,
-        });
-        client.data.user = payload;
-      } catch (error) {
-        client.emit('error', {
-          UnauthorizedException: 'Unauthorized access when socket connection',
-        });
-        return false;
-      }
+      const data: JwtAuth = {
+        request: client,
+        token: this.extractToken(client.handshake.headers.authorization),
+      };
+      return await this.authenticateToken(data);
     }
     return true;
   }
@@ -58,5 +41,35 @@ export class AuthGuard implements CanActivate {
   private extractToken(authorization: string): string | undefined {
     const [type, token] = authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  private async authenticateToken(data: JwtAuth): Promise<boolean> {
+    if (!data.token) {
+      return this.errorType(data);
+    }
+    try {
+      const payload = await this.jwtService.verifyAsync(data.token, {
+        secret: process.env.JWT_SECRET,
+      });
+      if (data.request instanceof Socket) {
+        data.request.data.user = payload;
+      } else {
+        data.request['id'] = payload;
+      }
+    } catch {
+      return this.errorType(data);
+    }
+    return true;
+  }
+
+  private errorType(data: JwtAuth): boolean {
+    if (data.request instanceof Socket) {
+      data.request.emit('error', {
+        UnauthorizedException: 'Unauthorized access when socket connection',
+      });
+    } else {
+      throw new UnauthorizedException();
+    }
+    return false;
   }
 }

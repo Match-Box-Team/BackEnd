@@ -43,12 +43,10 @@ export class ChannelsEventsGateway
       enterChannelData.channelId,
     );
     if (userChannel === null) {
-      client.emit('errorThrow', {
-        NotFoundException: 'Not existed in the channel',
-      });
+      this.errorEmit(client, 'You are not in channel');
       return;
     }
-    client.data.userChannelId = enterChannelData.channelId;
+    client.data.userChannelId = userChannel.userChannelId;
     client.join(enterChannelData.channelId);
     client.emit('message', { message: 'Success' });
   }
@@ -57,13 +55,17 @@ export class ChannelsEventsGateway
   @SubscribeMessage('chat')
   async chatMessage(client: Socket, createChatData: ChatMessage) {
     const userId = client.data.user['id'];
+    const userChannelId = client.data.userChannelId;
+    if (userChannelId === undefined) {
+      this.errorEmit(client, 'You are not in channel');
+      return;
+    }
     const userChannel = await this.channelService.validateUserChannelNoThrow(
       userId,
       createChatData.channelId,
     );
-    const userChannelId = client.data.userChannelId;
-    if (userChannelId !== undefined) {
-      client.emit('error', { NotFoundException: 'You are not in any channel' });
+    if (userChannel === null || userChannelId !== userChannel.userChannelId) {
+      this.errorEmit(client, 'You are not in channel');
       return;
     }
     if (userChannel.channel.isDm) {
@@ -73,12 +75,12 @@ export class ChannelsEventsGateway
         userChannel.userChannelId,
       );
       if (banMessage !== null) {
-        client.emit('error', { NotFoundException: banMessage });
+        this.errorEmit(client, banMessage);
         return;
       }
     } else {
       if (userChannel.isMute) {
-        client.emit('error', { NotFoundException: 'You are muted' });
+        this.errorEmit(client, 'You are muted');
         return;
       }
     }
@@ -98,6 +100,12 @@ export class ChannelsEventsGateway
       user: user,
       message: createChatData.message,
     };
+  }
+
+  private errorEmit(client: Socket, message: string) {
+    client.emit('error', {
+      NotFoundException: message,
+    });
   }
 
   // 초기화 이후에 실행

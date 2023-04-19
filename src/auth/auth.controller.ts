@@ -31,6 +31,7 @@ import { Response } from 'express'; // Express 응답 객체를 가져옵니다.
 import { UserId, VerifyCodeDto } from './dto/auth.dto';
 import { AccountService } from 'src/account/account.service';
 import * as path from 'path';
+import { userImagePath } from 'src/app.controller';
 
 @Controller('auth')
 export class AuthController {
@@ -54,14 +55,15 @@ export class AuthController {
 
     // 유저 이미지 저장
     const imageUrl = info.image;
-    const filePath = path.join(
-      process.cwd(), // 프로젝트 루트 경로
-      `assets/images/${info.intraId}.jpg`, // 파일 저장할 경로
-    );
-    await this.authService.downloadAndSaveImage(imageUrl, filePath);
-    await this.accountService.updateUserProfile(user.userId, {
-      image: filePath,
-    });
+
+    const fileName = `${info.intraId}.jpg`; // 파일 이름
+    const filePath = path.join(userImagePath, fileName);
+
+    // 로그인할 때마다 다시 인트라 이미지로 프로필이 수정되는 것을 막음
+    if (user.image !== filePath) {
+      await this.authService.downloadAndSaveImage(imageUrl, filePath);
+      await this.accountService.updateUserImagePath(user.userId, filePath);
+    }
 
     // 아래는 1차 인증만 있을 때의 코드
     // 매번 메일 인증하기는 번거로우니 일단 사용

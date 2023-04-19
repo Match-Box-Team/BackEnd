@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Post,
   Req,
   UseGuards,
@@ -31,7 +32,7 @@ export class GamesController {
   @UseGuards(AuthGuard)
   async buyGame(
     @Req() req: Request,
-    @Param() gameId: gameIdDto,
+    @Param('gameId', ParseUUIDPipe) gameId: gameIdDto,
   ): Promise<GameId> {
     const userId = req['id']['id'];
     return await this.gamesService.buyGame(userId, gameId.gameId);
@@ -40,7 +41,9 @@ export class GamesController {
   // 관전 목록 페이지 - 게임 관전 목록 조회
   @Get(':gameId')
   @UseGuards(AuthGuard)
-  async getGameWatches(@Param() gameId: gameIdDto): Promise<GameWatchesType> {
+  async getGameWatches(
+    @Param('gameId', ParseUUIDPipe) gameId: gameIdDto,
+  ): Promise<GameWatchesType> {
     return await this.gamesService.getGameWatches(gameId.gameId);
   }
 
@@ -48,7 +51,7 @@ export class GamesController {
   @Post(':gameWatchId')
   @UseGuards(AuthGuard)
   async createGameHistory(
-    @Param() { gameWatchId }: gameWatchIdDto,
+    @Param('gameWatchId', ParseUUIDPipe) { gameWatchId }: gameWatchIdDto,
     @Body() gameHistoryDto: GameHistoryDto,
   ): Promise<GameHistory> {
     return await this.gamesService.createGameHistory(

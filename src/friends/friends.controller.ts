@@ -10,6 +10,7 @@ import {
   Param,
   Query,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { FriendsService } from './friends.service';
@@ -46,7 +47,7 @@ export class FriendsController {
   @Patch('/:friendId/banned')
   @UseGuards(AuthGuard)
   async setBanFriend(
-    @Param('friendId') friendId: string,
+    @Param('friendId', ParseUUIDPipe) friendId: string,
     @Body() dto: FriendsSetBanDto,
     @Request() req: ExpressRequest,
   ) {
@@ -67,7 +68,7 @@ export class FriendsController {
   @Get('/:friendId')
   @UseGuards(AuthGuard)
   async getFriendDetails(
-    @Param('friendId') friendId: string,
+    @Param('friendId', ParseUUIDPipe) friendId: string,
     @Request() req: ExpressRequest,
   ) {
     const reqId: string = req['id']['id'];

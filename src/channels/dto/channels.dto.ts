@@ -1,4 +1,10 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class ChannelCreateDto {
   @IsString()
@@ -20,11 +26,13 @@ export class ChannelPasswordDto {
 export class ChannelInviteDto {
   @IsString()
   @IsNotEmpty()
+  @IsUUID()
   userId: string;
 }
 
 export class DmDto {
   @IsString()
   @IsNotEmpty()
+  @IsUUID()
   buddyId: string;
 }

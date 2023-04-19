@@ -226,9 +226,6 @@ export class ChannelsService {
       throw new NotFoundException('Input userId is my userId');
     }
     const user = await this.accountService.getUser(dto.userId);
-    if (user === null) {
-      throw new NotFoundException('Not existed user');
-    }
     const userChannel = await this.validateUserChannel(userId, channelId);
     if (userChannel.channel.isDm) {
       throw new ForbiddenException('This channel is for dm');
@@ -275,9 +272,6 @@ export class ChannelsService {
     }
     const me = await this.accountService.getUser(userId);
     const buddy = await this.accountService.getUser(dto.buddyId);
-    if (buddy === null) {
-      throw new NotFoundException('Not existed buddy');
-    }
     const meBuddy = me.nickname + '/' + buddy.nickname;
     const buddyMe = buddy.nickname + '/' + me.nickname;
     let channel: Channel = await this.repository.findDmChannelByChannelName(

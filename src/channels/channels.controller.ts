@@ -172,4 +172,14 @@ export class ChannelsController {
   ) {
     await this.channelsService.setAdmin(req['id']['id'], userId, channelId);
   }
+
+  @Delete('/:channelId/member/:userId')
+  @UseGuards(AuthGuard)
+  async kickUser(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    await this.channelsService.kickUser(req['id']['id'], userId, channelId);
+  }
 }

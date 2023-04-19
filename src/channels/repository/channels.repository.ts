@@ -242,8 +242,10 @@ export class ChannelsRepository {
     });
   }
 
-  async createUserChannel(userChannelData: CreateUserChannelData) {
-    await this.prisma.userChannel.create({
+  async createUserChannel(
+    userChannelData: CreateUserChannelData,
+  ): Promise<UserChannel> {
+    return await this.prisma.userChannel.create({
       data: {
         isOwner: userChannelData.isOwner,
         isAdmin: userChannelData.isAdmin,
@@ -272,19 +274,6 @@ export class ChannelsRepository {
       },
       data: {
         lastChatTime: lastTime,
-      },
-    });
-  }
-
-  async updateChannelCount(channelId: string) {
-    await this.prisma.channel.update({
-      where: {
-        channelId: channelId,
-      },
-      data: {
-        count: {
-          increment: 1,
-        },
       },
     });
   }
@@ -356,6 +345,32 @@ export class ChannelsRepository {
       },
       data: {
         isAdmin: isAdmin,
+      },
+    });
+  }
+
+  async addUserCountInChannel(channelId: string) {
+    await this.prisma.channel.update({
+      where: {
+        channelId: channelId,
+      },
+      data: {
+        count: {
+          increment: 1,
+        },
+      },
+    });
+  }
+
+  async removeUserCountInChannel(channelId: string) {
+    await this.prisma.channel.update({
+      where: {
+        channelId: channelId,
+      },
+      data: {
+        count: {
+          decrement: 1,
+        },
       },
     });
   }

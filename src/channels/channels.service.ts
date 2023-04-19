@@ -141,6 +141,7 @@ export class ChannelsService {
       'Fake Message',
       new Date(),
     );
+    return { channelId: newChannel.channelId };
   }
 
   async joinChannel(

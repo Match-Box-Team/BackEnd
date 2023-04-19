@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User, UserGame } from '@prisma/client';
 import { AccountRepository } from './repository/account.repository';
-import { UpdateUserDto } from './dto/account.dto';
 import { MyPage, UserEmail } from './repository/account.type';
 import { GamesService } from 'src/games/games.service';
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import { userImagePath } from 'src/app.controller';
 
 @Injectable()
 export class AccountService {
@@ -84,15 +86,23 @@ export class AccountService {
     };
   }
 
+  async updateUserImagePath(userId: string, imagePath: string): Promise<User> {
+    return await this.repository.updateUserImagePath(userId, imagePath);
+  }
+
   async updateUserProfile(
     userId: string,
-    updateUserDto: UpdateUserDto,
+    nickname: string,
+    oldFilePath: string,
   ): Promise<User> {
-    return this.repository.updateUserProfile({
+    const intraId = await this.repository.getUserIntraIdByUserId(userId);
+    const newFilePath = path.join(userImagePath, `${intraId.intraId}.jpg`);
+    fs.rename(oldFilePath, newFilePath);
+    return await this.repository.updateUserProfile({
       where: { userId: userId },
       data: {
-        nickname: updateUserDto.nickname,
-        image: updateUserDto.image,
+        nickname: nickname,
+        image: newFilePath,
       },
     });
   }

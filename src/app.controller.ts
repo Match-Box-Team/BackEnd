@@ -1,7 +1,15 @@
 import { Controller, Get, Redirect, Request, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
-import { AuthGuard } from './auth/guard/auth.guard';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 
+export const userImagePath = path.join(
+  process.cwd(), // 프로젝트 루트 경로
+  'assets/images/', // 파일 저장할 경로
+);
+if (!fs.existsSync(userImagePath)) {
+  fs.mkdirSync(userImagePath, { recursive: true });
+}
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}

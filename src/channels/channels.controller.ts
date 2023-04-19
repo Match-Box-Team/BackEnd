@@ -43,7 +43,7 @@ export class ChannelsController {
     @Body() dto: ChannelCreateDto,
     @Request() req: ExpressRequest,
   ) {
-    await this.channelsService.createChannel(req['id']['id'], dto);
+    return await this.channelsService.createChannel(req['id']['id'], dto);
   }
 
   @Post('/:channelId/join')

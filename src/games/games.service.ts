@@ -60,11 +60,11 @@ export class GamesService {
     return { gameId: newUserGame.gameId };
   }
 
-  async getGameWatch(gameWatchId: string): Promise<GameWatch> {
-    const gameWatch = await this.repository.getGameWatchById(gameWatchId);
-    if (gameWatch === null) {
-      throw new NotFoundException('Not found gameWatch');
-    }
+  async getGameWatch(userId: string, gameWatchId: string): Promise<GameWatch> {
+    const gameWatch = await this.repository.getGameWatchByUserIdAndGameWatchId(
+      userId,
+      gameWatchId,
+    );
     return gameWatch;
   }
 
@@ -176,6 +176,7 @@ export class GamesService {
         // );
         player1.emit('matchSuccess', { roomName: gameWatch.gameWatchId });
         player2.emit('matchSuccess', { roomName: gameWatch.gameWatchId });
+        // 이부분에 추가로 user table status를 game으로 바꿔야 할 것 같음.
       }
 
       if (players.length === 1) {
@@ -225,5 +226,6 @@ export class GamesService {
     } else {
       throw new BadRequestException('User matching is incorrect');
     }
+    // 이부분에 각 유저의 status를 online으로 수정
   }
 }

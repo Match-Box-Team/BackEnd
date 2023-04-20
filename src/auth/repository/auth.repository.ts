@@ -15,7 +15,8 @@ export class AuthRepository {
         update: {
           email: profile.email,
           phoneNumber: profile.phoneNumber,
-          status: 'online',
+          status: 'offline',
+          // status: 'online',
         },
         create: {
           email: profile.email,
@@ -23,7 +24,8 @@ export class AuthRepository {
           intraId: profile.intraId,
           phoneNumber: profile.phoneNumber,
           nickname: profile.intraId,
-          status: 'online',
+          status: 'offline',
+          // status: 'online',
         },
       });
     } catch (error) {

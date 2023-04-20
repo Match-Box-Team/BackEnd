@@ -1,5 +1,4 @@
 export interface randomMatchDto {
-  userId: string;
   gameId: string;
 }
 

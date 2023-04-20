@@ -8,8 +8,8 @@ import {
   Query,
   UseGuards,
   Request,
-  ParseIntPipe,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
 import {
@@ -20,6 +20,7 @@ import {
 } from './dto/channels.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Request as ExpressRequest } from 'express';
+import { IsUUID } from 'class-validator';
 
 @Controller('channels')
 export class ChannelsController {
@@ -49,7 +50,7 @@ export class ChannelsController {
   @Post('/:channelId/join')
   @UseGuards(AuthGuard)
   async joinChannel(
-    @Param('channelId') channelId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
     @Body() dto: ChannelPasswordDto,
     @Request() req: ExpressRequest,
   ) {
@@ -59,7 +60,7 @@ export class ChannelsController {
   @Get('/:channelId')
   @UseGuards(AuthGuard)
   async getChatLog(
-    @Param('channelId') channelId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
     @Request() req: ExpressRequest,
   ) {
     return await this.channelsService.getChatLog(req['id']['id'], channelId);
@@ -68,7 +69,7 @@ export class ChannelsController {
   @Get('/:channelId/invite')
   @UseGuards(AuthGuard)
   async searchUserForInvite(
-    @Param('channelId') channelId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
     @Query('nickname') nickname: string,
     @Request() req: ExpressRequest,
   ) {
@@ -82,7 +83,7 @@ export class ChannelsController {
   @Post('/:channelId/invite')
   @UseGuards(AuthGuard)
   async inviteUser(
-    @Param('channelId') channelId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
     @Body() dto: ChannelInviteDto,
     @Request() req: ExpressRequest,
   ) {
@@ -92,7 +93,7 @@ export class ChannelsController {
   @Patch('/:channelId')
   @UseGuards(AuthGuard)
   async changeChannelPassword(
-    @Param('channelId') channelId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
     @Body() dto: ChannelPasswordDto,
     @Request() req: ExpressRequest,
   ) {
@@ -113,8 +114,8 @@ export class ChannelsController {
   @Patch('/:channelId/member/:userId/mute')
   @UseGuards(AuthGuard)
   async muteUser(
-    @Param('channelId') channelId: string,
-    @Param('userId') userId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
     @Request() req: ExpressRequest,
   ) {
     return await this.channelsService.setUserMute(
@@ -129,8 +130,8 @@ export class ChannelsController {
   @Patch('/:channelId/member/:userId/unmute')
   @UseGuards(AuthGuard)
   async unmuteUser(
-    @Param('channelId') channelId: string,
-    @Param('userId') userId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
     @Request() req: ExpressRequest,
   ) {
     return await this.channelsService.setUserMute(
@@ -144,7 +145,7 @@ export class ChannelsController {
   @Get('/:channelId/friends')
   @UseGuards(AuthGuard)
   async memberListInChannel(
-    @Param('channelId') channelId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
     @Request() req: ExpressRequest,
   ) {
     return await this.channelsService.memberListInChannel(
@@ -156,7 +157,7 @@ export class ChannelsController {
   @Delete('/:channelId')
   @UseGuards(AuthGuard)
   async goOutChannel(
-    @Param('channelId') channelId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
     @Request() req: ExpressRequest,
   ) {
     await this.channelsService.goOutChannel(req['id']['id'], channelId);
@@ -166,8 +167,8 @@ export class ChannelsController {
   @Patch('/:channelId/member/:userId/admin')
   @UseGuards(AuthGuard)
   async setAdmin(
-    @Param('channelId') channelId: string,
-    @Param('userId') userId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
     @Request() req: ExpressRequest,
   ) {
     await this.channelsService.setAdmin(req['id']['id'], userId, channelId);
@@ -176,8 +177,8 @@ export class ChannelsController {
   @Delete('/:channelId/member/:userId')
   @UseGuards(AuthGuard)
   async kickUser(
-    @Param('channelId') channelId: string,
-    @Param('userId') userId: string,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
     @Request() req: ExpressRequest,
   ) {
     await this.channelsService.kickUser(req['id']['id'], userId, channelId);

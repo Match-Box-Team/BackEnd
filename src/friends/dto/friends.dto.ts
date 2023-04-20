@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class FriendsSetBanDto {
   @IsBoolean()
@@ -7,6 +7,8 @@ export class FriendsSetBanDto {
 }
 
 export class FriendsAddDto {
+  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   userId: string;
 }

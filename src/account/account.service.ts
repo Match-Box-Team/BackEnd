@@ -118,4 +118,9 @@ export class AccountService {
   async getUserByNickname(nickname: string) {
     return await this.repository.getUserByNickname(nickname);
   }
+
+  async getUserImageByUserId(userId: string): Promise<string> {
+    const user = await this.getUser(userId);
+    return user.image;
+  }
 }

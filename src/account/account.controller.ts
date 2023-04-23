@@ -3,7 +3,9 @@ import {
   Controller,
   Get,
   Patch,
+  Query,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -17,6 +19,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { userImagePath } from 'src/app.controller';
+import { Response } from 'express';
 
 @Controller('account')
 export class AccountController {
@@ -57,5 +60,16 @@ export class AccountController {
       updateUserDto.nickname,
       file.path,
     );
+  }
+
+  @Get('image')
+  @UseGuards(AuthGuard)
+  async getUserImageByUserId(
+    @Res() res: Response,
+    @Query('userId') userId: string,
+  ) {
+    const imagePath = await this.accountService.getUserImageByUserId(userId);
+    res.set('Content-Type', 'image/jpeg');
+    res.sendFile(imagePath);
   }
 }

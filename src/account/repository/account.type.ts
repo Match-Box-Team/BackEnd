@@ -7,6 +7,7 @@ export interface IntraId {
 }
 
 export interface UserInfo {
+  userId: string;
   nickname: string;
   intraId: string;
   image: string;

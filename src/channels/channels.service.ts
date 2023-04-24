@@ -278,7 +278,6 @@ export class ChannelsService {
       meBuddy,
       buddyMe,
     );
-    console.log(channel);
     if (channel === null) {
       // 새로 만들 떄 친구와 본인 둘 다 userChannel에 넣기
       const newChannelData: CreateChannelData = {
@@ -328,8 +327,8 @@ export class ChannelsService {
 
   async setUserMute(
     reqId: string,
-    channelId: string,
     userId: string,
+    channelId: string,
     isMute: boolean,
   ): Promise<UserChannelOne> {
     const userChannel = await this.validateUserChannel(reqId, channelId);

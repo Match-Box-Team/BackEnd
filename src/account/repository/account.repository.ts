@@ -56,6 +56,7 @@ export class AccountRepository {
         userId: userId,
       },
       select: {
+        userId: true,
         nickname: true,
         intraId: true,
         image: true,

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  ParseUUIDPipe,
   Patch,
   Query,
   Req,
@@ -66,7 +67,7 @@ export class AccountController {
   @UseGuards(AuthGuard)
   async getUserImageByUserId(
     @Res() res: Response,
-    @Query('userId') userId: string,
+    @Query('userId', ParseUUIDPipe) userId: string,
   ) {
     const imagePath = await this.accountService.getUserImageByUserId(userId);
     res.set('Content-Type', 'image/jpeg');

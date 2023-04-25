@@ -5,7 +5,7 @@ import { MyPage, UserEmail } from './repository/account.type';
 import { GamesService } from 'src/games/games.service';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { userImagePath } from 'src/app.controller';
+import { defaultImagePath, userImagePath } from 'src/app.controller';
 
 @Injectable()
 export class AccountService {
@@ -125,6 +125,9 @@ export class AccountService {
 
   async getUserImageByUserId(userId: string): Promise<string> {
     const user = await this.getUser(userId);
+    if (!fs.existsSync(user.image)) {
+      return defaultImagePath;
+    }
     return user.image;
   }
 }

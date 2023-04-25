@@ -26,6 +26,7 @@ export class ChannelsRepository {
         channelId: true,
         channelName: true,
         count: true,
+        password: true,
       },
     });
   }

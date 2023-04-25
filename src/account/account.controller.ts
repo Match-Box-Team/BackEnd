@@ -33,7 +33,20 @@ export class AccountController {
     return await this.accountService.getMyPage(userId);
   }
 
-  @Patch()
+  @Patch('nickname')
+  @UseGuards(AuthGuard)
+  async updateNickname(
+    @Req() req: Request,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const userId = req['id']['id'];
+    return await this.accountService.updateUserNickname(
+      userId,
+      updateUserDto.nickname,
+    );
+  }
+
+  @Patch('image')
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -50,17 +63,9 @@ export class AccountController {
     }),
   )
   @UseGuards(AuthGuard)
-  async uploadImage(
-    @Req() req: Request,
-    @UploadedFile() file,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  async uploadImage(@Req() req: Request, @UploadedFile() file) {
     const userId = req['id']['id'];
-    return await this.accountService.updateUserProfile(
-      userId,
-      updateUserDto.nickname,
-      file.path,
-    );
+    return await this.accountService.updateUserImage(userId, file.path);
   }
 
   @Get('image')

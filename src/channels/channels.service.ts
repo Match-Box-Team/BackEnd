@@ -477,7 +477,11 @@ export class ChannelsService {
   ): Promise<UserOne> {
     await this.repository.createChat(userChannel.userChannelId, message, time);
     return {
-      user: userChannel.user,
+      userId: userChannel.user.userId,
+      nickname: userChannel.user.nickname,
+      image: userChannel.user.image,
+      isAdmin: userChannel.isAdmin,
+      isMute: userChannel.isMute,
     };
   }
 

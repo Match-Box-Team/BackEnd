@@ -99,6 +99,7 @@ export class ChannelsEventsGateway
       channelId: createChatData.channelId,
       user: user,
       message: createChatData.message,
+      time: createChatData.time,
     };
   }
 

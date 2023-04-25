@@ -90,18 +90,22 @@ export class AccountService {
     return await this.repository.updateUserImagePath(userId, imagePath);
   }
 
-  async updateUserProfile(
-    userId: string,
-    nickname: string,
-    oldFilePath: string,
-  ): Promise<User> {
+  async updateUserNickname(userId: string, nickname: string): Promise<User> {
+    return await this.repository.updateUserProfile({
+      where: { userId: userId },
+      data: {
+        nickname: nickname,
+      },
+    });
+  }
+
+  async updateUserImage(userId: string, oldFilePath: string): Promise<User> {
     const intraId = await this.repository.getUserIntraIdByUserId(userId);
     const newFilePath = path.join(userImagePath, `${intraId.intraId}.jpg`);
     fs.rename(oldFilePath, newFilePath);
     return await this.repository.updateUserProfile({
       where: { userId: userId },
       data: {
-        nickname: nickname,
         image: newFilePath,
       },
     });

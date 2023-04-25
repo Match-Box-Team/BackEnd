@@ -7,6 +7,10 @@ export const userImagePath = path.join(
   process.cwd(), // 프로젝트 루트 경로
   'assets/images/', // 파일 저장할 경로
 );
+export const defaultImagePath = path.join(
+  process.cwd(), // 프로젝트 루트 경로
+  'assets/default/default.jpg', // 파일 저장할 경로
+);
 if (!fs.existsSync(userImagePath)) {
   fs.mkdirSync(userImagePath, { recursive: true });
 }

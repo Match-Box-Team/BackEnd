@@ -46,6 +46,17 @@ export class AccountController {
     );
   }
 
+  @Get('image')
+  @UseGuards(AuthGuard)
+  async getUserImageByUserId(
+    @Res() res: Response,
+    @Query('userId', ParseUUIDPipe) userId: string,
+  ) {
+    const imagePath = await this.accountService.getUserImageByUserId(userId);
+    res.set('Content-Type', 'image/jpeg');
+    res.sendFile(imagePath);
+  }
+
   @Patch('image')
   @UseInterceptors(
     FileInterceptor('image', {
@@ -66,16 +77,5 @@ export class AccountController {
   async uploadImage(@Req() req: Request, @UploadedFile() file) {
     const userId = req['id']['id'];
     return await this.accountService.updateUserImage(userId, file.path);
-  }
-
-  @Get('image')
-  @UseGuards(AuthGuard)
-  async getUserImageByUserId(
-    @Res() res: Response,
-    @Query('userId', ParseUUIDPipe) userId: string,
-  ) {
-    const imagePath = await this.accountService.getUserImageByUserId(userId);
-    res.set('Content-Type', 'image/jpeg');
-    res.sendFile(imagePath);
   }
 }

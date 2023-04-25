@@ -53,7 +53,6 @@ export class AccountController {
     @Query('userId', ParseUUIDPipe) userId: string,
   ) {
     const imagePath = await this.accountService.getUserImageByUserId(userId);
-    console.log(imagePath);
     res.set('Content-Type', 'image/jpeg');
     res.sendFile(imagePath);
   }

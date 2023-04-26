@@ -1,4 +1,11 @@
-import { Controller, Get, Redirect, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Redirect,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import * as path from 'path';
 import * as fs from 'fs-extra';
@@ -30,7 +37,7 @@ export class AppController {
 
   @Get('verifyFail')
   verifyFail(): string {
-    return '2차 인증 실패';
+    throw new NotFoundException('2차 인증 실패');
   }
 
   private createOauthUrl(): string {
@@ -44,7 +51,7 @@ export class AppController {
   }
 
   @Get('login')
-  @Redirect('', 302)
+  // @Redirect('', 302)
   oauthLogin(): { url: string } {
     return { url: this.createOauthUrl() };
   }

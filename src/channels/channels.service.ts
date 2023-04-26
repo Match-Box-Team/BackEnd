@@ -44,17 +44,23 @@ export class ChannelsService {
           userChannel.channel.channelId,
         );
         let notReadCount = 0;
-        // "fake message" 시간
-        let lastMessageTime: Date = chats.at(0).time;
 
-        if (chats.length !== 1) {
-          chats.map((chat) => {
-            if (chat.time > userChannel.lastChatTime) {
-              notReadCount++;
-            }
-          });
-          lastMessageTime = chats.at(-1).time;
+        let lastMessageTime: Date;
+        if (chats.length !== 0) {
+          lastMessageTime = chats.at(0)?.time;
+
+          if (chats.length !== 1) {
+            chats.map((chat) => {
+              if (chat.time > userChannel.lastChatTime) {
+                notReadCount++;
+              }
+            });
+            lastMessageTime = chats.at(-1)?.time;
+          }
+        } else {
+          lastMessageTime = new Date();
         }
+
         // 채널이 dm일 경우 상대방 이름 추출
         if (userChannel.channel.isDm) {
           const slash: number = userChannel.channel.channelName.indexOf('/');

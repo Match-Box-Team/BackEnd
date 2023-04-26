@@ -23,8 +23,8 @@ export interface MyPage {
       name: string;
     };
     gameHistory: {
-      wincounts: number;
-      losecounts: number;
+      winCount: number;
+      loseCount: number;
     };
   }[];
 }

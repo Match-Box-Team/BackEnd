@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User, UserGame } from '@prisma/client';
 import { AccountRepository } from './repository/account.repository';
 import { MyPage, UserEmail } from './repository/account.type';
@@ -91,6 +95,10 @@ export class AccountService {
   }
 
   async updateUserNickname(userId: string, nickname: string): Promise<User> {
+    const user = await this.repository.getUserByNickname(nickname);
+    if (user && user.userId !== userId) {
+      throw new ConflictException('중복된 닉네임입니다');
+    }
     return await this.repository.updateUserProfile({
       where: { userId: userId },
       data: {

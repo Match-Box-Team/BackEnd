@@ -4,6 +4,7 @@ import {
   Get,
   ParseUUIDPipe,
   Patch,
+  Post,
   Query,
   Req,
   Res,
@@ -12,7 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { UpdateUserDto } from './dto/account.dto';
+import { UpdateUserDto, UserId } from './dto/account.dto';
 import { MyPage } from './repository/account.type';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Request } from 'express';
@@ -77,5 +78,10 @@ export class AccountController {
   async uploadImage(@Req() req: Request, @UploadedFile() file) {
     const userId = req['id']['id'];
     return await this.accountService.updateUserImage(userId, file.path);
+  }
+
+  @Post('/info')
+  async getUserInfo(@Body() dto: UserId) {
+    return await this.accountService.getUser(dto.userId);
   }
 }

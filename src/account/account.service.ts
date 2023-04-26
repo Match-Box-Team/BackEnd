@@ -66,10 +66,10 @@ export class AccountService {
           history = null;
         } else {
           history = {
-            wincounts: await this.repository.getUserGameWinCount(
+            winCount: await this.repository.getUserGameWinCount(
               userGame.userGameId,
             ),
-            loseCounts: await this.repository.getUserGameLoseCount(
+            loseCount: await this.repository.getUserGameLoseCount(
               userGame.userGameId,
             ),
           };

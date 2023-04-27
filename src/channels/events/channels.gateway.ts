@@ -42,6 +42,7 @@ export class ChannelsEventsGateway
       userId,
       enterChannelData.channelId,
     );
+
     if (userChannel === null) {
       this.errorEmit(client, 'You are not in channel');
       return;
@@ -84,23 +85,31 @@ export class ChannelsEventsGateway
         return;
       }
     }
-    const user = await this.channelService.sendMessage(
-      userChannel,
+
+    const newChat = await this.channelService.createNewChatAndGetChatId(
+      userChannelId,
       createChatData.message,
       createChatData.time,
     );
-    client.to(createChatData.channelId).emit('chat', {
-      channelId: createChatData.channelId,
-      user: user,
-      message: createChatData.message,
-      time: createChatData.time,
-    });
-    return {
-      channelId: createChatData.channelId,
-      user: user,
-      message: createChatData.message,
-      time: createChatData.time,
+
+    const response = {
+      chatId: newChat.chatId,
+      message: newChat.message,
+      time: newChat.time,
+      userChannel: {
+        isAdmin: userChannel.isAdmin,
+        isMute: userChannel.isMute,
+        user: {
+          userId: userChannel.user.userId,
+          nickname: userChannel.user.nickname,
+          image: userChannel.user.image,
+        },
+      },
     };
+
+    client.to(createChatData.channelId).emit('chat', response);
+
+    return response;
   }
 
   private errorEmit(client: Socket, message: string) {

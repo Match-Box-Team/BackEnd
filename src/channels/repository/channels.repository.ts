@@ -258,14 +258,20 @@ export class ChannelsRepository {
     });
   }
 
-  async createChat(userChannelId: string, message: string, time: Date) {
-    await this.prisma.chat.create({
+  async createChat(
+    userChannelId: string,
+    message: string,
+    time: Date,
+  ): Promise<NewChat> {
+    const newChat = await this.prisma.chat.create({
       data: {
         userChannelId: userChannelId,
         message: message,
         time: time,
       },
     });
+
+    return newChat;
   }
 
   async updateLastChatTime(userChannelId: string, lastTime: Date) {

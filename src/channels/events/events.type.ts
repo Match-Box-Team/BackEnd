@@ -5,3 +5,10 @@ interface UserOne {
   isAdmin: boolean;
   isMute: boolean;
 }
+
+interface NewChat {
+  chatId: string;
+  userChannelId: string;
+  message: string;
+  time: Date;
+}

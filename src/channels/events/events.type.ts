@@ -1,9 +1,9 @@
 interface UserOne {
-  user: {
-    userId: string;
-    nickname: string;
-    image: string;
-  };
+  userId: string;
+  nickname: string;
+  image: string;
+  isAdmin: boolean;
+  isMute: boolean;
 }
 
 interface NewChat {

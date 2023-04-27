@@ -2,14 +2,18 @@ import {
   Body,
   Controller,
   Get,
+  ParseUUIDPipe,
   Patch,
+  Post,
+  Query,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { UpdateUserDto } from './dto/account.dto';
+import { UpdateUserDto, UserId } from './dto/account.dto';
 import { MyPage } from './repository/account.type';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Request } from 'express';
@@ -17,6 +21,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { userImagePath } from 'src/app.controller';
+import { Response } from 'express';
 
 @Controller('account')
 export class AccountController {
@@ -29,7 +34,31 @@ export class AccountController {
     return await this.accountService.getMyPage(userId);
   }
 
-  @Patch()
+  @Patch('nickname')
+  @UseGuards(AuthGuard)
+  async updateNickname(
+    @Req() req: Request,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const userId = req['id']['id'];
+    return await this.accountService.updateUserNickname(
+      userId,
+      updateUserDto.nickname,
+    );
+  }
+
+  @Get('image')
+  @UseGuards(AuthGuard)
+  async getUserImageByUserId(
+    @Res() res: Response,
+    @Query('userId', ParseUUIDPipe) userId: string,
+  ) {
+    const imagePath = await this.accountService.getUserImageByUserId(userId);
+    res.set('Content-Type', 'image/jpeg');
+    res.sendFile(imagePath);
+  }
+
+  @Patch('image')
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -46,16 +75,13 @@ export class AccountController {
     }),
   )
   @UseGuards(AuthGuard)
-  async uploadImage(
-    @Req() req: Request,
-    @UploadedFile() file,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  async uploadImage(@Req() req: Request, @UploadedFile() file) {
     const userId = req['id']['id'];
-    return await this.accountService.updateUserProfile(
-      userId,
-      updateUserDto.nickname,
-      file.path,
-    );
+    return await this.accountService.updateUserImage(userId, file.path);
+  }
+
+  @Post('/info')
+  async getUserInfo(@Body() dto: UserId) {
+    return await this.accountService.getUser(dto.userId);
   }
 }

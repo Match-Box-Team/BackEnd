@@ -32,26 +32,26 @@ export class GamesController {
   @UseGuards(AuthGuard)
   async buyGame(
     @Req() req: Request,
-    @Param('gameId', ParseUUIDPipe) gameId: gameIdDto,
+    @Param('gameId', ParseUUIDPipe) gameId: string,
   ): Promise<GameId> {
     const userId = req['id']['id'];
-    return await this.gamesService.buyGame(userId, gameId.gameId);
+    return await this.gamesService.buyGame(userId, gameId);
   }
 
   // 관전 목록 페이지 - 게임 관전 목록 조회
   @Get(':gameId')
   @UseGuards(AuthGuard)
   async getGameWatches(
-    @Param('gameId', ParseUUIDPipe) gameId: gameIdDto,
+    @Param('gameId', ParseUUIDPipe) gameId: string,
   ): Promise<GameWatchesType> {
-    return await this.gamesService.getGameWatches(gameId.gameId);
+    return await this.gamesService.getGameWatches(gameId);
   }
 
   // 게임 종료
   @Post(':gameWatchId')
   @UseGuards(AuthGuard)
   async createGameHistory(
-    @Param('gameWatchId', ParseUUIDPipe) { gameWatchId }: gameWatchIdDto,
+    @Param('gameWatchId', ParseUUIDPipe) gameWatchId: string,
     @Body() gameHistoryDto: GameHistoryDto,
   ): Promise<GameHistory> {
     return await this.gamesService.createGameHistory(

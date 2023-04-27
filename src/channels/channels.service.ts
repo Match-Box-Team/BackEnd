@@ -44,17 +44,23 @@ export class ChannelsService {
           userChannel.channel.channelId,
         );
         let notReadCount = 0;
-        // "fake message" 시간
-        let lastMessageTime: Date = chats.at(0).time;
 
-        if (chats.length !== 1) {
-          chats.map((chat) => {
-            if (chat.time > userChannel.lastChatTime) {
-              notReadCount++;
-            }
-          });
-          lastMessageTime = chats.at(-1).time;
+        let lastMessageTime: Date;
+        if (chats.length !== 0) {
+          lastMessageTime = chats.at(0)?.time;
+
+          if (chats.length !== 1) {
+            chats.map((chat) => {
+              if (chat.time > userChannel.lastChatTime) {
+                notReadCount++;
+              }
+            });
+            lastMessageTime = chats.at(-1)?.time;
+          }
+        } else {
+          lastMessageTime = new Date();
         }
+
         // 채널이 dm일 경우 상대방 이름 추출
         if (userChannel.channel.isDm) {
           const slash: number = userChannel.channel.channelName.indexOf('/');
@@ -278,7 +284,6 @@ export class ChannelsService {
       meBuddy,
       buddyMe,
     );
-    console.log(channel);
     if (channel === null) {
       // 새로 만들 떄 친구와 본인 둘 다 userChannel에 넣기
       const newChannelData: CreateChannelData = {
@@ -328,8 +333,8 @@ export class ChannelsService {
 
   async setUserMute(
     reqId: string,
-    channelId: string,
     userId: string,
+    channelId: string,
     isMute: boolean,
   ): Promise<UserChannelOne> {
     const userChannel = await this.validateUserChannel(reqId, channelId);
@@ -478,7 +483,11 @@ export class ChannelsService {
   ): Promise<UserOne> {
     await this.repository.createChat(userChannel.userChannelId, message, time);
     return {
-      user: userChannel.user,
+      userId: userChannel.user.userId,
+      nickname: userChannel.user.nickname,
+      image: userChannel.user.image,
+      isAdmin: userChannel.isAdmin,
+      isMute: userChannel.isMute,
     };
   }
 

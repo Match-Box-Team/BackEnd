@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User, UserGame } from '@prisma/client';
 import { AccountRepository } from './repository/account.repository';
 import { MyPage, UserEmail } from './repository/account.type';
 import { GamesService } from 'src/games/games.service';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { userImagePath } from 'src/app.controller';
+import { defaultImagePath, userImagePath } from 'src/app.controller';
 
 @Injectable()
 export class AccountService {
@@ -66,10 +70,10 @@ export class AccountService {
           history = null;
         } else {
           history = {
-            wincounts: await this.repository.getUserGameWinCount(
+            winCount: await this.repository.getUserGameWinCount(
               userGame.userGameId,
             ),
-            loseCounts: await this.repository.getUserGameLoseCount(
+            loseCount: await this.repository.getUserGameLoseCount(
               userGame.userGameId,
             ),
           };
@@ -90,18 +94,26 @@ export class AccountService {
     return await this.repository.updateUserImagePath(userId, imagePath);
   }
 
-  async updateUserProfile(
-    userId: string,
-    nickname: string,
-    oldFilePath: string,
-  ): Promise<User> {
+  async updateUserNickname(userId: string, nickname: string): Promise<User> {
+    const user = await this.repository.getUserByNickname(nickname);
+    if (user && user.userId !== userId) {
+      throw new ConflictException('중복된 닉네임입니다');
+    }
+    return await this.repository.updateUserProfile({
+      where: { userId: userId },
+      data: {
+        nickname: nickname,
+      },
+    });
+  }
+
+  async updateUserImage(userId: string, oldFilePath: string): Promise<User> {
     const intraId = await this.repository.getUserIntraIdByUserId(userId);
     const newFilePath = path.join(userImagePath, `${intraId.intraId}.jpg`);
     fs.rename(oldFilePath, newFilePath);
     return await this.repository.updateUserProfile({
       where: { userId: userId },
       data: {
-        nickname: nickname,
         image: newFilePath,
       },
     });
@@ -117,5 +129,13 @@ export class AccountService {
 
   async getUserByNickname(nickname: string) {
     return await this.repository.getUserByNickname(nickname);
+  }
+
+  async getUserImageByUserId(userId: string): Promise<string> {
+    const user = await this.getUser(userId);
+    if (!fs.existsSync(user.image)) {
+      return defaultImagePath;
+    }
+    return user.image;
   }
 }

@@ -482,6 +482,19 @@ export class ChannelsService {
     };
   }
 
+  async createNewChatAndGetChatId(
+    userChannelId: string,
+    message: string,
+    time: Date,
+  ): Promise<NewChat> {
+    const newChat = await this.repository.createChat(
+      userChannelId,
+      message,
+      time,
+    );
+    return newChat;
+  }
+
   async updateLastViewTime(userChannelId: string) {
     const lastTime = new Date();
     await this.repository.updateLastChatTime(userChannelId, lastTime);

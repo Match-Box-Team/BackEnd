@@ -376,9 +376,11 @@ export class ChannelsService {
       memberList.map(async (member) => {
         let isFriend = false;
 
-        if (
-          await this.repository.findFriendByUserIdAndBuddyId(userId, channelId)
-        ) {
+        const friend = await this.repository.findFriendByUserIdAndBuddyId(
+          userId,
+          member.user.userId,
+        );
+        if (friend) {
           isFriend = true;
         }
         return {

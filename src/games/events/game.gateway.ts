@@ -37,6 +37,12 @@ export class GameEventsGateway
     console.log(msg.gameControl);
   }
 
+  @SubscribeMessage('gamestate')
+  async gameState(client: Socket, state: any) {
+    // console.log('gamestate');
+    // console.log(state.ball);
+  }
+
   // 초기화 이후에 실행
   afterInit() {
     this.logger.log('게임 채널 - 초기화 완료');

@@ -44,15 +44,26 @@ export class GameEventsGateway
     // console.log(state);
   }
 
-  @SubscribeMessage('gamecontrol')
-  async gameControl(client: Socket, control: any) {
-    console.log('gamecontrol');
+  @SubscribeMessage('gamecontrolB')
+  async gameControlB(client: Socket, control: any) {
+    console.log('gamecontrolB');
     console.log(control);
-    this.sendToClient(control);
+    this.sendToClientControlB(control);
   }
 
-  sendToClient(control: any) {
-    this.server.emit('gamecontrol', control);
+  sendToClientControlB(control: any) {
+    this.server.emit('gamecontrolB', control);
+  }
+
+  @SubscribeMessage('gamecontrolA')
+  async gameControlA(client: Socket, control: any) {
+    console.log('gamecontrolA');
+    console.log(control);
+    this.sendToClientControlA(control);
+  }
+
+  sendToClientControlA(control: any) {
+    this.server.emit('gamecontrolA', control);
   }
 
   // 초기화 이후에 실행

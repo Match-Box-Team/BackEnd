@@ -32,15 +32,27 @@ export class GameEventsGateway
   private logger = new Logger('GamesGateway');
 
   @SubscribeMessage('ready')
-  async gameReady(client: Socket, msg: any) {
+  async gameReady(client: Socket, info: any) {
     console.log('connected');
-    console.log(msg.gameControl);
+    console.log(info.gameControl);
   }
 
   @SubscribeMessage('gamestate')
   async gameState(client: Socket, state: any) {
     // console.log('gamestate');
     // console.log(state.ball);
+    // console.log(state);
+  }
+
+  @SubscribeMessage('gamecontrol')
+  async gameControl(client: Socket, control: any) {
+    console.log('gamecontrol');
+    console.log(control);
+    this.sendToClient(control);
+  }
+
+  sendToClient(control: any) {
+    this.server.emit('gamecontrol', control);
   }
 
   // 초기화 이후에 실행

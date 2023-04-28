@@ -31,6 +31,12 @@ export class GameEventsGateway
 
   private logger = new Logger('GamesGateway');
 
+  @SubscribeMessage('ready')
+  async gameReady(client: Socket, msg: any) {
+    console.log('connected');
+    console.log(msg.gameControl);
+  }
+
   // 초기화 이후에 실행
   afterInit() {
     this.logger.log('게임 채널 - 초기화 완료');

@@ -30,7 +30,7 @@ export class GameEventsGateway
   ) {}
 
   private logger = new Logger('GamesGateway');
-  private mapSize = { width: 325, height: 484 };
+  private mapSize = { width: 325, height: 485 };
   private paddleAPosition = 100;
   private paddleBPosition = 100;
   private paddleInfo = {
@@ -45,7 +45,7 @@ export class GameEventsGateway
   private ball = {
     x: 150,
     y: 75,
-    radius: 8,
+    radius: 6,
     velocityX: 5,
     velocityY: 5,
     color: 'white',
@@ -55,12 +55,12 @@ export class GameEventsGateway
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
-    // if (this.mapSize.width === 0 || this.mapSize.width === undefined) {
-    //   this.mapSize.width = info.width;
-    //   this.mapSize.height = info.height;
-    // } else {
-    //   console.log('init : ', this.mapSize);
-    // }
+
+    this.sendToClientMapSize(this.mapSize);
+  }
+
+  sendToClientMapSize(mapSize: any) {
+    this.server.emit('mapSize', mapSize);
   }
 
   @SubscribeMessage('gamecontrolB')
@@ -68,7 +68,7 @@ export class GameEventsGateway
     console.log('gamecontrolB');
     console.log(control);
     // Calculate the new paddle position
-    this.paddleBPosition += 4 * control.direction;
+    this.paddleBPosition += this.paddleInfo.speed * control.direction;
 
     if (this.paddleBPosition < 0) {
       this.paddleBPosition = 0;
@@ -87,7 +87,7 @@ export class GameEventsGateway
     console.log('gamecontrolA');
     console.log(control);
     // Calculate the new paddle position
-    this.paddleAPosition += 4 * control.direction;
+    this.paddleAPosition += this.paddleInfo.speed * control.direction;
     if (this.paddleAPosition < 0) {
       this.paddleAPosition = 0;
     }
@@ -121,7 +121,6 @@ export class GameEventsGateway
       this.ball.velocityY = -this.ball.velocityY;
     }
 
-    /* paddle 위아래면 */
     if (
       (this.ball.y - this.ball.radius <
         this.paddleInfo.paddleAY + this.paddleInfo.height &&
@@ -131,7 +130,8 @@ export class GameEventsGateway
         this.ball.x + this.ball.radius > this.paddleAPosition) ||
       (this.ball.y - this.ball.radius <
         this.paddleInfo.paddleBY + this.paddleInfo.height &&
-        this.ball.y + this.ball.radius > this.paddleInfo.paddleBY &&
+        this.ball.y + this.ball.radius >
+          this.paddleInfo.paddleBY + this.paddleInfo.height &&
         this.ball.x - this.ball.radius <
           this.paddleBPosition + this.paddleInfo.width &&
         this.ball.x + this.ball.radius > this.paddleBPosition)

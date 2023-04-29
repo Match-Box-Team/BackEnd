@@ -30,6 +30,8 @@ export class GameEventsGateway
   ) {}
 
   private logger = new Logger('GamesGateway');
+  private paddleAPosition = 0;
+  private paddleBPosition = 0;
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
@@ -48,9 +50,11 @@ export class GameEventsGateway
   async gameControlB(client: Socket, control: any) {
     console.log('gamecontrolB');
     console.log(control);
-    this.sendToClientControlB(control);
+    // Calculate the new paddle position
+    this.paddleBPosition += 4 * control.direction;
+    console.log(this.paddleBPosition);
+    this.sendToClientControlB({ position: this.paddleBPosition });
   }
-
   sendToClientControlB(control: any) {
     this.server.emit('gamecontrolB', control);
   }
@@ -59,7 +63,10 @@ export class GameEventsGateway
   async gameControlA(client: Socket, control: any) {
     console.log('gamecontrolA');
     console.log(control);
-    this.sendToClientControlA(control);
+    // Calculate the new paddle position
+    this.paddleAPosition += 4 * control.direction;
+    console.log(this.paddleBPosition);
+    this.sendToClientControlA({ position: this.paddleAPosition });
   }
 
   sendToClientControlA(control: any) {

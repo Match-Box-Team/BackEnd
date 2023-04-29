@@ -19,5 +19,6 @@ import { JwtService } from '@nestjs/jwt';
     GameEventsGateway,
     JwtService,
   ],
+  exports: [GamesService],
 })
 export class GamesModule {}

@@ -30,12 +30,12 @@ export class GameEventsGateway
   ) {}
 
   private logger = new Logger('GamesGateway');
-  private mapSize = { width: 300, height: 475 };
+  private mapSize = { width: 325, height: 484 };
   private paddleAPosition = 100;
   private paddleBPosition = 100;
   private paddleInfo = {
     width: 100,
-    height: 10,
+    height: 4,
     paddleAX: 100,
     paddleBX: 100,
     paddleAY: 30,
@@ -45,7 +45,7 @@ export class GameEventsGateway
   private ball = {
     x: 150,
     y: 75,
-    radius: 6,
+    radius: 8,
     velocityX: 5,
     velocityY: 5,
     color: 'white',
@@ -55,12 +55,12 @@ export class GameEventsGateway
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
-    if (this.mapSize.width === 0 || this.mapSize.width === undefined) {
-      this.mapSize.width = info.width;
-      this.mapSize.height = info.height;
-    } else {
-      console.log('init : ', this.mapSize);
-    }
+    // if (this.mapSize.width === 0 || this.mapSize.width === undefined) {
+    //   this.mapSize.width = info.width;
+    //   this.mapSize.height = info.height;
+    // } else {
+    //   console.log('init : ', this.mapSize);
+    // }
   }
 
   @SubscribeMessage('gamecontrolB')
@@ -74,12 +74,12 @@ export class GameEventsGateway
       this.paddleBPosition = 0;
     }
     if (this.paddleBPosition + this.paddleInfo.width >= 325) {
-      this.paddleBPosition = this.mapSize.width + 25 - this.paddleInfo.width;
+      this.paddleBPosition = this.mapSize.width - this.paddleInfo.width;
     }
     this.sendToClientControlB({ position: this.paddleBPosition });
   }
   sendToClientControlB(control: any) {
-    this.server.emit('gamecontrolB', control);
+    this.server.emit('controlB', control);
   }
 
   @SubscribeMessage('gamecontrolA')
@@ -92,44 +92,15 @@ export class GameEventsGateway
       this.paddleAPosition = 0;
     }
     if (this.paddleAPosition + this.paddleInfo.width >= 325) {
-      this.paddleAPosition = this.mapSize.width + 25 - this.paddleInfo.width;
+      this.paddleAPosition = this.mapSize.width - this.paddleInfo.width;
     }
     console.log(this.paddleAPosition);
     this.sendToClientControlA({ position: this.paddleAPosition });
   }
 
   sendToClientControlA(control: any) {
-    this.server.emit('gamecontrolA', control);
+    this.server.emit('controlA', control);
   }
-
-  // @SubscribeMessage('ballcontrol')
-  // async ballControl(client: Socket, data: any) {
-  //   console.log('ballcontrol');
-  //   console.log(data);
-  //   // Calculate the new paddle position
-  //   this.ball.x += this.ball.velocityX;
-  //   this.ball.y += this.ball.velocityY;
-
-  //   if (
-  //     this.ball.x + this.ball.radius > this.mapSize.width ||
-  //     this.ball.x - this.ball.radius < 0
-  //   ) {
-  //     this.ball.velocityX = -this.ball.velocityX;
-  //   }
-
-  //   if (
-  //     this.ball.y + this.ball.radius > this.mapSize.height ||
-  //     this.ball.y - this.ball.radius < 0
-  //   ) {
-  //     this.ball.velocityY = -this.ball.velocityY;
-  //   }
-
-  //   this.sendToClientBall({ ball: this.ball });
-  // }
-
-  // sendToClientBall(control: any) {
-  //   this.server.emit('ballcontrol', control);
-  // }
 
   async ballControl() {
     // Calculate the new ball position
@@ -137,32 +108,33 @@ export class GameEventsGateway
     this.ball.y += this.ball.velocityY;
 
     if (
-      this.ball.x + this.ball.radius / 2 > this.mapSize.width + 25 ||
-      this.ball.x - this.ball.radius / 2 < 0
+      this.ball.x + this.ball.radius > this.mapSize.width ||
+      this.ball.x - this.ball.radius < 0
     ) {
       this.ball.velocityX = -this.ball.velocityX;
     }
 
     if (
-      this.ball.y + this.ball.radius / 2 > this.mapSize.height ||
-      this.ball.y - this.ball.radius / 2 < 0
+      this.ball.y + this.ball.radius > this.mapSize.height ||
+      this.ball.y - this.ball.radius < 0
     ) {
       this.ball.velocityY = -this.ball.velocityY;
     }
 
+    /* paddle 위아래면 */
     if (
-      (this.ball.y - this.ball.radius / 2 <
+      (this.ball.y - this.ball.radius <
         this.paddleInfo.paddleAY + this.paddleInfo.height &&
-        this.ball.y + this.ball.radius / 2 > this.paddleInfo.paddleAY &&
-        this.ball.x - this.ball.radius / 2 <
+        this.ball.y + this.ball.radius > this.paddleInfo.paddleAY &&
+        this.ball.x - this.ball.radius <
           this.paddleAPosition + this.paddleInfo.width &&
-        this.ball.x + this.ball.radius / 2 > this.paddleAPosition) ||
-      (this.ball.y - this.ball.radius / 2 <
+        this.ball.x + this.ball.radius > this.paddleAPosition) ||
+      (this.ball.y - this.ball.radius <
         this.paddleInfo.paddleBY + this.paddleInfo.height &&
-        this.ball.y + this.ball.radius / 2 > this.paddleInfo.paddleBY &&
-        this.ball.x - this.ball.radius / 2 <
+        this.ball.y + this.ball.radius > this.paddleInfo.paddleBY &&
+        this.ball.x - this.ball.radius <
           this.paddleBPosition + this.paddleInfo.width &&
-        this.ball.x + this.ball.radius / 2 > this.paddleBPosition)
+        this.ball.x + this.ball.radius > this.paddleBPosition)
     ) {
       this.ball.velocityY = -this.ball.velocityY;
     }

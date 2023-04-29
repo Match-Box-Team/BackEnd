@@ -30,20 +30,28 @@ export class GameEventsGateway
   ) {}
 
   private logger = new Logger('GamesGateway');
-  private paddleAPosition = 0;
-  private paddleBPosition = 0;
+  private mapSize = { width: 300, height: 150 };
+  private paddleAPosition = 100;
+  private paddleBPosition = 100;
+  private paddleSize = {
+    width: 100,
+    height: 10,
+  };
+  private ballPosition = {
+    x: 150,
+    y: 75,
+  };
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
     console.log('connected');
-    console.log(info.gameControl);
-  }
-
-  @SubscribeMessage('gamestate')
-  async gameState(client: Socket, state: any) {
-    // console.log('gamestate');
-    // console.log(state.ball);
-    // console.log(state);
+    console.log(info);
+    if (this.mapSize.width === 0 || this.mapSize.width === undefined) {
+      this.mapSize.width = info.width;
+      this.mapSize.height = info.height;
+    } else {
+      console.log('init : ', this.mapSize);
+    }
   }
 
   @SubscribeMessage('gamecontrolB')
@@ -52,7 +60,13 @@ export class GameEventsGateway
     console.log(control);
     // Calculate the new paddle position
     this.paddleBPosition += 4 * control.direction;
-    console.log(this.paddleBPosition);
+
+    if (this.paddleBPosition < 0) {
+      this.paddleBPosition = 0;
+    }
+    if (this.paddleBPosition + this.paddleSize.width >= 325) {
+      this.paddleBPosition = this.mapSize.width + 25 - this.paddleSize.width;
+    }
     this.sendToClientControlB({ position: this.paddleBPosition });
   }
   sendToClientControlB(control: any) {
@@ -65,7 +79,13 @@ export class GameEventsGateway
     console.log(control);
     // Calculate the new paddle position
     this.paddleAPosition += 4 * control.direction;
-    console.log(this.paddleBPosition);
+    if (this.paddleAPosition < 0) {
+      this.paddleAPosition = 0;
+    }
+    if (this.paddleAPosition + this.paddleSize.width >= 325) {
+      this.paddleAPosition = this.mapSize.width + 25 - this.paddleSize.width;
+    }
+    console.log(this.paddleAPosition);
     this.sendToClientControlA({ position: this.paddleAPosition });
   }
 

@@ -30,7 +30,7 @@ export class GameEventsGateway
   ) {}
 
   private logger = new Logger('GamesGateway');
-  private mapSize = { width: 300, height: 150 };
+  private mapSize = { width: 300, height: 475 };
   private paddleAPosition = 100;
   private paddleBPosition = 100;
   private paddleInfo = {
@@ -39,13 +39,13 @@ export class GameEventsGateway
     paddleAX: 100,
     paddleBX: 100,
     paddleAY: 30,
-    paddleBY: 0,
+    paddleBY: 445,
     speed: 4,
   };
   private ball = {
     x: 150,
     y: 75,
-    radius: 10,
+    radius: 6,
     velocityX: 5,
     velocityY: 5,
     color: 'white',
@@ -137,32 +137,32 @@ export class GameEventsGateway
     this.ball.y += this.ball.velocityY;
 
     if (
-      this.ball.x + this.ball.radius > this.mapSize.width ||
-      this.ball.x - this.ball.radius < 0
+      this.ball.x + this.ball.radius / 2 > this.mapSize.width + 25 ||
+      this.ball.x - this.ball.radius / 2 < 0
     ) {
       this.ball.velocityX = -this.ball.velocityX;
     }
 
     if (
-      this.ball.y + this.ball.radius > this.mapSize.height ||
-      this.ball.y - this.ball.radius < 0
+      this.ball.y + this.ball.radius / 2 > this.mapSize.height ||
+      this.ball.y - this.ball.radius / 2 < 0
     ) {
       this.ball.velocityY = -this.ball.velocityY;
     }
 
     if (
-      (this.ball.y - this.ball.radius <
+      (this.ball.y - this.ball.radius / 2 <
         this.paddleInfo.paddleAY + this.paddleInfo.height &&
-        this.ball.y + this.ball.radius > this.paddleInfo.paddleAY &&
-        this.ball.x - this.ball.radius <
-          this.paddleInfo.paddleAX + this.paddleInfo.width &&
-        this.ball.x + this.ball.radius > this.paddleInfo.paddleAX) ||
-      (this.ball.y - this.ball.radius <
+        this.ball.y + this.ball.radius / 2 > this.paddleInfo.paddleAY &&
+        this.ball.x - this.ball.radius / 2 <
+          this.paddleAPosition + this.paddleInfo.width &&
+        this.ball.x + this.ball.radius / 2 > this.paddleAPosition) ||
+      (this.ball.y - this.ball.radius / 2 <
         this.paddleInfo.paddleBY + this.paddleInfo.height &&
-        this.ball.y + this.ball.radius > this.paddleInfo.paddleBY &&
-        this.ball.x - this.ball.radius <
-          this.paddleInfo.paddleBX + this.paddleInfo.width &&
-        this.ball.x + this.ball.radius > this.paddleInfo.paddleBX)
+        this.ball.y + this.ball.radius / 2 > this.paddleInfo.paddleBY &&
+        this.ball.x - this.ball.radius / 2 <
+          this.paddleBPosition + this.paddleInfo.width &&
+        this.ball.x + this.ball.radius / 2 > this.paddleBPosition)
     ) {
       this.ball.velocityY = -this.ball.velocityY;
     }

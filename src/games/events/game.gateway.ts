@@ -14,7 +14,7 @@ import { GamesService } from '../games.service';
 import { GameWatchId, UserId, randomMatchDto } from '../repository/game.type';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Game, User } from '@prisma/client';
-
+import { OnModuleInit } from '@nestjs/common';
 // cors 꼭꼭 해주기!
 @UseGuards(AuthGuard)
 @WebSocketGateway({ namespace: 'game', cors: true })
@@ -30,6 +30,128 @@ export class GameEventsGateway
   ) {}
 
   private logger = new Logger('GamesGateway');
+  private mapSize = { width: 325, height: 484 };
+  private paddleAPosition = 100;
+  private paddleBPosition = 100;
+  private paddleInfo = {
+    width: 100,
+    height: 4,
+    paddleAX: 100,
+    paddleBX: 100,
+    paddleAY: 30,
+    paddleBY: 445,
+    speed: 4,
+  };
+  private ball = {
+    x: 150,
+    y: 75,
+    radius: 8,
+    velocityX: 5,
+    velocityY: 5,
+    color: 'white',
+  };
+
+  @SubscribeMessage('ready')
+  async gameReady(client: Socket, info: any) {
+    console.log('connected');
+    console.log(info);
+    // if (this.mapSize.width === 0 || this.mapSize.width === undefined) {
+    //   this.mapSize.width = info.width;
+    //   this.mapSize.height = info.height;
+    // } else {
+    //   console.log('init : ', this.mapSize);
+    // }
+  }
+
+  @SubscribeMessage('gamecontrolB')
+  async gameControlB(client: Socket, control: any) {
+    console.log('gamecontrolB');
+    console.log(control);
+    // Calculate the new paddle position
+    this.paddleBPosition += 4 * control.direction;
+
+    if (this.paddleBPosition < 0) {
+      this.paddleBPosition = 0;
+    }
+    if (this.paddleBPosition + this.paddleInfo.width >= 325) {
+      this.paddleBPosition = this.mapSize.width - this.paddleInfo.width;
+    }
+    this.sendToClientControlB({ position: this.paddleBPosition });
+  }
+  sendToClientControlB(control: any) {
+    this.server.emit('controlB', control);
+  }
+
+  @SubscribeMessage('gamecontrolA')
+  async gameControlA(client: Socket, control: any) {
+    console.log('gamecontrolA');
+    console.log(control);
+    // Calculate the new paddle position
+    this.paddleAPosition += 4 * control.direction;
+    if (this.paddleAPosition < 0) {
+      this.paddleAPosition = 0;
+    }
+    if (this.paddleAPosition + this.paddleInfo.width >= 325) {
+      this.paddleAPosition = this.mapSize.width - this.paddleInfo.width;
+    }
+    console.log(this.paddleAPosition);
+    this.sendToClientControlA({ position: this.paddleAPosition });
+  }
+
+  sendToClientControlA(control: any) {
+    this.server.emit('controlA', control);
+  }
+
+  async ballControl() {
+    // Calculate the new ball position
+    this.ball.x += this.ball.velocityX;
+    this.ball.y += this.ball.velocityY;
+
+    if (
+      this.ball.x + this.ball.radius > this.mapSize.width ||
+      this.ball.x - this.ball.radius < 0
+    ) {
+      this.ball.velocityX = -this.ball.velocityX;
+    }
+
+    if (
+      this.ball.y + this.ball.radius > this.mapSize.height ||
+      this.ball.y - this.ball.radius < 0
+    ) {
+      this.ball.velocityY = -this.ball.velocityY;
+    }
+
+    /* paddle 위아래면 */
+    if (
+      (this.ball.y - this.ball.radius <
+        this.paddleInfo.paddleAY + this.paddleInfo.height &&
+        this.ball.y + this.ball.radius > this.paddleInfo.paddleAY &&
+        this.ball.x - this.ball.radius <
+          this.paddleAPosition + this.paddleInfo.width &&
+        this.ball.x + this.ball.radius > this.paddleAPosition) ||
+      (this.ball.y - this.ball.radius <
+        this.paddleInfo.paddleBY + this.paddleInfo.height &&
+        this.ball.y + this.ball.radius > this.paddleInfo.paddleBY &&
+        this.ball.x - this.ball.radius <
+          this.paddleBPosition + this.paddleInfo.width &&
+        this.ball.x + this.ball.radius > this.paddleBPosition)
+    ) {
+      this.ball.velocityY = -this.ball.velocityY;
+    }
+  }
+
+  onModuleInit() {
+    // 메서드 이름 변경
+    setInterval(() => {
+      this.ballControl();
+      // console.log(this.ball);
+      this.sendToClientBall({ ball: this.ball });
+    }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
+  }
+
+  sendToClientBall(control: any) {
+    this.server.emit('ballcontrol', control);
+  }
 
   // 초기화 이후에 실행
   afterInit() {

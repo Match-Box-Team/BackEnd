@@ -25,6 +25,7 @@ interface FindChatLogs {
     isMute: boolean;
     user: {
       userId: string;
+      intraId: string;
       nickname: string;
       image: string;
     };

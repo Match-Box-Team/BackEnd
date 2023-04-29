@@ -145,6 +145,7 @@ export class ChannelsRepository {
             user: {
               select: {
                 userId: true,
+                intraId: true,
                 nickname: true,
                 image: true,
               },

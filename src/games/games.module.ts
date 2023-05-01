@@ -7,6 +7,7 @@ import { GameEventsGateway } from './events/game.gateway';
 import { AccountService } from 'src/account/account.service';
 import { AccountRepository } from 'src/account/repository/account.repository';
 import { JwtService } from '@nestjs/jwt';
+import { PingpongService } from './gameplays/pingpong.service';
 
 @Module({
   controllers: [GamesController],
@@ -18,6 +19,7 @@ import { JwtService } from '@nestjs/jwt';
     GamesRepository,
     GameEventsGateway,
     JwtService,
+    PingpongService,
   ],
 })
 export class GamesModule {}

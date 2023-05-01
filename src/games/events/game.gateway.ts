@@ -14,7 +14,7 @@ import { GamesService } from '../games.service';
 import { GameWatchId, UserId, randomMatchDto } from '../repository/game.type';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Game, User } from '@prisma/client';
-import { OnModuleInit } from '@nestjs/common';
+import { PingpongService } from '../gameplays/pingpong.service';
 // cors 꼭꼭 해주기!
 @UseGuards(AuthGuard)
 @WebSocketGateway({ namespace: 'game', cors: true })
@@ -27,125 +27,50 @@ export class GameEventsGateway
   constructor(
     private accountService: AccountService,
     private gamesService: GamesService,
+    private pingpongService: PingpongService,
   ) {}
 
   private logger = new Logger('GamesGateway');
-  private mapSize = { width: 325, height: 485 };
-  private paddleAPosition = 100;
-  private paddleBPosition = 100;
-  private paddleInfo = {
-    width: 100,
-    height: 4,
-    paddleAX: 100,
-    paddleBX: 100,
-    paddleAY: 30,
-    paddleBY: 445,
-    speed: 4,
-  };
-  private ball = {
-    x: 150,
-    y: 75,
-    radius: 6,
-    velocityX: 5,
-    velocityY: 5,
-    color: 'white',
-  };
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
 
-    this.sendToClientMapSize(this.mapSize);
+    this.sendToClientMapSize(this.pingpongService.getMapSize());
   }
 
-  sendToClientMapSize(mapSize: any) {
+  private sendToClientMapSize(mapSize: any) {
     this.server.emit('mapSize', mapSize);
   }
 
   @SubscribeMessage('gamecontrolB')
   async gameControlB(client: Socket, control: any) {
-    console.log('gamecontrolB');
-    console.log(control);
-    // Calculate the new paddle position
-    this.paddleBPosition += this.paddleInfo.speed * control.direction;
-
-    if (this.paddleBPosition < 0) {
-      this.paddleBPosition = 0;
-    }
-    if (this.paddleBPosition + this.paddleInfo.width >= 325) {
-      this.paddleBPosition = this.mapSize.width - this.paddleInfo.width;
-    }
-    this.sendToClientControlB({ position: this.paddleBPosition });
+    this.sendToClientControlB({
+      position: this.pingpongService.updatePaddleBPosition(control),
+    });
   }
-  sendToClientControlB(control: any) {
+
+  private sendToClientControlB(control: any) {
     this.server.emit('controlB', control);
   }
 
   @SubscribeMessage('gamecontrolA')
   async gameControlA(client: Socket, control: any) {
-    console.log('gamecontrolA');
-    console.log(control);
-    // Calculate the new paddle position
-    this.paddleAPosition += this.paddleInfo.speed * control.direction;
-    if (this.paddleAPosition < 0) {
-      this.paddleAPosition = 0;
-    }
-    if (this.paddleAPosition + this.paddleInfo.width >= 325) {
-      this.paddleAPosition = this.mapSize.width - this.paddleInfo.width;
-    }
-    console.log(this.paddleAPosition);
-    this.sendToClientControlA({ position: this.paddleAPosition });
+    this.sendToClientControlA({
+      position: this.pingpongService.updatePaddleAPosition(control),
+    });
   }
 
-  sendToClientControlA(control: any) {
+  private sendToClientControlA(control: any) {
     this.server.emit('controlA', control);
   }
 
-  async ballControl() {
-    // Calculate the new ball position
-    this.ball.x += this.ball.velocityX;
-    this.ball.y += this.ball.velocityY;
-
-    if (
-      this.ball.x + this.ball.radius > this.mapSize.width ||
-      this.ball.x - this.ball.radius < 0
-    ) {
-      this.ball.velocityX = -this.ball.velocityX;
-    }
-
-    if (
-      this.ball.y + this.ball.radius > this.mapSize.height ||
-      this.ball.y - this.ball.radius < 0
-    ) {
-      this.ball.velocityY = -this.ball.velocityY;
-    }
-
-    if (
-      (this.ball.y - this.ball.radius <
-        this.paddleInfo.paddleAY + this.paddleInfo.height &&
-        this.ball.y + this.ball.radius > this.paddleInfo.paddleAY &&
-        this.ball.x - this.ball.radius <
-          this.paddleAPosition + this.paddleInfo.width &&
-        this.ball.x + this.ball.radius > this.paddleAPosition) ||
-      (this.ball.y - this.ball.radius <
-        this.paddleInfo.paddleBY + this.paddleInfo.height &&
-        this.ball.y + this.ball.radius >
-          this.paddleInfo.paddleBY + this.paddleInfo.height &&
-        this.ball.x - this.ball.radius <
-          this.paddleBPosition + this.paddleInfo.width &&
-        this.ball.x + this.ball.radius > this.paddleBPosition)
-    ) {
-      this.ball.velocityY = -this.ball.velocityY;
-    }
-  }
-
   onModuleInit() {
-    // 메서드 이름 변경
     setInterval(() => {
-      this.ballControl();
-      // console.log(this.ball);
-      this.sendToClientBall({ ball: this.ball });
+      this.sendToClientBall({
+        ball: this.pingpongService.getBallInfo(),
+      });
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
   }
 

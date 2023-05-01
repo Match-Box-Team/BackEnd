@@ -53,7 +53,7 @@ export class FriendsController {
     return this.friendsService.setBanFriend(userId, friendId, dto);
   }
 
-  @Get('')
+  @Get('/search')
   @UseGuards(AuthGuard)
   async searchFriendForAdd(
     @Query('nickname') nickname: string,

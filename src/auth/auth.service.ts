@@ -164,6 +164,7 @@ export class AuthService {
       throw new NotFoundException('Not found user email');
     }
     const code = Math.random().toString(36).substring(2, 15);
+    console.log(code);
 
     await this.mailService.sendMail({
       to: userEmail.email,

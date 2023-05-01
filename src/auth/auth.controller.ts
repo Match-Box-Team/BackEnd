@@ -32,6 +32,7 @@ import { UserId, VerifyCodeDto } from './dto/auth.dto';
 import { AccountService } from 'src/account/account.service';
 import * as path from 'path';
 import { userImagePath } from 'src/app.controller';
+import { OAuthUserInfoDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
@@ -120,5 +121,45 @@ export class AuthController {
         token: jwt,
       });
     }
+  }
+
+  // 가짜 유저 로그인
+  @Get('fakeLogin1')
+  async fakeLogin1(@Res() res: Response): Promise<void> {
+    const fakeUser: OAuthUserInfoDto = {
+      email: 'fake1@naver.com',
+      image: '',
+      intraId: 'fake1',
+      phoneNumber: '',
+    };
+    await this.authService.saveUserInfo(fakeUser);
+    const user = await this.accountService.getUserByIntraId('fake1');
+    const jwt = await this.authService.generateJwt(fakeUser);
+    res.status(200).json({
+      redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+      token: jwt,
+      userId: user.userId,
+      nickname: user.nickname,
+      imageUrl: user.image,
+    });
+  }
+  @Get('fakeLogin2')
+  async fakeLogin2(@Res() res: Response): Promise<void> {
+    const fakeUser: OAuthUserInfoDto = {
+      email: 'fake2@naver.com',
+      image: '',
+      intraId: 'fake2',
+      phoneNumber: '',
+    };
+    await this.authService.saveUserInfo(fakeUser);
+    const user = await this.accountService.getUserByIntraId('fake2');
+    const jwt = await this.authService.generateJwt(fakeUser);
+    res.status(200).json({
+      redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+      token: jwt,
+      userId: user.userId,
+      nickname: user.nickname,
+      image: user.image,
+    });
   }
 }

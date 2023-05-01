@@ -85,7 +85,16 @@ export class AccountEventsGateway
     return matchedSocketArray[0];
   };
 
+  private updateUserState = async (client: Socket, state: string) => {
+    client.data.userInfo.status = state;
+    await this.accountService.updateUserState(
+      client.data.userInfo.userId,
+      state,
+    );
+  };
+
   // 게임 초대
+  // clinet: 초대 보낸 유저, enemy: 초대 받은 유저
   @SubscribeMessage('inviteGame')
   async inviteGame(client: Socket, enemy: { userId: string }) {
     if (client.data.userInfo.userId === enemy.userId) {
@@ -94,11 +103,20 @@ export class AccountEventsGateway
       });
       return;
     }
+    // 유저 둘다
+    await this.accountService.updateUserState(
+      client.data.userInfo.userId,
+      'game',
+    );
     const matchedUserSocket: Socket = this.findSocketByUserId(
       client,
       enemy.userId,
     );
     const matchedUser: User = matchedUserSocket.data.userInfo;
+    if (matchedUser.status === 'game') {
+      client.emit('gameError', { message: '상대방이 게임 중입니다' });
+      return;
+    }
     console.log(matchedUser);
     const games: Game[] = await this.gamesService.getGames();
     const pong: Game = games.filter((game) => game.name === '핑퐁핑퐁')[0];
@@ -110,11 +128,15 @@ export class AccountEventsGateway
       client.emit('gameError', { message: '게임을 구매한 유저가 이닙니다' });
       return;
     }
+    // 유저 둘다
+    await this.updateUserState(client, 'game');
+    await this.updateUserState(matchedUserSocket, 'game');
     client.to(matchedUserSocket.id).emit('inviteGame', client.data.userInfo);
   }
 
   // 게임 초대 거부
   @SubscribeMessage('inviteReject')
+  // clinet: 초대 받은 유저, enemy: 초대 보낸 유저
   async inviteReject(client: Socket, enemy: { userId: string }) {
     try {
       const matchedUserSocket: Socket = this.findSocketByUserId(
@@ -122,13 +144,21 @@ export class AccountEventsGateway
         enemy.userId,
       );
       console.log('게임 거부됨');
+      // 유저 둘다
+      await this.updateUserState(client, 'online');
+      await this.updateUserState(matchedUserSocket, 'online');
       client.to(matchedUserSocket.id).emit('inviteReject');
     } catch (error) {
-      client.emit('gameError', { message: '상대방이 매칭을 취소했습니다' });
+      // 초대한 유저
+      await this.updateUserState(client, 'online');
+      client.emit('gameError', {
+        message: '초대 받은 유저가 매칭을 취소했습니다',
+      });
     }
   }
 
   // 게임 초대 수락
+  // clinet: 초대 받은 유저, enemy: 초대 보낸 유저
   @SubscribeMessage('inviteResolve')
   async inviteResolve(client: Socket, enemy: { userId: string }) {
     try {
@@ -139,6 +169,8 @@ export class AccountEventsGateway
       console.log('게임 수락됨');
       client.to(matchedUserSocket.id).emit('inviteResolve');
     } catch (error) {
+      // 초대 받은 유저
+      await this.updateUserState(client, 'online');
       client.emit('gameError', { message: '상대방이 매칭을 취소했습니다' });
     }
   }
@@ -152,8 +184,13 @@ export class AccountEventsGateway
         enemy.userId,
       );
       console.log('게임 초대 취소됨');
+      // 유저 둘다
+      await this.updateUserState(client, 'online');
+      await this.updateUserState(matchedUserSocket, 'online');
       client.to(matchedUserSocket.id).emit('inviteCancel');
     } catch (error) {
+      // 초대한 유저
+      await this.updateUserState(client, 'online');
       client.emit('gameError', { message: '상대방이 로그인 상태가 아닙니다' });
     }
   }

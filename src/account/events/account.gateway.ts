@@ -1,4 +1,9 @@
-import { ConflictException, Logger, NotFoundException, UseGuards } from '@nestjs/common';
+import {
+  ConflictException,
+  Logger,
+  NotFoundException,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ConnectedSocket,
   OnGatewayConnection,
@@ -61,7 +66,7 @@ export class AccountEventsGateway
       client.data.userInfo = {
         ...user,
         status: 'online',
-      }
+      };
     } catch {
       client.emit('error', {
         NotFoundException: 'Not found user',
@@ -71,29 +76,38 @@ export class AccountEventsGateway
 
   private findSocketByUserId = (client: Socket, userId: string): Socket => {
     const clients = this.server.sockets.sockets;
-    const matchedSocketArray = Array.from(clients.values())
-      .filter(user => user.data.userInfo.userId === userId);
+    const matchedSocketArray = Array.from(clients.values()).filter(
+      (user) => user.data.userInfo.userId === userId,
+    );
     if (matchedSocketArray.length === 0) {
-      client.emit('gameError', { message: "게임을 구매한 유저가 이닙니다" });
+      client.emit('gameError', { message: '게임을 구매한 유저가 이닙니다' });
     }
     return matchedSocketArray[0];
-  }
+  };
 
   // 게임 초대
   @SubscribeMessage('inviteGame')
   async inviteGame(client: Socket, enemy: { userId: string }) {
     if (client.data.userInfo.userId === enemy.userId) {
-      client.emit('gameError', { message: "자기 자신에게 게임을 신청했습니다" });
+      client.emit('gameError', {
+        message: '자기 자신에게 게임을 신청했습니다',
+      });
       return;
     }
-    const matchedUserSocket: Socket = this.findSocketByUserId(client, enemy.userId)
+    const matchedUserSocket: Socket = this.findSocketByUserId(
+      client,
+      enemy.userId,
+    );
     const matchedUser: User = matchedUserSocket.data.userInfo;
     console.log(matchedUser);
     const games: Game[] = await this.gamesService.getGames();
-    const pong: Game = games.filter(game => game.name === "핑퐁핑퐁")[0];
-    const userPong: UserGame = await this.gamesService.getUserGame(matchedUser.userId, pong.gameId);
+    const pong: Game = games.filter((game) => game.name === '핑퐁핑퐁')[0];
+    const userPong: UserGame = await this.gamesService.getUserGame(
+      matchedUser.userId,
+      pong.gameId,
+    );
     if (!userPong) {
-      client.emit('gameError', { message: "게임을 구매한 유저가 이닙니다" });
+      client.emit('gameError', { message: '게임을 구매한 유저가 이닙니다' });
       return;
     }
     client.to(matchedUserSocket.id).emit('inviteGame', client.data.userInfo);
@@ -103,11 +117,14 @@ export class AccountEventsGateway
   @SubscribeMessage('inviteReject')
   async inviteReject(client: Socket, enemy: { userId: string }) {
     try {
-      const matchedUserSocket: Socket = this.findSocketByUserId(client, enemy.userId)
+      const matchedUserSocket: Socket = this.findSocketByUserId(
+        client,
+        enemy.userId,
+      );
       console.log('게임 거부됨');
       client.to(matchedUserSocket.id).emit('inviteReject');
     } catch (error) {
-      client.emit('gameError', { message: "상대방이 매칭을 취소했습니다" });
+      client.emit('gameError', { message: '상대방이 매칭을 취소했습니다' });
     }
   }
 
@@ -115,11 +132,14 @@ export class AccountEventsGateway
   @SubscribeMessage('inviteResolve')
   async inviteResolve(client: Socket, enemy: { userId: string }) {
     try {
-      const matchedUserSocket: Socket = this.findSocketByUserId(client, enemy.userId)
+      const matchedUserSocket: Socket = this.findSocketByUserId(
+        client,
+        enemy.userId,
+      );
       console.log('게임 수락됨');
       client.to(matchedUserSocket.id).emit('inviteResolve');
     } catch (error) {
-      client.emit('gameError', { message: "상대방이 매칭을 취소했습니다" });
+      client.emit('gameError', { message: '상대방이 매칭을 취소했습니다' });
     }
   }
 
@@ -127,11 +147,14 @@ export class AccountEventsGateway
   @SubscribeMessage('inviteCancel')
   async inviteCancel(client: Socket, enemy: { userId: string }) {
     try {
-      const matchedUserSocket: Socket = this.findSocketByUserId(client, enemy.userId)
+      const matchedUserSocket: Socket = this.findSocketByUserId(
+        client,
+        enemy.userId,
+      );
       console.log('게임 초대 취소됨');
       client.to(matchedUserSocket.id).emit('inviteCancel');
     } catch (error) {
-      client.emit('gameError', { message: "상대방이 로그인 상태가 아닙니다" });
+      client.emit('gameError', { message: '상대방이 로그인 상태가 아닙니다' });
     }
   }
 }

@@ -125,11 +125,9 @@ export class AuthController {
 
   // 가짜 유저 로그인
   @Get('fakeLogin1')
-  async fakeLogin1(
-    @Res() res: Response,
-  ): Promise<void> {
+  async fakeLogin1(@Res() res: Response): Promise<void> {
     const fakeUser: OAuthUserInfoDto = {
-      email: "fake1@naver.com",
+      email: 'fake1@naver.com',
       image: '',
       intraId: 'fake1',
       phoneNumber: '',
@@ -146,11 +144,9 @@ export class AuthController {
     });
   }
   @Get('fakeLogin2')
-  async fakeLogin2(
-    @Res() res: Response,
-  ): Promise<void> {
+  async fakeLogin2(@Res() res: Response): Promise<void> {
     const fakeUser: OAuthUserInfoDto = {
-      email: "fake2@naver.com",
+      email: 'fake2@naver.com',
       image: '',
       intraId: 'fake2',
       phoneNumber: '',

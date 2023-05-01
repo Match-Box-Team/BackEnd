@@ -14,7 +14,6 @@ import { GamesService } from '../games.service';
 import { GameWatchId, UserId, randomMatchDto } from '../repository/game.type';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Game, User } from '@prisma/client';
-import { OnModuleInit } from '@nestjs/common';
 import { PingpongService } from '../gameplays/pingpong.service';
 // cors 꼭꼭 해주기!
 @UseGuards(AuthGuard)
@@ -32,9 +31,6 @@ export class GameEventsGateway
   ) {}
 
   private logger = new Logger('GamesGateway');
-  // private mapSize = { width: 325, height: 485 };
-  private paddleAPosition = 100;
-  private paddleBPosition = 100;
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
@@ -44,51 +40,36 @@ export class GameEventsGateway
     this.sendToClientMapSize(this.pingpongService.getMapSize());
   }
 
-  sendToClientMapSize(mapSize: any) {
+  private sendToClientMapSize(mapSize: any) {
     this.server.emit('mapSize', mapSize);
   }
 
   @SubscribeMessage('gamecontrolB')
   async gameControlB(client: Socket, control: any) {
-    console.log('gamecontrolB');
-    console.log(control);
-    this.paddleBPosition = this.pingpongService.updatePaddlePosition(
-      this.paddleBPosition,
-      control,
-    );
-    this.sendToClientControlB({ position: this.paddleBPosition });
+    this.sendToClientControlB({
+      position: this.pingpongService.updatePaddleBPosition(control),
+    });
   }
 
-  sendToClientControlB(control: any) {
+  private sendToClientControlB(control: any) {
     this.server.emit('controlB', control);
   }
 
   @SubscribeMessage('gamecontrolA')
   async gameControlA(client: Socket, control: any) {
-    console.log('gamecontrolA');
-    console.log(control);
-    // Calculate the new paddle position
-    this.paddleAPosition = this.pingpongService.updatePaddlePosition(
-      this.paddleAPosition,
-      control,
-    );
-    this.sendToClientControlA({ position: this.paddleAPosition });
+    this.sendToClientControlA({
+      position: this.pingpongService.updatePaddleAPosition(control),
+    });
   }
 
-  sendToClientControlA(control: any) {
+  private sendToClientControlA(control: any) {
     this.server.emit('controlA', control);
   }
 
   onModuleInit() {
-    // 메서드 이름 변경
     setInterval(() => {
-      // this.ballControl();
-      // console.log(this.ball);
       this.sendToClientBall({
-        ball: this.pingpongService.ballControl(
-          this.paddleAPosition,
-          this.paddleBPosition,
-        ),
+        ball: this.pingpongService.getBallInfo(),
       });
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
   }

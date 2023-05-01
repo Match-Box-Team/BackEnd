@@ -21,6 +21,8 @@ export class PingpongService {
     color: 'white',
   };
   private mapSize = { width: 325, height: 485 };
+  private paddleAPosition = 100;
+  private paddleBPosition = 100;
 
   updatePaddlePosition(paddlePosition: number, control: any): number {
     paddlePosition += this.paddleInfo.speed * control.direction;
@@ -32,6 +34,30 @@ export class PingpongService {
       paddlePosition = this.mapSize.width - this.paddleInfo.width;
     }
     return paddlePosition;
+  }
+
+  updatePaddleAPosition(control: any): number {
+    this.paddleAPosition = this.updatePaddlePosition(
+      this.paddleAPosition,
+      control,
+    );
+    return this.paddleAPosition;
+  }
+
+  updatePaddleBPosition(control: any): number {
+    this.paddleBPosition = this.updatePaddlePosition(
+      this.paddleBPosition,
+      control,
+    );
+    return this.paddleBPosition;
+  }
+
+  getPaddleBPosition(): number {
+    return this.paddleBPosition;
+  }
+
+  getPaddleAPosition(): number {
+    return this.paddleAPosition;
   }
 
   ballControl(paddleAPosition: number, paddleBPosition: number): any {
@@ -75,5 +101,12 @@ export class PingpongService {
 
   getMapSize(): any {
     return this.mapSize;
+  }
+
+  getBallInfo(): any {
+    return this.ballControl(
+      this.getPaddleAPosition(),
+      this.getPaddleBPosition(),
+    );
   }
 }

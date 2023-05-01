@@ -17,7 +17,7 @@ import { Server, Socket } from 'socket.io';
 import { AccountService } from '../account.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { GamesService } from 'src/games/games.service';
-import { Game, User, UserGame } from '@prisma/client';
+import { Game, GameWatch, User, UserGame } from '@prisma/client';
 
 @UseGuards(AuthGuard)
 @WebSocketGateway({ cors: true })
@@ -119,10 +119,18 @@ export class AccountEventsGateway
       matchedUser.userId,
       pong.gameId,
     );
-    if (!userPong) {
-      client.emit('gameError', { message: '게임을 구매한 유저가 이닙니다' });
+    const enemyPong: UserGame = await this.gamesService.getUserGame(
+      matchedUser.userId,
+      pong.gameId,
+    );
+    if (!userPong || !enemyPong) {
+      client.emit('gameError', {
+        message: '게임을 구매하지 않은 유저가 있습니다',
+      });
       return;
     }
+    client.data.userInfo.userGameId = userPong.userGameId;
+    matchedUserSocket.data.userInfo.userGameId = enemyPong.userId;
     // 유저 둘다
     await this.updateUserState(client, 'game');
     await this.updateUserState(matchedUserSocket, 'game');
@@ -162,7 +170,22 @@ export class AccountEventsGateway
         enemy.userId,
       );
       console.log('게임 수락됨');
-      client.to(matchedUserSocket.id).emit('inviteResolve');
+      // 두 유저를 게임 준비 방으로 이동시킴
+      console.log(client.data.userInfo.userGameId);
+      console.log(matchedUserSocket.data.userInfo.userGameId);
+      const gameWatch: GameWatch = await this.gamesService.createWatchGame(
+        client.data.userInfo.userGameId,
+        matchedUserSocket.data.userInfo.userGameId,
+      );
+      if (!gameWatch) {
+        client.emit('gameError', { message: 'gameWatch 생성을 실패했습니다' });
+        await this.updateUserState(client, 'online');
+        await this.updateUserState(matchedUserSocket, 'online');
+      }
+      client.emit('goGameReadyPage', { gameWatchId: gameWatch.gameWatchId });
+      client
+        .to(matchedUserSocket.id)
+        .emit('goGameReadyPage', { gameWatchId: gameWatch.gameWatchId });
     } catch (error) {
       // 초대 받은 유저
       await this.updateUserState(client, 'online');
@@ -179,6 +202,7 @@ export class AccountEventsGateway
         client,
         enemy.userId,
       );
+      console.log(client.data.userInfo.nickname);
       console.log('게임 초대 취소됨');
       // 유저 둘다
       await this.updateUserState(client, 'online');

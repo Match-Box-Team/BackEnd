@@ -197,6 +197,14 @@ export class GamesRepository {
     });
   }
 
+  async getUserGameByUserGameId(userGameId: string): Promise<UserGame> {
+    return this.prisma.userGame.findFirst({
+      where: {
+        userGameId,
+      },
+    });
+  }
+
   async createGameWatch(
     userGameId1: string,
     userGameId2: string,

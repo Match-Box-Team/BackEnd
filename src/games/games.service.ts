@@ -103,6 +103,26 @@ export class GamesService {
     };
   }
 
+  async createWatchGame(
+    userGameId1: string,
+    userGameId2: string,
+  ): Promise<GameWatch> {
+    const userGame1 = await this.repository.getUserGameByUserGameId(
+      userGameId1,
+    );
+    const userGame2 = await this.repository.getUserGameByUserGameId(
+      userGameId2,
+    );
+    if (!userGame1 || !userGame2) {
+      throw new NotFoundException('userGame이 생성되지 않은 유저가 있습니다.');
+    }
+    const gameWatch = await this.repository.createGameWatch(
+      userGameId1,
+      userGameId2,
+    );
+    return gameWatch;
+  }
+
   /*
    ** 소켓 관련
    */

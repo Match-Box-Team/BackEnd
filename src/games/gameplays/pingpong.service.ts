@@ -72,4 +72,8 @@ export class PingpongService {
     }
     return this.ball;
   }
+
+  getMapSize(): any {
+    return this.mapSize;
+  }
 }

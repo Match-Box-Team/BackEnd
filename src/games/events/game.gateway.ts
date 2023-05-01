@@ -32,33 +32,16 @@ export class GameEventsGateway
   ) {}
 
   private logger = new Logger('GamesGateway');
-  private mapSize = { width: 325, height: 485 };
+  // private mapSize = { width: 325, height: 485 };
   private paddleAPosition = 100;
   private paddleBPosition = 100;
-  private paddleInfo = {
-    width: 100,
-    height: 4,
-    paddleAX: 100,
-    paddleBX: 100,
-    paddleAY: 30,
-    paddleBY: 445,
-    speed: 4,
-  };
-  // private ball = {
-  //   x: 150,
-  //   y: 75,
-  //   radius: 6,
-  //   velocityX: 5,
-  //   velocityY: 5,
-  //   color: 'white',
-  // };
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
 
-    this.sendToClientMapSize(this.mapSize);
+    this.sendToClientMapSize(this.pingpongService.getMapSize());
   }
 
   sendToClientMapSize(mapSize: any) {
@@ -73,15 +56,6 @@ export class GameEventsGateway
       this.paddleBPosition,
       control,
     );
-    // Calculate the new paddle position
-    // this.paddleBPosition += this.paddleInfo.speed * control.direction;
-
-    // if (this.paddleBPosition < 0) {
-    //   this.paddleBPosition = 0;
-    // }
-    // if (this.paddleBPosition + this.paddleInfo.width >= 325) {
-    //   this.paddleBPosition = this.mapSize.width - this.paddleInfo.width;
-    // }
     this.sendToClientControlB({ position: this.paddleBPosition });
   }
 
@@ -104,44 +78,6 @@ export class GameEventsGateway
   sendToClientControlA(control: any) {
     this.server.emit('controlA', control);
   }
-
-  // async ballControl() {
-  //   // Calculate the new ball position
-  //   this.ball.x += this.ball.velocityX;
-  //   this.ball.y += this.ball.velocityY;
-
-  //   if (
-  //     this.ball.x + this.ball.radius > this.mapSize.width ||
-  //     this.ball.x - this.ball.radius < 0
-  //   ) {
-  //     this.ball.velocityX = -this.ball.velocityX;
-  //   }
-
-  //   if (
-  //     this.ball.y + this.ball.radius > this.mapSize.height ||
-  //     this.ball.y - this.ball.radius < 0
-  //   ) {
-  //     this.ball.velocityY = -this.ball.velocityY;
-  //   }
-
-  //   if (
-  //     (this.ball.y - this.ball.radius <
-  //       this.paddleInfo.paddleAY + this.paddleInfo.height &&
-  //       this.ball.y + this.ball.radius > this.paddleInfo.paddleAY &&
-  //       this.ball.x - this.ball.radius <
-  //         this.paddleAPosition + this.paddleInfo.width &&
-  //       this.ball.x + this.ball.radius > this.paddleAPosition) ||
-  //     (this.ball.y - this.ball.radius <
-  //       this.paddleInfo.paddleBY + this.paddleInfo.height &&
-  //       this.ball.y + this.ball.radius >
-  //         this.paddleInfo.paddleBY + this.paddleInfo.height &&
-  //       this.ball.x - this.ball.radius <
-  //         this.paddleBPosition + this.paddleInfo.width &&
-  //       this.ball.x + this.ball.radius > this.paddleBPosition)
-  //   ) {
-  //     this.ball.velocityY = -this.ball.velocityY;
-  //   }
-  // }
 
   onModuleInit() {
     // 메서드 이름 변경

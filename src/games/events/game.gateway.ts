@@ -49,6 +49,7 @@ export class GameEventsGateway
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
+    this.pingpongService.setScoresZeros();
 
     this.sendToClientMapSize(this.pingpongService.getMapSize());
   }
@@ -84,7 +85,21 @@ export class GameEventsGateway
       this.sendToClientBall({
         ball: this.pingpongService.getBallInfo(),
       });
+      this.sendToClientScores({
+        scores: this.pingpongService.getScores(),
+      });
+      this.sendToClientWinner({
+        winner: this.pingpongService.getWinner(),
+      });
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
+  }
+
+  private sendToClientWinner(winner: any) {
+    this.server.emit('gameover', winner);
+  }
+
+  private sendToClientScores(scores: any) {
+    this.server.emit('scores', scores);
   }
 
   sendToClientBall(control: any) {

@@ -68,6 +68,11 @@ export class GamesService {
     return gameWatch;
   }
 
+  async getGameWatchByGameWatchId(gameWatchId: string): Promise<GameWatch> {
+    const gameWatch = await this.repository.getGameWatchById(gameWatchId);
+    return gameWatch;
+  }
+
   async getGameWatches(gameId: string): Promise<GameWatchesType> {
     const game = await this.repository.getGame(gameId);
     if (game === null) {

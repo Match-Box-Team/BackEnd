@@ -13,7 +13,7 @@ import { GameHistoryDto, gameIdDto, gameWatchIdDto } from './dto/games.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Request } from 'express';
 import { GameId, GameType, GameWatchesType } from './repository/game.type';
-import { GameHistory } from '@prisma/client';
+import { GameHistory, GameWatch } from '@prisma/client';
 
 @Controller('games')
 export class GamesController {
@@ -58,5 +58,13 @@ export class GamesController {
       gameWatchId,
       gameHistoryDto,
     );
+  }
+
+  @Get('gameWatch/:gameWatchId')
+  @UseGuards(AuthGuard)
+  async getGameWatchByGameWatchId(
+    @Param('gameWatchId', ParseUUIDPipe) gameWatchId: string,
+  ): Promise<GameWatch> {
+    return await this.gamesService.getGameWatchByGameWatchId(gameWatchId);
   }
 }

@@ -538,7 +538,7 @@ export class ChannelsService {
       myUserChannelId,
     );
     if (buddy === null) {
-      return 'wrong data';
+      return null;
     }
     const banEachother = await this.repository.findBanEachOtherByBuddyId(
       userId,

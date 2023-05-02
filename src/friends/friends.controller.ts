@@ -53,7 +53,7 @@ export class FriendsController {
     return this.friendsService.setBanFriend(userId, friendId, dto);
   }
 
-  @Get('')
+  @Get('/search')
   @UseGuards(AuthGuard)
   async searchFriendForAdd(
     @Query('nickname') nickname: string,
@@ -75,13 +75,13 @@ export class FriendsController {
     );
   }
 
-  @Get('/:friendId')
+  @Get('/:buddyId')
   @UseGuards(AuthGuard)
   async getFriendDetails(
-    @Param('friendId', ParseUUIDPipe) friendId: string,
+    @Param('buddyId', ParseUUIDPipe) buddyId: string,
     @Request() req: ExpressRequest,
   ) {
     const reqId: string = req['id']['id'];
-    return this.friendsService.getFriendDetails(reqId, friendId);
+    return this.friendsService.getFriendDetails(reqId, buddyId);
   }
 }

@@ -1,4 +1,4 @@
-import { ConsoleLogger, Logger, UseGuards } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   OnGatewayConnection,
@@ -8,12 +8,11 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Namespace, Server, Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { AccountService } from 'src/account/account.service';
 import { GamesService } from '../games.service';
-import { GameWatchId, UserId, randomMatchDto } from '../repository/game.type';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { Game, GameWatch, User, UserGame } from '@prisma/client';
+import { Game, GameWatch, UserGame } from '@prisma/client';
 import { PingpongService } from '../gameplays/pingpong.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -21,6 +20,7 @@ interface UserGameInfo {
   userId: string;
   gameId: string;
   userGameId: string;
+  enemyUserId: string;
   enemyUserGameId: string;
   role: string;
 }
@@ -112,18 +112,18 @@ export class GameEventsGateway
     this.logger.log(`${client.id} 게임 소켓 연결 해제`);
   }
 
-  /* 
-   ** 게임 준비 
+  /*
+   ** 게임 준비
    */
   private getMyUserGame = async (userId: string): Promise<UserGame> => {
     const games: Game[] = await this.gamesService.getGames();
     const pong: Game = games.filter((game) => game.name === '핑퐁핑퐁')[0];
     const userPong: UserGame = await this.gamesService.getUserGame(
       userId,
-      pong.gameId
+      pong.gameId,
     );
     return userPong;
-  }
+  };
 
   private findSocketByUserGameId = (userGameId: string): Socket | null => {
     for (const socketId of this.sockets.keys()) {
@@ -143,32 +143,45 @@ export class GameEventsGateway
     const myUserGame: UserGame = await this.getMyUserGame(userId);
     if (!myUserGame) {
       console.log('userGame이 없는 유저입니다');
-      client.emit('gameError', { message: 'userGame이 없는 유저입니다' })
+      client.emit('gameError', { message: 'userGame이 없는 유저입니다' });
     }
     client.data.userGame = myUserGame;
+    client.data.gameWatch = gameWatch;
     console.log(client.data.userGame);
     if (myUserGame.userGameId === gameWatch.userGameId1) {
       client.data.role = 'host';
       client.data.enemyUserGameId = gameWatch.userGameId2;
-      console.log('방장 유저입니다')
+      client.data.enemyUserId = await this.gamesService.getUserByUserGameId(
+        gameWatch.userGameId2,
+      );
+      console.log('방장 유저입니다');
     } else if (myUserGame.userGameId === gameWatch.userGameId2) {
       client.data.role = 'guest';
       client.data.enemyUserGameId = gameWatch.userGameId1;
-      console.log('방장이 아닌 유저입니다')
+      client.data.enemyUserId = await this.gamesService.getUserByUserGameId(
+        gameWatch.userGameId1,
+      );
+      console.log('방장이 아닌 유저입니다');
     }
     const userGameInfo: UserGameInfo = {
       ...myUserGame,
+      enemyUserId: client.data.enemyUserId,
       enemyUserGameId: client.data.enemyUserGameId,
       role: client.data.role,
-    }
+    };
     this.sockets.set(client.id, client);
     client.emit('startReadyGame', userGameInfo);
   }
 
   // 게임 준비 취소
   @SubscribeMessage('cancelReadyGame')
-  async cancelReadyGame(client: Socket, data: { gameWatch: GameWatch, enemyUserGameId: string }) {
-    const enemySocket: Socket = this.findSocketByUserGameId(data.enemyUserGameId);
+  async cancelReadyGame(
+    client: Socket,
+    data: { gameWatch: GameWatch; enemyUserGameId: string },
+  ) {
+    const enemySocket: Socket = this.findSocketByUserGameId(
+      data.enemyUserGameId,
+    );
     client.emit('cancelReadyGame');
     client.to(enemySocket.id).emit('cancelReadyGame');
     this.eventEmitter.emit('cancelGame', data.gameWatch);
@@ -176,9 +189,33 @@ export class GameEventsGateway
 
   // 게임 준비 스피드 업데이트
   @SubscribeMessage('speedUpdate')
-  async speedUpdate(client: Socket, data: { guestUserGameId: string, speed: string }) {
-    const enemySocket: Socket = this.findSocketByUserGameId(data.guestUserGameId);
+  async speedUpdate(
+    client: Socket,
+    data: { guestUserGameId: string; speed: string },
+  ) {
+    const enemySocket: Socket = this.findSocketByUserGameId(
+      data.guestUserGameId,
+    );
     client.to(enemySocket.id).emit('speedUpdate', data.speed);
+  }
+
+  // 게임 시작
+  @SubscribeMessage('gameStart')
+  async gameStart(
+    client: Socket,
+    data: { guestUserGameId: string; speed: string },
+  ) {
+    const enemySocket: Socket = this.findSocketByUserGameId(
+      data.guestUserGameId,
+    );
+    client.join(client.data.gameWatch.gameWatchId);
+    enemySocket.join(client.data.gameWatch.gameWatchId);
+    console.log(client.id);
+    console.log(client.rooms);
+    console.log(enemySocket.id);
+    console.log(enemySocket.rooms);
+    client.emit('gameStart', data.speed);
+    client.to(enemySocket.id).emit('gameStart', data.speed);
   }
 
   // 랜덤 게임 매칭

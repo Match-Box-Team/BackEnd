@@ -51,7 +51,23 @@ export class GameEventsGateway
     console.log(info);
     this.pingpongService.setScoresZeros();
 
+    // console.log('gamewatch: ', client.data.gameWatch);
+    // console.log('info : ', client.data.userGameInfo);
+    // console.log('role : ', client.data.role);
+
+    let isHost: boolean;
+    if (client.data.role === 'host') {
+      isHost = true;
+    } else {
+      isHost = false;
+    }
+
+    this.sendToClientIsHost({ isHost: isHost });
     this.sendToClientMapSize(this.pingpongService.getMapSize());
+  }
+
+  private sendToClientIsHost(isHost: any) {
+    this.server.emit('ishost', isHost);
   }
 
   private sendToClientMapSize(mapSize: any) {

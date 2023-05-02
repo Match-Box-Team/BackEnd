@@ -12,9 +12,10 @@ import { Server, Socket } from 'socket.io';
 import { AccountService } from 'src/account/account.service';
 import { GamesService } from '../games.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { Game, GameWatch, UserGame } from '@prisma/client';
+import { Game, GameWatch, User, UserGame } from '@prisma/client';
 import { PingpongService } from '../gameplays/pingpong.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { randomMatchDto } from '../repository/game.type';
 
 interface UserGameInfo {
   userId: string;
@@ -219,36 +220,31 @@ export class GameEventsGateway
   }
 
   // 랜덤 게임 매칭
-  // @SubscribeMessage('randomMatch')
-  // async randomMatch(client: Socket, { gameId }: randomMatchDto) {
-  //   const userId = client.data.user['id'];
-  //   let user: User;
-  //   let game: Game;
+  @SubscribeMessage('randomMatch')
+  async randomMatch(client: Socket, { gameId }: randomMatchDto) {
+    const userId = client.data.user['id'];
+    const user = await this.accountService.getUser(userId);
+    const game = await this.gamesService.getGame(gameId);
+    if (!user || !game) {
+      client.emit('matchFail');
+      return;
+    }
+    const userGame = await this.gamesService.getUserGame(userId, gameId);
+    if (userGame === null) {
+      client.emit('matchFail');
+      return;
+    }
 
-  //   try {
-  //     user = await this.accountService.getUser(userId);
-  //     game = await this.gamesService.getGame(gameId);
-  //   } catch {
-  //     client.emit('matchFail');
-  //     return;
-  //   }
+    client.data.userId = userId;
+    client.data.nickname = user.nickname;
+    client.data.gameId = gameId;
+    client.data.gameName = game.name;
 
-  //   const userGame = await this.gamesService.getUserGame(userId, gameId);
-  //   if (userGame === null) {
-  //     client.emit('matchFail');
-  //     return;
-  //   }
-
-  //   client.data.userId = userId;
-  //   client.data.nickname = user.nickname;
-  //   client.data.gameId = gameId;
-  //   client.data.gameName = game.name;
-
-  //   this.logger.log(
-  //     `match start! --- game: ${game.name} --- name: ${user.nickname} --- id: ${userId}`,
-  //   );
-  //   this.gamesService.addPlayerToQueue(client);
-  // }
+    this.logger.log(
+      `대기 --- game: ${game.name} --- name: ${user.nickname} --- id: ${userId}`,
+    );
+    this.gamesService.addPlayerToQueue(client);
+  }
 
   // @SubscribeMessage('gameFinish')
   // async gameFinish(client: Socket, { gameWatchId }: GameWatchId) {

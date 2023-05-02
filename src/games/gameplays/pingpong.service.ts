@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { GamesRepository } from '../repository/games.repository';
 
 @Injectable()
 export class PingpongService {
+  constructor(private gameRepository: GamesRepository) {}
   private paddleInfo = {
     width: 100,
     height: 4,
@@ -26,6 +28,7 @@ export class PingpongService {
 
   private scoreA = 0;
   private scoreB = 0;
+  private goalScore = 3;
 
   updatePaddlePosition(paddlePosition: number, control: any): number {
     paddlePosition += this.paddleInfo.speed * control.direction;
@@ -134,5 +137,29 @@ export class PingpongService {
   setScoresZeros() {
     this.scoreA = 0;
     this.scoreB = 0;
+  }
+
+  getWinner() {
+    let winner = '';
+    const goalScore = this.goalScore;
+    if (this.scoreA === goalScore) {
+      winner = 'A';
+      // this.gameRepository.createGameHistory({
+      //   winnerId: 'winnerId',
+      //   loserId: 'loserId',
+      //   winnerScore: this.scoreA,
+      //   loserScore: this.scoreB,
+      // });
+    }
+    if (this.scoreB === goalScore) {
+      winner = 'B';
+      // this.gameRepository.createGameHistory({
+      //   winnerId: 'winnerId',
+      //   loserId: 'loserId',
+      //   winnerScore: this.scoreA,
+      //   loserScore: this.scoreB,
+      // });
+    }
+    return winner;
   }
 }

@@ -75,7 +75,14 @@ export class GameEventsGateway
       this.sendToClientScores({
         scores: this.pingpongService.getScores(),
       });
+      this.sendToClientWinner({
+        winner: this.pingpongService.getWinner(),
+      });
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
+  }
+
+  private sendToClientWinner(winner: any) {
+    this.server.emit('gameover', winner);
   }
 
   private sendToClientScores(scores: any) {

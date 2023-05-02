@@ -87,7 +87,7 @@ export class ChannelsRepository {
       },
       orderBy: [
         {
-          time: 'desc',
+          time: 'asc',
         },
       ],
     });

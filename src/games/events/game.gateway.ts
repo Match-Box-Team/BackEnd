@@ -62,12 +62,12 @@ export class GameEventsGateway
       isHost = false;
     }
 
-    this.sendToClientIsHost({ isHost: isHost });
+    this.sendToClientIsHost(client.id, { isHost: isHost });
     this.sendToClientMapSize(this.pingpongService.getMapSize());
   }
 
-  private sendToClientIsHost(isHost: any) {
-    this.server.emit('ishost', isHost);
+  private sendToClientIsHost(socketId: any, data: any) {
+    this.server.to(socketId).emit('ishost', data);
   }
 
   private sendToClientMapSize(mapSize: any) {

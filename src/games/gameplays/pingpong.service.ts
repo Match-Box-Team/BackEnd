@@ -28,7 +28,7 @@ export class PingpongService {
 
   private scoreA = 0;
   private scoreB = 0;
-  private goalScore = 3;
+  private goalScore = 42;
 
   updatePaddlePosition(paddlePosition: number, control: any): number {
     paddlePosition += this.paddleInfo.speed * control.direction;

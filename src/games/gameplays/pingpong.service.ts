@@ -24,6 +24,9 @@ export class PingpongService {
   private paddleAPosition = 100;
   private paddleBPosition = 100;
 
+  private scoreA = 0;
+  private scoreB = 0;
+
   updatePaddlePosition(paddlePosition: number, control: any): number {
     paddlePosition += this.paddleInfo.speed * control.direction;
 
@@ -108,5 +111,28 @@ export class PingpongService {
       this.getPaddleAPosition(),
       this.getPaddleBPosition(),
     );
+  }
+
+  addScoreToA() {
+    this.scoreA++;
+  }
+
+  addScoreToB() {
+    this.scoreB++;
+  }
+
+  getScores(): any {
+    if (this.ball.y + this.ball.radius > this.mapSize.height) {
+      this.addScoreToA();
+    }
+    if (this.ball.y - this.ball.radius < 0) {
+      this.addScoreToB();
+    }
+    return { scoreA: this.scoreA, scoreB: this.scoreB };
+  }
+
+  setScoresZeros() {
+    this.scoreA = 0;
+    this.scoreB = 0;
   }
 }

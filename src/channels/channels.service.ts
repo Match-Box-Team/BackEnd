@@ -62,20 +62,12 @@ export class ChannelsService {
         }
 
         // 채널이 dm일 경우 상대방 이름 추출
-        if (userChannel.channel.isDm) {
-          const slash: number = userChannel.channel.channelName.indexOf('/');
-          const nickname1: string = userChannel.channel.channelName.substring(
-            0,
-            slash,
-          );
-          const nickname2: string = userChannel.channel.channelName.substring(
-            slash + 1,
-          );
-
-          if (nickname1 === userChannel.user.nickname) {
-            userChannel.channel.channelName = nickname2;
+        if (userChannel.channel.isDm === true) {
+          const nicknames = userChannel.channel.channelName.split('/');
+          if (nicknames[0] === userChannel.user.nickname) {
+            userChannel.channel.channelName = nicknames[1];
           } else {
-            userChannel.channel.channelName = nickname1;
+            userChannel.channel.channelName = nicknames[0];
           }
         }
         // 채널의 멤버 최대 2명 추출
@@ -193,8 +185,15 @@ export class ChannelsService {
     // 채팅방 생성 시 만든 fake message 빼고 로그 반환
     //  - 채팅방을 만들자마자 넣은 데이터이므로 가장 첫번째로 들어가있음.
     chats.shift();
-    userChannel.channel.isDm = undefined;
     userChannel.channel.count = undefined;
+    if (userChannel.channel.isDm === true) {
+      const nicknames = userChannel.channel.channelName.split('/');
+      if (nicknames[0] === userChannel.user.nickname) {
+        userChannel.channel.channelName = nicknames[1];
+      } else {
+        userChannel.channel.channelName = nicknames[0];
+      }
+    }
     return {
       channel: userChannel.channel,
       chat: chats,
@@ -319,6 +318,24 @@ export class ChannelsService {
         'Fake Message',
         new Date(),
       );
+    } else {
+      // 이전에 dm방을 나갔다가 다시 들어간 경우
+      if (
+        (await this.validateUserChannelNoThrow(userId, channel.channelId)) ===
+        null
+      ) {
+        const myUserChannelData: CreateUserChannelData = {
+          isOwner: false,
+          isAdmin: false,
+          isMute: false,
+          lastChatTime: new Date(),
+          userId: me.userId,
+          channelId: channel.channelId,
+        };
+        const userChannel = await this.repository.createUserChannel(
+          myUserChannelData,
+        );
+      }
     }
     return {
       channel: {

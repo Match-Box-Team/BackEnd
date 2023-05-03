@@ -35,10 +35,10 @@ async function main() {
     {
       userId: uuidv4(),
       nickname: 'chaekim',
-      status: 'online',
-      email: uuidv4(),
-      image: '127.0.0.1/image/jokang',
-      intraId: uuidv4(),
+      status: 'offline',
+      email: 'chaekim@student.42seoul.kr',
+      image: '127.0.0.1/image/chaekim',
+      intraId: 'chaekim',
       phoneNumber: '인트라에 안 뜸',
     },
   ];
@@ -229,24 +229,34 @@ async function main() {
 
   const chats = [
     {
+      userChannelId: userChannels[0].userChannelId,
       message: 'Jinho: Hello, Jibang!',
-      userChannelId: userChannels[0].userChannelId,
+      nickname: users[0].nickname,
+      channelId: channels[0].channelId,
     },
     {
+      userChannelId: userChannels[0].userChannelId,
       message: 'Jibang: Hello, Jinho!',
-      userChannelId: userChannels[0].userChannelId,
+      nickname: users[0].nickname,
+      channelId: channels[0].channelId,
     },
     {
+      userChannelId: userChannels[0].userChannelId,
       message: 'jinho: 헤헤헤 된다',
-      userChannelId: userChannels[0].userChannelId,
+      nickname: users[0].nickname,
+      channelId: channels[0].channelId,
     },
     {
+      userChannelId: userChannels[3].userChannelId,
       message: 'Chaekim: Hello, Jokang!',
-      userChannelId: userChannels[3].userChannelId,
+      nickname: users[2].nickname,
+      channelId: channels[3].channelId,
     },
     {
-      message: 'Jokang: Hello, Chaekim!',
       userChannelId: userChannels[3].userChannelId,
+      message: 'Jokang: Hello, Chaekim!',
+      nickname: users[2].nickname,
+      channelId: channels[3].channelId,
     },
   ];
 

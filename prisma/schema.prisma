@@ -114,7 +114,9 @@ model Chat {
   chatId        String   @id @default(uuid()) @map("chat_id") @db.Uuid
   message       String
   time          DateTime @default(now())
-  userChannelId String   @map("user_channel_id") @db.Uuid
+  nickname      String
+  channelId     String   @map("channel_id") @db.Uuid
+  userChannelId String?   @map("user_channel_id") @db.Uuid
 
-  userChannel   UserChannel @relation(fields: [userChannelId], references: [userChannelId], onDelete: Cascade)
+  userChannel   UserChannel? @relation(fields: [userChannelId], references: [userChannelId], onDelete: SetNull)
 }

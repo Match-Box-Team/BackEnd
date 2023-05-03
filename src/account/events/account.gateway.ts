@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  Logger,
-  NotFoundException,
-  UseGuards,
-} from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   OnGatewayConnection,
@@ -16,6 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { AccountService } from '../account.service';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { OnEvent } from '@nestjs/event-emitter';
 import { GamesService } from 'src/games/games.service';
 import { Game, GameWatch, User, UserGame } from '@prisma/client';
 
@@ -85,6 +81,14 @@ export class AccountEventsGateway
     return matchedSocketArray[0];
   };
 
+  private findSocketByUserGameId = (userGameId: string): Socket => {
+    const clients = this.server.sockets.sockets;
+    const matchedSocketArray = Array.from(clients.values()).filter(
+      (user) => user.data.userInfo.userGameId === userGameId,
+    );
+    return matchedSocketArray[0];
+  };
+
   private updateUserState = async (client: Socket, state: string) => {
     client.data.userInfo.status = state;
     await this.accountService.updateUserState(
@@ -112,11 +116,10 @@ export class AccountEventsGateway
       client.emit('gameError', { message: '상대방이 게임 중입니다' });
       return;
     }
-    console.log(matchedUser);
     const games: Game[] = await this.gamesService.getGames();
     const pong: Game = games.filter((game) => game.name === '핑퐁핑퐁')[0];
     const userPong: UserGame = await this.gamesService.getUserGame(
-      matchedUser.userId,
+      client.data.user['id'],
       pong.gameId,
     );
     const enemyPong: UserGame = await this.gamesService.getUserGame(
@@ -130,7 +133,7 @@ export class AccountEventsGateway
       return;
     }
     client.data.userInfo.userGameId = userPong.userGameId;
-    matchedUserSocket.data.userInfo.userGameId = enemyPong.userId;
+    matchedUserSocket.data.userInfo.userGameId = enemyPong.userGameId;
     // 유저 둘다
     await this.updateUserState(client, 'game');
     await this.updateUserState(matchedUserSocket, 'game');
@@ -169,13 +172,10 @@ export class AccountEventsGateway
         client,
         enemy.userId,
       );
-      console.log('게임 수락됨');
       // 두 유저를 게임 준비 방으로 이동시킴
-      console.log(client.data.userInfo.userGameId);
-      console.log(matchedUserSocket.data.userInfo.userGameId);
       const gameWatch: GameWatch = await this.gamesService.createWatchGame(
-        client.data.userInfo.userGameId,
         matchedUserSocket.data.userInfo.userGameId,
+        client.data.userInfo.userGameId,
       );
       if (!gameWatch) {
         client.emit('gameError', { message: 'gameWatch 생성을 실패했습니다' });
@@ -202,7 +202,6 @@ export class AccountEventsGateway
         client,
         enemy.userId,
       );
-      console.log(client.data.userInfo.nickname);
       console.log('게임 초대 취소됨');
       // 유저 둘다
       await this.updateUserState(client, 'online');
@@ -213,5 +212,15 @@ export class AccountEventsGateway
       await this.updateUserState(client, 'online');
       client.emit('gameError', { message: '상대방이 로그인 상태가 아닙니다' });
     }
+  }
+
+  // 게임 준비 취소 이벤트 감지
+  @OnEvent('cancelGame')
+  cancelGame(gameWatch: GameWatch) {
+    console.log(gameWatch);
+    const userSocket1 = this.findSocketByUserGameId(gameWatch.userGameId1);
+    const userSocket2 = this.findSocketByUserGameId(gameWatch.userGameId2);
+    this.updateUserState(userSocket1, 'online');
+    this.updateUserState(userSocket2, 'online');
   }
 }

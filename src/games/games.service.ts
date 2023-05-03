@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Game, GameHistory, GameWatch, UserGame } from '@prisma/client';
+import { Game, GameHistory, GameWatch, User, UserGame } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { GamesRepository } from './repository/games.repository';
 import { GameId, GameWatchesType, GameType } from './repository/game.type';
@@ -68,6 +68,11 @@ export class GamesService {
     return gameWatch;
   }
 
+  async getGameWatchByGameWatchId(gameWatchId: string): Promise<GameWatch> {
+    const gameWatch = await this.repository.getGameWatchById(gameWatchId);
+    return gameWatch;
+  }
+
   async getGameWatches(gameId: string): Promise<GameWatchesType> {
     const game = await this.repository.getGame(gameId);
     if (game === null) {
@@ -122,6 +127,11 @@ export class GamesService {
       userGameId2,
     );
     return gameWatch;
+  }
+
+  async getUserByUserGameId(userGameId: string): Promise<string> {
+    const userId = await this.repository.getUserIdByUserGameId(userGameId);
+    return userId.userId;
   }
 
   /*

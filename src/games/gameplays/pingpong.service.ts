@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { GamesRepository } from '../repository/games.repository';
 
 @Injectable()
 export class PingpongService {
+  constructor(private gameRepository: GamesRepository) {}
   private paddleInfo = {
     width: 100,
     height: 4,
@@ -23,6 +25,10 @@ export class PingpongService {
   private mapSize = { width: 325, height: 485 };
   private paddleAPosition = 100;
   private paddleBPosition = 100;
+
+  private scoreA = 0;
+  private scoreB = 0;
+  private goalScore = 3;
 
   updatePaddlePosition(paddlePosition: number, control: any): number {
     paddlePosition += this.paddleInfo.speed * control.direction;
@@ -108,5 +114,52 @@ export class PingpongService {
       this.getPaddleAPosition(),
       this.getPaddleBPosition(),
     );
+  }
+
+  addScoreToA() {
+    this.scoreA++;
+  }
+
+  addScoreToB() {
+    this.scoreB++;
+  }
+
+  getScores(): any {
+    if (this.ball.y + this.ball.radius > this.mapSize.height) {
+      this.addScoreToA();
+    }
+    if (this.ball.y - this.ball.radius < 0) {
+      this.addScoreToB();
+    }
+    return { scoreA: this.scoreA, scoreB: this.scoreB };
+  }
+
+  setScoresZeros() {
+    this.scoreA = 0;
+    this.scoreB = 0;
+  }
+
+  getWinner() {
+    let winner = '';
+    const goalScore = this.goalScore;
+    if (this.scoreA === goalScore) {
+      winner = 'A';
+      // this.gameRepository.createGameHistory({
+      //   winnerId: 'winnerId',
+      //   loserId: 'loserId',
+      //   winnerScore: this.scoreA,
+      //   loserScore: this.scoreB,
+      // });
+    }
+    if (this.scoreB === goalScore) {
+      winner = 'B';
+      // this.gameRepository.createGameHistory({
+      //   winnerId: 'winnerId',
+      //   loserId: 'loserId',
+      //   winnerScore: this.scoreA,
+      //   loserScore: this.scoreB,
+      // });
+    }
+    return winner;
   }
 }

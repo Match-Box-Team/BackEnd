@@ -144,7 +144,7 @@ export class PingpongService {
     const goalScore = this.goalScore;
     if (this.scoreA === goalScore) {
       winner = 'A';
-      console.log('players : ', userIdA, userIdB);
+      // console.log('players : ', userIdA, userIdB);
       this.gameRepository.createGameHistory({
         winnerId: userIdA,
         loserId: userIdB,

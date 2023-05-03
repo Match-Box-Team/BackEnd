@@ -44,8 +44,8 @@ export class GameEventsGateway
   private logger = new Logger('GamesGateway');
 
   private sockets = new Map<string, Socket>();
-  private userIdA = '';
-  private userIdB = '';
+  private userGameIdA = '';
+  private userGameIdB = '';
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
@@ -64,11 +64,11 @@ export class GameEventsGateway
     if (client.data.role === 'host') {
       isHost = true;
       isWatcher = false;
-      this.userIdB = client.data.userGame.userGameId;
+      this.userGameIdB = client.data.userGame.userGameId;
     } else if (client.data.role === 'guest') {
       isHost = false;
       isWatcher = false;
-      this.userIdA = client.data.userGame.userGameId;
+      this.userGameIdA = client.data.userGame.userGameId;
     } else {
       isHost = false;
       isWatcher = true;
@@ -116,9 +116,9 @@ export class GameEventsGateway
     this.server.emit('controlA', control);
   }
 
-  onModuleInit() {
-    setInterval(() => {
-      if (this.userIdA !== '' && this.userIdB !== '') {
+  async onModuleInit() {
+    setInterval(async () => {
+      if (this.userGameIdA !== '' && this.userGameIdB !== '') {
         this.sendToClientBall({
           ball: this.pingpongService.getBallInfo(),
         });
@@ -126,16 +126,16 @@ export class GameEventsGateway
           scores: this.pingpongService.getScores(),
         });
         const winner = this.pingpongService.getWinner(
-          this.userIdA,
-          this.userIdB,
+          this.userGameIdA,
+          this.userGameIdB,
         );
         if (winner !== '') {
           this.sendToClientWinner({
             winner: winner,
           });
 
-          this.userIdA = '';
-          this.userIdB = '';
+          this.userGameIdA = '';
+          this.userGameIdB = '';
         }
       }
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능

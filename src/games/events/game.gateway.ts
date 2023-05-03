@@ -56,13 +56,22 @@ export class GameEventsGateway
     // console.log('role : ', client.data.role);
 
     let isHost: boolean;
+    let isWatcher: boolean;
     if (client.data.role === 'host') {
       isHost = true;
+      isWatcher = false;
+    } else if (client.data.role === 'guest') {
+      isHost = false;
+      isWatcher = false;
     } else {
       isHost = false;
+      isWatcher = true;
     }
 
-    this.sendToClientIsHost(client.id, { isHost: isHost });
+    this.sendToClientIsHost(client.id, {
+      isHost: isHost,
+      isWatcher: isWatcher,
+    });
     this.sendToClientMapSize(this.pingpongService.getMapSize());
   }
 
@@ -76,9 +85,11 @@ export class GameEventsGateway
 
   @SubscribeMessage('gamecontrolB')
   async gameControlB(client: Socket, control: any) {
-    this.sendToClientControlB({
-      position: this.pingpongService.updatePaddleBPosition(control),
-    });
+    if (client.data.role === 'host') {
+      this.sendToClientControlB({
+        position: this.pingpongService.updatePaddleBPosition(control),
+      });
+    }
   }
 
   private sendToClientControlB(control: any) {
@@ -87,9 +98,11 @@ export class GameEventsGateway
 
   @SubscribeMessage('gamecontrolA')
   async gameControlA(client: Socket, control: any) {
-    this.sendToClientControlA({
-      position: this.pingpongService.updatePaddleAPosition(control),
-    });
+    if (client.data.role === 'guest') {
+      this.sendToClientControlA({
+        position: this.pingpongService.updatePaddleAPosition(control),
+      });
+    }
   }
 
   private sendToClientControlA(control: any) {

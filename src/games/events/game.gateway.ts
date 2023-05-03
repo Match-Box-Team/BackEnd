@@ -44,6 +44,8 @@ export class GameEventsGateway
   private logger = new Logger('GamesGateway');
 
   private sockets = new Map<string, Socket>();
+  private userIdA = '';
+  private userIdB = '';
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
@@ -54,18 +56,23 @@ export class GameEventsGateway
     // console.log('gamewatch: ', client.data.gameWatch);
     // console.log('info : ', client.data.userGameInfo);
     // console.log('role : ', client.data.role);
+    console.log('gameWatchId : ', client.data.gameWatch);
 
     let isHost: boolean;
     let isWatcher: boolean;
+
     if (client.data.role === 'host') {
       isHost = true;
       isWatcher = false;
+      this.userIdB = client.data.userGame.userGameId;
     } else if (client.data.role === 'guest') {
       isHost = false;
       isWatcher = false;
+      this.userIdA = client.data.userGame.userGameId;
     } else {
       isHost = false;
       isWatcher = true;
+      console.log("I'm watcher");
     }
 
     this.sendToClientIsHost(client.id, {
@@ -111,15 +118,26 @@ export class GameEventsGateway
 
   onModuleInit() {
     setInterval(() => {
-      this.sendToClientBall({
-        ball: this.pingpongService.getBallInfo(),
-      });
-      this.sendToClientScores({
-        scores: this.pingpongService.getScores(),
-      });
-      this.sendToClientWinner({
-        winner: this.pingpongService.getWinner(),
-      });
+      if (this.userIdA !== '' && this.userIdB !== '') {
+        this.sendToClientBall({
+          ball: this.pingpongService.getBallInfo(),
+        });
+        this.sendToClientScores({
+          scores: this.pingpongService.getScores(),
+        });
+        const winner = this.pingpongService.getWinner(
+          this.userIdA,
+          this.userIdB,
+        );
+        if (winner !== '') {
+          this.sendToClientWinner({
+            winner: winner,
+          });
+
+          this.userIdA = '';
+          this.userIdB = '';
+        }
+      }
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
   }
 
@@ -258,8 +276,8 @@ export class GameEventsGateway
     console.log(client.rooms);
     console.log(enemySocket.id);
     console.log(enemySocket.rooms);
-    client.emit('gameStart', data.speed);
-    client.to(enemySocket.id).emit('gameStart', data.speed);
+    // client.to(client.id).emit('gameStart', data.speed);
+    client.to(enemySocket.id).emit('gameStart');
   }
 
   // 랜덤 게임 매칭

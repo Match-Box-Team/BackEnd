@@ -28,7 +28,7 @@ export class PingpongService {
 
   private scoreA = 0;
   private scoreB = 0;
-  private goalScore = 42;
+  private goalScore = 3;
 
   updatePaddlePosition(paddlePosition: number, control: any): number {
     paddlePosition += this.paddleInfo.speed * control.direction;
@@ -139,26 +139,27 @@ export class PingpongService {
     this.scoreB = 0;
   }
 
-  getWinner() {
+  getWinner(userIdA, userIdB) {
     let winner = '';
     const goalScore = this.goalScore;
     if (this.scoreA === goalScore) {
       winner = 'A';
-      // this.gameRepository.createGameHistory({
-      //   winnerId: 'winnerId',
-      //   loserId: 'loserId',
-      //   winnerScore: this.scoreA,
-      //   loserScore: this.scoreB,
-      // });
+      console.log('players : ', userIdA, userIdB);
+      this.gameRepository.createGameHistory({
+        winnerId: userIdA,
+        loserId: userIdB,
+        winnerScore: this.scoreA,
+        loserScore: this.scoreB,
+      });
     }
     if (this.scoreB === goalScore) {
       winner = 'B';
-      // this.gameRepository.createGameHistory({
-      //   winnerId: 'winnerId',
-      //   loserId: 'loserId',
-      //   winnerScore: this.scoreA,
-      //   loserScore: this.scoreB,
-      // });
+      this.gameRepository.createGameHistory({
+        winnerId: userIdB,
+        loserId: userIdA,
+        winnerScore: this.scoreA,
+        loserScore: this.scoreB,
+      });
     }
     return winner;
   }

@@ -183,4 +183,13 @@ export class ChannelsController {
   ) {
     await this.channelsService.kickUser(req['id']['id'], userId, channelId);
   }
+
+  @Get('/:channelId/isAdmin')
+  @UseGuards(AuthGuard)
+  async getIsAdmin(
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Request() req: ExpressRequest,
+  ) {
+    return await this.channelsService.getIsAdmin(req['id']['id'], channelId);
+  }
 }

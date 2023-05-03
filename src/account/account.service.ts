@@ -138,4 +138,8 @@ export class AccountService {
     }
     return user.image;
   }
+
+  async getDefaultImage(): Promise<string> {
+    return defaultImagePath;
+  }
 }

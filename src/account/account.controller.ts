@@ -58,6 +58,14 @@ export class AccountController {
     res.sendFile(imagePath);
   }
 
+  @Get('default')
+  @UseGuards(AuthGuard)
+  async getDefaultImage(@Res() res: Response) {
+    const imagePath = await this.accountService.getDefaultImage();
+    res.set('Content-Type', 'image/jpeg');
+    res.sendFile(imagePath);
+  }
+
   @Patch('image')
   @UseInterceptors(
     FileInterceptor('image', {

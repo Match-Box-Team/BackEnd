@@ -134,10 +134,13 @@ export class ChannelsService {
     // 이렇게 할 경우, 채팅 내역이 아무것도 없을 때 last_chat_time로 대신 보여주는데,
     // 채팅방을 들어가고(소켓연결) 채팅방 나올 때(소켓 연결 끊김)마다 last_chat_time을 업데이트해주므로 적합하지 않다.
     // => 채팅방을 생성하자마자 "fake message" chat 테이블에 넣는 방법을 선택
+    const user = await this.accountService.getUser(userId);
     await this.repository.createChat(
       userChannel.userChannelId,
       'Fake Message',
       new Date(),
+      user.nickname,
+      newChannel.channelId,
     );
     return { channelId: newChannel.channelId };
   }
@@ -185,6 +188,20 @@ export class ChannelsService {
     // 채팅방 생성 시 만든 fake message 빼고 로그 반환
     //  - 채팅방을 만들자마자 넣은 데이터이므로 가장 첫번째로 들어가있음.
     chats.shift();
+    chats.map((chat) => {
+      if (chat.userChannel === null) {
+        chat.userChannel = {
+          isAdmin: false,
+          isMute: false,
+          user: {
+            userId: '',
+            intraId: '',
+            nickname: chat.nickname,
+            image: '',
+          },
+        };
+      }
+    });
     userChannel.channel.count = undefined;
     if (userChannel.channel.isDm === true) {
       const nicknames = userChannel.channel.channelName.split('/');
@@ -317,6 +334,8 @@ export class ChannelsService {
         userChannel.userChannelId,
         'Fake Message',
         new Date(),
+        me.nickname,
+        channel.channelId,
       );
     } else {
       // 이전에 dm방을 나갔다가 다시 들어간 경우
@@ -491,6 +510,11 @@ export class ChannelsService {
     await this.repository.removeUserCountInChannel(channelId);
   }
 
+  async getIsAdmin(userId: string, channelId: string) {
+    const userChannel = await this.validateUserChannel(userId, channelId);
+    return userChannel.isAdmin;
+  }
+
   /**
    * 소켓에서 사용하는 메소드
    */
@@ -500,7 +524,13 @@ export class ChannelsService {
     message: string,
     time: Date,
   ): Promise<UserOne> {
-    await this.repository.createChat(userChannel.userChannelId, message, time);
+    await this.repository.createChat(
+      userChannel.userChannelId,
+      message,
+      time,
+      userChannel.user.nickname,
+      userChannel.channel.channelId,
+    );
     return {
       userId: userChannel.user.userId,
       nickname: userChannel.user.nickname,
@@ -514,11 +544,15 @@ export class ChannelsService {
     userChannelId: string,
     message: string,
     time: Date,
+    nickname: string,
+    channelId: string,
   ): Promise<NewChat> {
     const newChat = await this.repository.createChat(
       userChannelId,
       message,
       time,
+      nickname,
+      channelId,
     );
     return newChat;
   }

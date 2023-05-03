@@ -90,6 +90,8 @@ export class ChannelsEventsGateway
       userChannelId,
       createChatData.message,
       createChatData.time,
+      userChannel.user.nickname,
+      userChannel.channel.channelId,
     );
 
     const response = {

@@ -81,9 +81,7 @@ export class ChannelsRepository {
   async findChatsByChannelId(channelId: string): Promise<Chat[]> {
     return await this.prisma.chat.findMany({
       where: {
-        userChannel: {
-          channelId: channelId,
-        },
+        channelId: channelId,
       },
       orderBy: [
         {
@@ -128,16 +126,13 @@ export class ChannelsRepository {
   async findChatLogs(channelId: string): Promise<FindChatLogs[]> {
     return await this.prisma.chat.findMany({
       where: {
-        userChannel: {
-          channel: {
-            channelId: channelId,
-          },
-        },
+        channelId: channelId,
       },
       select: {
         chatId: true,
         message: true,
         time: true,
+        nickname: true,
         userChannel: {
           select: {
             isAdmin: true,
@@ -263,12 +258,16 @@ export class ChannelsRepository {
     userChannelId: string,
     message: string,
     time: Date,
+    nickname: string,
+    channelId: string,
   ): Promise<NewChat> {
     const newChat = await this.prisma.chat.create({
       data: {
         userChannelId: userChannelId,
         message: message,
         time: time,
+        nickname: nickname,
+        channelId: channelId,
       },
     });
 

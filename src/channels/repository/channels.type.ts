@@ -20,6 +20,7 @@ interface FindChatLogs {
   chatId: string;
   message: string;
   time: Date;
+  nickname: string;
   userChannel: {
     isAdmin: boolean;
     isMute: boolean;

@@ -157,8 +157,8 @@ export class PingpongService {
       this.gameRepository.createGameHistory({
         winnerId: userIdB,
         loserId: userIdA,
-        winnerScore: this.scoreA,
-        loserScore: this.scoreB,
+        winnerScore: this.scoreB,
+        loserScore: this.scoreA,
       });
     }
     return winner;

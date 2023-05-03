@@ -119,9 +119,10 @@ export class GameEventsGateway
 
   // 소켓 연결이 끊기면 실행, user state offline으로 업데이트
   async handleDisconnect(@ConnectedSocket() client: Socket) {
-    // if (client.data.userId) {
-    //   this.gamesService.removeUserToQueue(client, client.data.userId);
-    // }
+    // 매칭 큐에서 제거
+    if (client.data.userId) {
+      this.gamesService.removePlayerToQueue(client, client.data.userId);
+    }
     if (this.sockets.get(client.id)) {
       this.sockets.delete(client.id);
     }
@@ -163,7 +164,6 @@ export class GameEventsGateway
     }
     client.data.userGame = myUserGame;
     client.data.gameWatch = gameWatch;
-    console.log(client.data.userGame);
     if (myUserGame.userGameId === gameWatch.userGameId1) {
       client.data.role = 'host';
       client.data.enemyUserGameId = gameWatch.userGameId2;
@@ -241,12 +241,12 @@ export class GameEventsGateway
     const user = await this.accountService.getUser(userId);
     const game = await this.gamesService.getGame(gameId);
     if (!user || !game) {
-      client.emit('matchFail');
+      client.emit('randomMatchError', '유저 또는 게임이 없습니다');
       return;
     }
     const userGame = await this.gamesService.getUserGame(userId, gameId);
     if (userGame === null) {
-      client.emit('matchFail');
+      client.emit('randomMatchError', '게임을 구매한 사람이 아닙니다');
       return;
     }
 

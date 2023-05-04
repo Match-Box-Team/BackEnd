@@ -46,7 +46,7 @@ export class GameEventsGateway
   private sockets = new Map<string, Socket>();
   private userGameIdA = '';
   private userGameIdB = '';
-  private gameWatchId = 'abcd';
+  private gameWatchId = '';
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
@@ -58,8 +58,9 @@ export class GameEventsGateway
     // console.log('gamewatch: ', client.data.gameWatch);
     // console.log('info : ', client.data.userGameInfo);
     // console.log('role : ', client.data.role);
-    console.log('gameWatchId : ', client.data.gameWatch);
-
+    // console.log('gameWatchId : ', client.data.gameWatch.gameWatchId);
+    this.gameWatchId = client.data.gameWatch.gameWatchId;
+    client.join(this.gameWatchId);
     let isHost: boolean;
     let isWatcher: boolean;
 
@@ -85,11 +86,11 @@ export class GameEventsGateway
   }
 
   private sendToClientIsHost(socketId: any, data: any) {
-    this.server.to(socketId).emit('ishost', data);
+    this.server.to(this.gameWatchId).emit('ishost', data);
   }
 
   private sendToClientMapSize(mapSize: any) {
-    this.server.emit('mapSize', mapSize);
+    this.server.to(this.gameWatchId).emit('mapSize', mapSize);
   }
 
   @SubscribeMessage('gamecontrolB')
@@ -105,7 +106,7 @@ export class GameEventsGateway
   }
 
   private sendToClientControlB(control: any) {
-    this.server.emit('controlB', control);
+    this.server.to(this.gameWatchId).emit('controlB', control);
   }
 
   @SubscribeMessage('gamecontrolA')
@@ -121,7 +122,7 @@ export class GameEventsGateway
   }
 
   private sendToClientControlA(control: any) {
-    this.server.emit('controlA', control);
+    this.server.to(this.gameWatchId).emit('controlA', control);
   }
 
   async onModuleInit() {
@@ -151,15 +152,15 @@ export class GameEventsGateway
   }
 
   private sendToClientWinner(winner: any) {
-    this.server.emit('gameover', winner);
+    this.server.to(this.gameWatchId).emit('gameover', winner);
   }
 
   private sendToClientScores(scores: any) {
-    this.server.emit('scores', scores);
+    this.server.to(this.gameWatchId).emit('scores', scores);
   }
 
   sendToClientBall(control: any) {
-    this.server.emit('ballcontrol', control);
+    this.server.to(this.gameWatchId).emit('ballcontrol', control);
   }
 
   // 초기화 이후에 실행

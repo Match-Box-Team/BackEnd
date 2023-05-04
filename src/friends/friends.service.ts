@@ -107,7 +107,13 @@ export class FriendsService {
         gameInfo.gameId,
       );
     } catch (error) {
-      throw new NotFoundException(
+      throw new ConflictException(
+        'DB에서 게임 히스토리를 조회하는데 실패했습니다',
+      );
+    }
+
+    if (!userGameInfo) {
+      throw new ConflictException(
         '해당하는 친구가 게임을 가지고 있지 않습니다',
       );
     }
@@ -123,7 +129,6 @@ export class FriendsService {
         'DB에서 게임 히스토리를 조회하는데 실패했습니다',
       );
     }
-
     return {
       gameId: gameInfo.gameId,
       name: gameInfo.name,

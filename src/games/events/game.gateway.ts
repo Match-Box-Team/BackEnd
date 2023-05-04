@@ -26,6 +26,12 @@ interface UserGameInfo {
   role: string;
 }
 
+interface roomInfo {
+  userGameIdA: string;
+  userGameIdB: string;
+  gameWatchId: string;
+}
+
 // cors 꼭꼭 해주기!
 @UseGuards(AuthGuard)
 @WebSocketGateway({ namespace: 'game', cors: true })
@@ -45,50 +51,80 @@ export class GameEventsGateway
   private logger = new Logger('GamesGateway');
 
   private sockets = new Map<string, Socket>();
-  private userGameIdA = '';
-  private userGameIdB = '';
-  private gameWatchId = '';
-  // private gameWatchIds = new Map<string, string>;
-  private gameWatchIds = [];
+  // private userGameIdA = '';
+  // private userGameIdB = '';
+  // private gameWatchId = '';
+  private gameWatchIds = new Map<string, roomInfo>();
+  // private gameWatchIds = [];
 
+  // @SubscribeMessage('ready')
+  // async gameReady(client: Socket, info: any) {
   @SubscribeMessage('ready')
-  async gameReady(client: Socket, info: any) {
+  gameReady(client: Socket, info: any) {
     console.log('connected');
-    console.log(info);
-    console.log(client.data.gameWatch);
-    this.gameWatchId = client.data.gameWatch.gameWatchId;
-    this.gameWatchIds.push(client.data.gameWatch.gameWatchId);
+    // console.log('1 info: ', info);
+    // console.log(client.data.gameWatch);
 
-    this.pingpongService.InitGameInfo(this.gameWatchId);
-    this.pingpongService.setScoresZeros(this.gameWatchId);
+    // const gameWatchId = client.data.gameWatch.gameWatchId;
+    const gameWatchId = info.gameWatchId;
+    console.log('gameWatch:', info.gameWatchId);
+    if (info.gameWatchId) {
+      this.gameWatchIds.set(gameWatchId, {
+        ...this.gameWatchIds.get(gameWatchId),
+        gameWatchId,
+      });
+      console.log('id: ', this.gameWatchIds.get(gameWatchId));
+    }
+
+    // this.pingpongService.InitGameInfo(this.gameWatchId);
+    // this.pingpongService.setScoresZeros(this.gameWatchId);
+    this.pingpongService.InitGameInfo(gameWatchId);
+    this.pingpongService.setScoresZeros(gameWatchId);
 
     // console.log('gamewatch: ', client.data.gameWatch);
     // console.log('info : ', client.data.userGameInfo);
     // console.log('role : ', client.data.role);
     // console.log('gameWatchId : ', client.data.gameWatch.gameWatchId);
-    client.join(this.gameWatchId);
+
+    // client.join(this.gameWatchId);
+    client.join(gameWatchId);
+
     let isHost: boolean;
     let isWatcher: boolean;
 
     if (client.data.role === 'host') {
       isHost = true;
       isWatcher = false;
-      this.userGameIdB = client.data.userGame.userGameId;
+      // this.userGameIdB = client.data.userGame.userGameId;
+      const userGameIdB = client.data.userGame.userGameId;
+      this.gameWatchIds.set(gameWatchId, {
+        ...this.gameWatchIds.get(gameWatchId),
+        userGameIdB,
+      });
     } else if (client.data.role === 'guest') {
       isHost = false;
       isWatcher = false;
-      this.userGameIdA = client.data.userGame.userGameId;
+      // this.userGameIdA = client.data.userGame.userGameId;
+      const userGameIdA = client.data.userGame.userGameId;
+      this.gameWatchIds.set(gameWatchId, {
+        ...this.gameWatchIds.get(gameWatchId),
+        userGameIdA,
+      });
     } else {
       isHost = false;
       isWatcher = true;
       console.log("I'm watcher");
     }
+    console.log('check: ', this.gameWatchIds.get(gameWatchId));
+    console.log('size:', this.gameWatchIds.size);
 
     this.sendToClientIsHost(client.id, {
       isHost: isHost,
       isWatcher: isWatcher,
     });
-    this.sendToClientMapSize(this.pingpongService.getMapSize(this.gameWatchId));
+    // this.sendToClientMapSize(this.pingpongService.getMapSize(this.gameWatchId));
+    const mapSize = this.pingpongService.getMapSize(gameWatchId);
+    this.sendToClientMapSize(gameWatchId, mapSize);
   }
 
   private sendToClientIsHost(socketId: any, data: any) {
@@ -96,80 +132,128 @@ export class GameEventsGateway
     this.server.to(socketId).emit('ishost', data);
   }
 
-  private sendToClientMapSize(mapSize: any) {
-    this.server.to(this.gameWatchId).emit('mapSize', mapSize);
+  // private sendToClientMapSize(mapSize: any) {
+  // this.server.to(this.gameWatchId).emit('mapSize', mapSize);
+  private sendToClientMapSize(gameWatchId: string, mapSize: any) {
+    this.server.to(gameWatchId).emit('mapSize', mapSize);
   }
 
   @SubscribeMessage('gamecontrolB')
   async gameControlB(client: Socket, control: any) {
-    this.gameWatchId = client.data.gameWatch.gameWatchId;
+    // this.gameWatchId = client.data.gameWatch.gameWatchId;
+    const gameWatchId = client.data.gameWatch.gameWatchId;
+    console.log('B bar control:', gameWatchId);
+    console.log('size:', this.gameWatchIds.size);
     if (client.data.role === 'host') {
-      this.sendToClientControlB({
+      this.sendToClientControlB(gameWatchId, {
         position: this.pingpongService.updatePaddleBPosition(
-          this.gameWatchId,
+          // this.gameWatchId,
+          gameWatchId,
           control,
         ),
       });
     }
   }
 
-  private sendToClientControlB(control: any) {
-    this.server.to(this.gameWatchId).emit('controlB', control);
+  // private sendToClientControlB(control: any) {
+  // this.server.to(this.gameWatchId).emit('controlB', control);
+  private sendToClientControlB(gameWatchId: string, control: any) {
+    this.server.to(gameWatchId).emit('controlB', control);
   }
 
   @SubscribeMessage('gamecontrolA')
   async gameControlA(client: Socket, control: any) {
-    this.gameWatchId = client.data.gameWatch.gameWatchId;
+    // this.gameWatchId = client.data.gameWatch.gameWatchId;
+    const gameWatchId = client.data.gameWatch.gameWatchId;
+    console.log('A bar control:', gameWatchId);
     if (client.data.role === 'guest') {
-      this.sendToClientControlA({
+      this.sendToClientControlA(gameWatchId, {
         position: this.pingpongService.updatePaddleAPosition(
-          this.gameWatchId,
+          // this.gameWatchId,
+          gameWatchId,
           control,
         ),
       });
     }
   }
 
-  private sendToClientControlA(control: any) {
-    this.server.to(this.gameWatchId).emit('controlA', control);
+  // private sendToClientControlA(control: any) {
+  // this.server.to(this.gameWatchId).emit('controlA', control);
+  private sendToClientControlA(gameWatchId: string, control: any) {
+    this.server.to(gameWatchId).emit('controlA', control);
   }
 
-  async onModuleInit() {
-    setInterval(async () => {
-      if (this.userGameIdA !== '' && this.userGameIdB !== '') {
-        this.sendToClientBall({
-          ball: this.pingpongService.getBallInfo(this.gameWatchId),
-        });
-        this.sendToClientScores({
-          scores: this.pingpongService.getScores(this.gameWatchId),
-        });
-        const winner = this.pingpongService.getWinner(
-          this.gameWatchId,
-          this.userGameIdA,
-          this.userGameIdB,
-        );
-        if (winner !== '') {
-          this.sendToClientWinner({
-            winner: winner,
+  // async onModuleInit() {
+  onModuleInit() {
+    // setInterval(async () => {
+    setInterval(() => {
+      for (const gameWatchId of this.gameWatchIds.keys()) {
+        const roomInfo: roomInfo = this.gameWatchIds.get(gameWatchId);
+        // console.log('roomInfo: ', roomInfo);
+        if (roomInfo.userGameIdA !== '' && roomInfo.userGameIdB !== '') {
+          this.sendToClientBall(roomInfo.gameWatchId, {
+            ball: this.pingpongService.getBallInfo(roomInfo.gameWatchId),
           });
+          this.sendToClientScores(roomInfo.gameWatchId, {
+            scores: this.pingpongService.getScores(roomInfo.gameWatchId),
+          });
+          const winner = this.pingpongService.getWinner(
+            roomInfo.gameWatchId,
+            roomInfo.userGameIdA,
+            roomInfo.userGameIdB,
+          );
+          if (winner !== '') {
+            this.sendToClientWinner(roomInfo.gameWatchId, {
+              winner: winner,
+            });
 
-          this.userGameIdA = '';
-          this.userGameIdB = '';
+            this.gameWatchIds.delete(roomInfo.gameWatchId);
+            roomInfo.userGameIdA = '';
+            roomInfo.userGameIdB = '';
+          }
         }
       }
+
+      // if (this.userGameIdA !== '' && this.userGameIdB !== '') {
+      //   this.sendToClientBall({
+      //     ball: this.pingpongService.getBallInfo(this.gameWatchId),
+      //   });
+      //   this.sendToClientScores({
+      //     scores: this.pingpongService.getScores(this.gameWatchId),
+      //   });
+      //   const winner = this.pingpongService.getWinner(
+      //     this.gameWatchId,
+      //     this.userGameIdA,
+      //     this.userGameIdB,
+      //   );
+      //   if (winner !== '') {
+      //     this.sendToClientWinner({
+      //       winner: winner,
+      //     });
+
+      //     this.userGameIdA = '';
+      //     this.userGameIdB = '';
+      //   }
+      // }
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
   }
 
-  private sendToClientWinner(winner: any) {
-    this.server.to(this.gameWatchId).emit('gameover', winner);
+  // private sendToClientWinner(winner: any) {
+  // this.server.to(this.gameWatchId).emit('gameover', winner);
+  private sendToClientWinner(gameWatchId: string, winner: any) {
+    this.server.to(gameWatchId).emit('gameover', winner);
   }
 
-  private sendToClientScores(scores: any) {
-    this.server.to(this.gameWatchId).emit('scores', scores);
+  // private sendToClientScores(scores: any) {
+  // this.server.to(this.gameWatchId).emit('scores', scores);
+  private sendToClientScores(gameWatchId: string, scores: any) {
+    this.server.to(gameWatchId).emit('scores', scores);
   }
 
-  sendToClientBall(control: any) {
-    this.server.to(this.gameWatchId).emit('ballcontrol', control);
+  // sendToClientBall(control: any) {
+  // this.server.to(this.gameWatchId).emit('ballcontrol', control);
+  sendToClientBall(gameWatchId: string, control: any) {
+    this.server.to(gameWatchId).emit('ballcontrol', control);
   }
 
   // 초기화 이후에 실행

@@ -76,7 +76,7 @@ export class AccountEventsGateway
       (user) => user.data.userInfo.userId === userId,
     );
     if (matchedSocketArray.length === 0) {
-      client.emit('gameError', { message: '로그인한 유저가 이닙니다' });
+      client.emit('gameError', { message: '로그인한 유저가 아닙니다' });
     }
     return matchedSocketArray[0];
   };
@@ -85,6 +85,14 @@ export class AccountEventsGateway
     const clients = this.server.sockets.sockets;
     const matchedSocketArray = Array.from(clients.values()).filter(
       (user) => user.data.userInfo.userGameId === userGameId,
+    );
+    return matchedSocketArray[0];
+  };
+
+  private findSocketByUserIdForRandomMatch = (userId: string): Socket => {
+    const clients = this.server.sockets.sockets;
+    const matchedSocketArray = Array.from(clients.values()).filter(
+      (user) => user.data.userInfo.userId === userId,
     );
     return matchedSocketArray[0];
   };
@@ -217,10 +225,28 @@ export class AccountEventsGateway
   // 게임 준비 취소 이벤트 감지
   @OnEvent('cancelGame')
   cancelGame(gameWatch: GameWatch) {
-    console.log(gameWatch);
+    console.log('게임 준비 취소');
     const userSocket1 = this.findSocketByUserGameId(gameWatch.userGameId1);
     const userSocket2 = this.findSocketByUserGameId(gameWatch.userGameId2);
     this.updateUserState(userSocket1, 'online');
     this.updateUserState(userSocket2, 'online');
+  }
+
+  // 랜덤 매칭이 성공되었을 때 감지되는 이벤트
+  @OnEvent('randomMatchSuccess')
+  async cancelRandomMatch(gameWatch: GameWatch) {
+    console.log('랜덤 매칭 성공');
+    const userId1 = await this.gamesService.getUserByUserGameId(
+      gameWatch.userGameId1,
+    );
+    const userId2 = await this.gamesService.getUserByUserGameId(
+      gameWatch.userGameId2,
+    );
+    const userSocket1 = this.findSocketByUserIdForRandomMatch(userId1);
+    const userSocket2 = this.findSocketByUserIdForRandomMatch(userId2);
+    userSocket1.data.userInfo.userGameId = gameWatch.userGameId1;
+    userSocket2.data.userInfo.userGameId = gameWatch.userGameId2;
+    this.updateUserState(userSocket1, 'game');
+    this.updateUserState(userSocket2, 'game');
   }
 }

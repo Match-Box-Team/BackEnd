@@ -162,4 +162,42 @@ export class AuthController {
       image: user.image,
     });
   }
+  @Get('fakeLogin3')
+  async fakeLogin3(@Res() res: Response): Promise<void> {
+    const fakeUser: OAuthUserInfoDto = {
+      email: 'fake3@naver.com',
+      image: '',
+      intraId: 'fake3',
+      phoneNumber: '',
+    };
+    await this.authService.saveUserInfo(fakeUser);
+    const user = await this.accountService.getUserByIntraId('fake3');
+    const jwt = await this.authService.generateJwt(fakeUser);
+    res.status(200).json({
+      redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+      token: jwt,
+      userId: user.userId,
+      nickname: user.nickname,
+      imageUrl: user.image,
+    });
+  }
+  @Get('fakeLogin4')
+  async fakeLogin4(@Res() res: Response): Promise<void> {
+    const fakeUser: OAuthUserInfoDto = {
+      email: 'fake4@naver.com',
+      image: '',
+      intraId: 'fake4',
+      phoneNumber: '',
+    };
+    await this.authService.saveUserInfo(fakeUser);
+    const user = await this.accountService.getUserByIntraId('fake4');
+    const jwt = await this.authService.generateJwt(fakeUser);
+    res.status(200).json({
+      redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+      token: jwt,
+      userId: user.userId,
+      nickname: user.nickname,
+      imageUrl: user.image,
+    });
+  }
 }

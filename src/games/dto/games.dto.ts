@@ -33,3 +33,53 @@ export class GameHistoryDto {
   @IsNotEmpty()
   loserScore: number;
 }
+
+export class PingPongInfoDto {
+  paddleAPosition = 100;
+  paddleBPosition = 100;
+
+  scoreA = 0;
+  scoreB = 0;
+  goalScore = 500;
+
+  mapSize = { width: 325, height: 485 };
+
+  ball = {
+    x: 150,
+    y: 75,
+    radius: 6,
+    velocityX: 5,
+    velocityY: 5,
+    color: 'white',
+  };
+
+  paddleInfo = {
+    width: 100,
+    height: 4,
+    paddleAX: 100,
+    paddleBX: 100,
+    paddleAY: 30,
+    paddleBY: 445,
+    speed: 4,
+  };
+
+  updatePaddlePosition(paddlePosition: number, control: any): number {
+    paddlePosition += this.paddleInfo.speed * control.direction;
+
+    if (paddlePosition < 0) {
+      paddlePosition = 0;
+    }
+    if (paddlePosition + this.paddleInfo.width >= 325) {
+      paddlePosition = this.mapSize.width - this.paddleInfo.width;
+    }
+    return paddlePosition;
+  }
+
+  addScoreToA() {
+    this.scoreA++;
+  }
+
+  addScoreToB() {
+    this.scoreB++;
+  }
+}

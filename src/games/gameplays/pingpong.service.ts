@@ -7,175 +7,169 @@ export class PingpongService {
   constructor(private gameRepository: GamesRepository) {}
   private gameRooms = new Map<string, PingPongInfoDto>();
   // pingpongInfo = new PingPongInfoDto();
-  InitGameInfo() {
-    this.gameRooms['mygame'] = new PingPongInfoDto();
+  InitGameInfo(gameWatchId: string) {
+    this.gameRooms[gameWatchId] = new PingPongInfoDto();
   }
 
-  // private paddleInfo = {
-  //   width: 100,
-  //   height: 4,
-  //   paddleAX: 100,
-  //   paddleBX: 100,
-  //   paddleAY: 30,
-  //   paddleBY: 445,
-  //   speed: 4,
-  // };
-
-  // private ball = {
-  //   x: 150,
-  //   y: 75,
-  //   radius: 6,
-  //   velocityX: 5,
-  //   velocityY: 5,
-  //   color: 'white',
-  // };
-  // private mapSize = { width: 325, height: 485 };
-  // private paddleAPosition = 100;
-  // private paddleBPosition = 100;
-
-  // private scoreA = 0;
-  // private scoreB = 0;
-  // private goalScore = 3;
-
-  // updatePaddlePosition(paddlePosition: number, control: any): number {
-  //   paddlePosition += this.paddleInfo.speed * control.direction;
-
-  //   if (paddlePosition < 0) {
-  //     paddlePosition = 0;
-  //   }
-  //   if (paddlePosition + this.paddleInfo.width >= 325) {
-  //     paddlePosition = this.mapSize.width - this.paddleInfo.width;
-  //   }
-  //   return paddlePosition;
-  // }
-
-  updatePaddleAPosition(control: any): number {
-    this.gameRooms['mygame'].paddleAPosition = this.gameRooms[
-      'mygame'
-    ].updatePaddlePosition(this.gameRooms['mygame'].paddleAPosition, control);
-    return this.gameRooms['mygame'].paddleAPosition;
+  updatePaddleAPosition(gameWatchId: string, control: any): number {
+    this.gameRooms[gameWatchId].paddleAPosition = this.gameRooms[
+      gameWatchId
+    ].updatePaddlePosition(
+      this.gameRooms[gameWatchId].paddleAPosition,
+      control,
+    );
+    return this.gameRooms[gameWatchId].paddleAPosition;
   }
 
-  updatePaddleBPosition(control: any): number {
-    this.gameRooms['mygame'].paddleBPosition = this.gameRooms[
-      'mygame'
-    ].updatePaddlePosition(this.gameRooms['mygame'].paddleBPosition, control);
-    return this.gameRooms['mygame'].paddleBPosition;
+  updatePaddleBPosition(gameWatchId: string, control: any): number {
+    this.gameRooms[gameWatchId].paddleBPosition = this.gameRooms[
+      gameWatchId
+    ].updatePaddlePosition(
+      this.gameRooms[gameWatchId].paddleBPosition,
+      control,
+    );
+    return this.gameRooms[gameWatchId].paddleBPosition;
   }
 
-  getPaddleBPosition(): number {
-    return this.gameRooms['mygame'].paddleBPosition;
+  getPaddleBPosition(gameWatchId: string): number {
+    return this.gameRooms[gameWatchId].paddleBPosition;
   }
 
-  getPaddleAPosition(): number {
-    return this.gameRooms['mygame'].paddleAPosition;
+  getPaddleAPosition(gameWatchId: string): number {
+    return this.gameRooms[gameWatchId].paddleAPosition;
   }
 
-  ballControl(paddleAPosition: number, paddleBPosition: number): any {
+  ballControl(
+    gameWatchId: string,
+    paddleAPosition: number,
+    paddleBPosition: number,
+  ): any {
     // Calculate the new ball position
-    this.gameRooms['mygame'].ball.x += this.gameRooms['mygame'].ball.velocityX;
-    this.gameRooms['mygame'].ball.y += this.gameRooms['mygame'].ball.velocityY;
+    this.gameRooms[gameWatchId].ball.x +=
+      this.gameRooms[gameWatchId].ball.velocityX;
+    this.gameRooms[gameWatchId].ball.y +=
+      this.gameRooms[gameWatchId].ball.velocityY;
 
     if (
-      this.gameRooms['mygame'].ball.x + this.gameRooms['mygame'].ball.radius >
-        this.gameRooms['mygame'].mapSize.width ||
-      this.gameRooms['mygame'].ball.x - this.gameRooms['mygame'].ball.radius < 0
+      this.gameRooms[gameWatchId].ball.x +
+        this.gameRooms[gameWatchId].ball.radius >
+        this.gameRooms[gameWatchId].mapSize.width ||
+      this.gameRooms[gameWatchId].ball.x -
+        this.gameRooms[gameWatchId].ball.radius <
+        0
     ) {
-      this.gameRooms['mygame'].ball.velocityX =
-        -this.gameRooms['mygame'].ball.velocityX;
+      this.gameRooms[gameWatchId].ball.velocityX =
+        -this.gameRooms[gameWatchId].ball.velocityX;
     }
 
     if (
-      this.gameRooms['mygame'].ball.y + this.gameRooms['mygame'].ball.radius >
-        this.gameRooms['mygame'].mapSize.height ||
-      this.gameRooms['mygame'].ball.y - this.gameRooms['mygame'].ball.radius < 0
+      this.gameRooms[gameWatchId].ball.y +
+        this.gameRooms[gameWatchId].ball.radius >
+        this.gameRooms[gameWatchId].mapSize.height ||
+      this.gameRooms[gameWatchId].ball.y -
+        this.gameRooms[gameWatchId].ball.radius <
+        0
     ) {
-      this.gameRooms['mygame'].ball.velocityY =
-        -this.gameRooms['mygame'].ball.velocityY;
+      this.gameRooms[gameWatchId].ball.velocityY =
+        -this.gameRooms[gameWatchId].ball.velocityY;
     }
 
     if (
-      (this.gameRooms['mygame'].ball.y - this.gameRooms['mygame'].ball.radius <
-        this.gameRooms['mygame'].paddleInfo.paddleAY +
-          this.gameRooms['mygame'].paddleInfo.height &&
-        this.gameRooms['mygame'].ball.y + this.gameRooms['mygame'].ball.radius >
-          this.gameRooms['mygame'].paddleInfo.paddleAY &&
-        this.gameRooms['mygame'].ball.x - this.gameRooms['mygame'].ball.radius <
-          paddleAPosition + this.gameRooms['mygame'].paddleInfo.width &&
-        this.gameRooms['mygame'].ball.x + this.gameRooms['mygame'].ball.radius >
+      (this.gameRooms[gameWatchId].ball.y -
+        this.gameRooms[gameWatchId].ball.radius <
+        this.gameRooms[gameWatchId].paddleInfo.paddleAY +
+          this.gameRooms[gameWatchId].paddleInfo.height &&
+        this.gameRooms[gameWatchId].ball.y +
+          this.gameRooms[gameWatchId].ball.radius >
+          this.gameRooms[gameWatchId].paddleInfo.paddleAY &&
+        this.gameRooms[gameWatchId].ball.x -
+          this.gameRooms[gameWatchId].ball.radius <
+          paddleAPosition + this.gameRooms[gameWatchId].paddleInfo.width &&
+        this.gameRooms[gameWatchId].ball.x +
+          this.gameRooms[gameWatchId].ball.radius >
           paddleAPosition) ||
-      (this.gameRooms['mygame'].ball.y - this.gameRooms['mygame'].ball.radius <
-        this.gameRooms['mygame'].paddleInfo.paddleBY +
-          this.gameRooms['mygame'].paddleInfo.height &&
-        this.gameRooms['mygame'].ball.y + this.gameRooms['mygame'].ball.radius >
-          this.gameRooms['mygame'].paddleInfo.paddleBY +
-            this.gameRooms['mygame'].paddleInfo.height &&
-        this.gameRooms['mygame'].ball.x - this.gameRooms['mygame'].ball.radius <
-          paddleBPosition + this.gameRooms['mygame'].paddleInfo.width &&
-        this.gameRooms['mygame'].ball.x + this.gameRooms['mygame'].ball.radius >
+      (this.gameRooms[gameWatchId].ball.y -
+        this.gameRooms[gameWatchId].ball.radius <
+        this.gameRooms[gameWatchId].paddleInfo.paddleBY +
+          this.gameRooms[gameWatchId].paddleInfo.height &&
+        this.gameRooms[gameWatchId].ball.y +
+          this.gameRooms[gameWatchId].ball.radius >
+          this.gameRooms[gameWatchId].paddleInfo.paddleBY +
+            this.gameRooms[gameWatchId].paddleInfo.height &&
+        this.gameRooms[gameWatchId].ball.x -
+          this.gameRooms[gameWatchId].ball.radius <
+          paddleBPosition + this.gameRooms[gameWatchId].paddleInfo.width &&
+        this.gameRooms[gameWatchId].ball.x +
+          this.gameRooms[gameWatchId].ball.radius >
           paddleBPosition)
     ) {
-      this.gameRooms['mygame'].ball.velocityY =
-        -this.gameRooms['mygame'].ball.velocityY;
+      this.gameRooms[gameWatchId].ball.velocityY =
+        -this.gameRooms[gameWatchId].ball.velocityY;
     }
-    return this.gameRooms['mygame'].ball;
+    return this.gameRooms[gameWatchId].ball;
   }
 
-  getMapSize(): any {
-    return this.gameRooms['mygame'].mapSize;
+  getMapSize(gameWatchId: string): any {
+    return this.gameRooms[gameWatchId].mapSize;
   }
 
-  getBallInfo(): any {
+  getBallInfo(gameWatchId: string): any {
     return this.ballControl(
-      this.getPaddleAPosition(),
-      this.getPaddleBPosition(),
+      gameWatchId,
+      this.getPaddleAPosition(gameWatchId),
+      this.getPaddleBPosition(gameWatchId),
     );
   }
 
-  getScores(): any {
+  getScores(gameWatchId: string): any {
     if (
-      this.gameRooms['mygame'].ball.y + this.gameRooms['mygame'].ball.radius >
-      this.gameRooms['mygame'].mapSize.height
+      this.gameRooms[gameWatchId].ball.y +
+        this.gameRooms[gameWatchId].ball.radius >
+      this.gameRooms[gameWatchId].mapSize.height
     ) {
-      this.gameRooms['mygame'].addScoreToA();
+      this.gameRooms[gameWatchId].addScoreToA();
     }
     if (
-      this.gameRooms['mygame'].ball.y - this.gameRooms['mygame'].ball.radius <
+      this.gameRooms[gameWatchId].ball.y -
+        this.gameRooms[gameWatchId].ball.radius <
       0
     ) {
-      this.gameRooms['mygame'].addScoreToB();
+      this.gameRooms[gameWatchId].addScoreToB();
     }
+    const scoreA = this.gameRooms[gameWatchId].scoreA;
+    const scoreB = this.gameRooms[gameWatchId].scoreB;
+    this.gameRooms.delete(gameWatchId);
     return {
-      scoreA: this.gameRooms['mygame'].scoreA,
-      scoreB: this.gameRooms['mygame'].scoreB,
+      scoreA: scoreA,
+      scoreB: scoreB,
     };
   }
 
-  setScoresZeros() {
-    this.gameRooms['mygame'].scoreA = 0;
-    this.gameRooms['mygame'].scoreB = 0;
+  setScoresZeros(gameWatchId: string) {
+    this.gameRooms[gameWatchId].scoreA = 0;
+    this.gameRooms[gameWatchId].scoreB = 0;
   }
 
-  getWinner(userIdA, userIdB) {
+  getWinner(gameWatchId: string, userIdA: string, userIdB: string) {
     let winner = '';
-    const goalScore = this.gameRooms['mygame'].goalScore;
-    if (this.gameRooms['mygame'].scoreA === goalScore) {
+    const goalScore = this.gameRooms[gameWatchId].goalScore;
+    if (this.gameRooms[gameWatchId].scoreA === goalScore) {
       winner = 'A';
       // console.log('players : ', userIdA, userIdB);
       this.gameRepository.createGameHistory({
         winnerId: userIdA,
         loserId: userIdB,
-        winnerScore: this.gameRooms['mygame'].scoreA,
-        loserScore: this.gameRooms['mygame'].scoreB,
+        winnerScore: this.gameRooms[gameWatchId].scoreA,
+        loserScore: this.gameRooms[gameWatchId].scoreB,
       });
     }
-    if (this.gameRooms['mygame'].scoreB === goalScore) {
+    if (this.gameRooms[gameWatchId].scoreB === goalScore) {
       winner = 'B';
       this.gameRepository.createGameHistory({
         winnerId: userIdB,
         loserId: userIdA,
-        winnerScore: this.gameRooms['mygame'].scoreB,
-        loserScore: this.gameRooms['mygame'].scoreA,
+        winnerScore: this.gameRooms[gameWatchId].scoreB,
+        loserScore: this.gameRooms[gameWatchId].scoreA,
       });
     }
     return winner;

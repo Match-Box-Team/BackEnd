@@ -46,13 +46,14 @@ export class GameEventsGateway
   private sockets = new Map<string, Socket>();
   private userGameIdA = '';
   private userGameIdB = '';
+  private gameWatchId = 'abcd';
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
-    this.pingpongService.InitGameInfo();
-    this.pingpongService.setScoresZeros();
+    this.pingpongService.InitGameInfo(this.gameWatchId);
+    this.pingpongService.setScoresZeros(this.gameWatchId);
 
     // console.log('gamewatch: ', client.data.gameWatch);
     // console.log('info : ', client.data.userGameInfo);
@@ -80,7 +81,7 @@ export class GameEventsGateway
       isHost: isHost,
       isWatcher: isWatcher,
     });
-    this.sendToClientMapSize(this.pingpongService.getMapSize());
+    this.sendToClientMapSize(this.pingpongService.getMapSize(this.gameWatchId));
   }
 
   private sendToClientIsHost(socketId: any, data: any) {
@@ -95,7 +96,10 @@ export class GameEventsGateway
   async gameControlB(client: Socket, control: any) {
     if (client.data.role === 'host') {
       this.sendToClientControlB({
-        position: this.pingpongService.updatePaddleBPosition(control),
+        position: this.pingpongService.updatePaddleBPosition(
+          this.gameWatchId,
+          control,
+        ),
       });
     }
   }
@@ -108,7 +112,10 @@ export class GameEventsGateway
   async gameControlA(client: Socket, control: any) {
     if (client.data.role === 'guest') {
       this.sendToClientControlA({
-        position: this.pingpongService.updatePaddleAPosition(control),
+        position: this.pingpongService.updatePaddleAPosition(
+          this.gameWatchId,
+          control,
+        ),
       });
     }
   }
@@ -121,12 +128,13 @@ export class GameEventsGateway
     setInterval(async () => {
       if (this.userGameIdA !== '' && this.userGameIdB !== '') {
         this.sendToClientBall({
-          ball: this.pingpongService.getBallInfo(),
+          ball: this.pingpongService.getBallInfo(this.gameWatchId),
         });
         this.sendToClientScores({
-          scores: this.pingpongService.getScores(),
+          scores: this.pingpongService.getScores(this.gameWatchId),
         });
         const winner = this.pingpongService.getWinner(
+          this.gameWatchId,
           this.userGameIdA,
           this.userGameIdB,
         );

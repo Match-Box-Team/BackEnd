@@ -57,7 +57,7 @@ export class GameEventsGateway
     // console.log('gamewatch: ', client.data.gameWatch);
     // console.log('info : ', client.data.userGameInfo);
     // console.log('role : ', client.data.role);
-    console.log('gameWatchId : ', client.data.gameWatch);
+    // console.log('gameWatchId : ', client.data.gameWatch);
 
     let isHost: boolean;
     let isWatcher: boolean;
@@ -273,11 +273,13 @@ export class GameEventsGateway
     );
     client.join(client.data.gameWatch.gameWatchId);
     enemySocket.join(client.data.gameWatch.gameWatchId);
-    console.log(client.id);
-    console.log(client.rooms);
-    console.log(enemySocket.id);
-    console.log(enemySocket.rooms);
-    // client.to(client.id).emit('gameStart', data.speed);
+    // console.log('--------------------------------');
+    // console.log(client.id);
+    // console.log(client.rooms);
+    // console.log(enemySocket.id);
+    // console.log(enemySocket.rooms);
+    // console.log('--------------------------------');
+    client.emit('gameStart');
     client.to(enemySocket.id).emit('gameStart');
   }
 

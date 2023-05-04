@@ -9,10 +9,14 @@ import { Socket } from 'socket.io';
 import { GamesRepository } from './repository/games.repository';
 import { GameId, GameWatchesType, GameType } from './repository/game.type';
 import { GameHistoryDto } from './dto/games.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class GamesService {
-  constructor(private repository: GamesRepository) {
+  constructor(
+    private repository: GamesRepository,
+    private eventEmitter: EventEmitter2,
+  ) {
     setInterval(() => this.processMatchmakingQueue(), 1000);
   }
 
@@ -144,7 +148,7 @@ export class GamesService {
   // TODO: 유저 중복 처리 필요함!!!
   // 게임 매칭 큐에 추가
   addPlayerToQueue(player: Socket): void {
-    // const userId = player.data.userId;
+    const userId = player.data.userId;
     const gameId = player.data.gameId;
     const players = this.map.get(gameId);
     if (players) {
@@ -152,13 +156,13 @@ export class GamesService {
     } else {
       this.map.set(gameId, [player]);
     }
-    // console.log(
-    //   `User ${userId} added to ${
-    //     player.data.gameName
-    //   } matchmaking queue. Current queue length: ${
-    //     this.map.get(gameId).length
-    //   }`,
-    // );
+    console.log(
+      `User ${userId} added to ${
+        player.data.gameName
+      } matchmaking queue. Current queue length: ${
+        this.map.get(gameId).length
+      }`,
+    );
   }
 
   // 게임 매칭 큐에서 제거
@@ -173,13 +177,13 @@ export class GamesService {
       gameId,
       players.filter((player) => player.data.userId !== userId),
     );
-    // console.log(
-    //   `User ${player.data.nickname} deleted to ${
-    //     player.data.gameName
-    //   } matchmaking queue. Current queue length: ${
-    //     this.map.get(gameId).length
-    //   }`,
-    // );
+    console.log(
+      `User ${player.data.nickname} deleted to ${
+        player.data.gameName
+      } matchmaking queue. Current queue length: ${
+        this.map.get(gameId).length
+      }`,
+    );
   }
 
   // 1초마다 유저 2명 이상 있으면 매칭 해줌
@@ -201,12 +205,19 @@ export class GamesService {
           userGame1.userGameId,
           userGame2.userGameId,
         );
-        // console.log(
-        //   `Matched ${player1.data.nickname} and ${player2.data.nickname} with room name ${gameWatch.gameWatchId}`,
-        // );
-        player1.emit('matchSuccess', { roomName: gameWatch.gameWatchId });
-        player2.emit('matchSuccess', { roomName: gameWatch.gameWatchId });
-        // 이부분에 추가로 user table status를 game으로 바꿔야 할 것 같음.
+        player1.data.userInfo = { userGameId: userGame1.userGameId };
+        player2.data.userInfo = { userGameId: userGame2.userGameId };
+        console.log(
+          `Matched ${player1.data.nickname} and ${player2.data.nickname} with room name ${gameWatch.gameWatchId}`,
+        );
+        player1.emit('randomMatchSuccess', {
+          gameWatchId: gameWatch.gameWatchId,
+        });
+        player2.emit('randomMatchSuccess', {
+          gameWatchId: gameWatch.gameWatchId,
+        });
+        // 유저 status를 업데이트
+        this.eventEmitter.emit('randomMatchSuccess', gameWatch);
       }
 
       if (players.length === 1) {

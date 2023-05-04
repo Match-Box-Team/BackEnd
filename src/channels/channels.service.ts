@@ -510,9 +510,12 @@ export class ChannelsService {
     await this.repository.removeUserCountInChannel(channelId);
   }
 
-  async getIsAdmin(userId: string, channelId: string) {
+  async getIsAdminAndIsMute(userId: string, channelId: string) {
     const userChannel = await this.validateUserChannel(userId, channelId);
-    return userChannel.isAdmin;
+    return {
+      isAdmin: userChannel.isAdmin,
+      isMute: userChannel.isMute,
+    };
   }
 
   /**

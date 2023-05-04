@@ -48,11 +48,17 @@ export class GameEventsGateway
   private userGameIdA = '';
   private userGameIdB = '';
   private gameWatchId = '';
+  // private gameWatchIds = new Map<string, string>;
+  private gameWatchIds = [];
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
+    console.log(client.data.gameWatch);
+    this.gameWatchId = client.data.gameWatch.gameWatchId;
+    this.gameWatchIds.push(client.data.gameWatch.gameWatchId);
+
     this.pingpongService.InitGameInfo(this.gameWatchId);
     this.pingpongService.setScoresZeros(this.gameWatchId);
 
@@ -60,7 +66,6 @@ export class GameEventsGateway
     // console.log('info : ', client.data.userGameInfo);
     // console.log('role : ', client.data.role);
     // console.log('gameWatchId : ', client.data.gameWatch.gameWatchId);
-    this.gameWatchId = client.data.gameWatch.gameWatchId;
     client.join(this.gameWatchId);
     let isHost: boolean;
     let isWatcher: boolean;
@@ -87,7 +92,8 @@ export class GameEventsGateway
   }
 
   private sendToClientIsHost(socketId: any, data: any) {
-    this.server.to(this.gameWatchId).emit('ishost', data);
+    // this.server.to(this.gameWatchId).emit('ishost', data);
+    this.server.to(socketId).emit('ishost', data);
   }
 
   private sendToClientMapSize(mapSize: any) {
@@ -96,6 +102,7 @@ export class GameEventsGateway
 
   @SubscribeMessage('gamecontrolB')
   async gameControlB(client: Socket, control: any) {
+    this.gameWatchId = client.data.gameWatch.gameWatchId;
     if (client.data.role === 'host') {
       this.sendToClientControlB({
         position: this.pingpongService.updatePaddleBPosition(
@@ -112,6 +119,7 @@ export class GameEventsGateway
 
   @SubscribeMessage('gamecontrolA')
   async gameControlA(client: Socket, control: any) {
+    this.gameWatchId = client.data.gameWatch.gameWatchId;
     if (client.data.role === 'guest') {
       this.sendToClientControlA({
         position: this.pingpongService.updatePaddleAPosition(

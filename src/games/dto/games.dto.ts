@@ -40,7 +40,7 @@ export class PingPongInfoDto {
 
   scoreA = 0;
   scoreB = 0;
-  goalScore = 500;
+  goalScore = 11;
 
   mapSize = { width: 325, height: 485 };
 

@@ -51,6 +51,7 @@ export class GameEventsGateway
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
+    this.pingpongService.InitGameInfo();
     this.pingpongService.setScoresZeros();
 
     // console.log('gamewatch: ', client.data.gameWatch);

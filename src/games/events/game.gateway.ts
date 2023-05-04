@@ -46,18 +46,21 @@ export class GameEventsGateway
   private sockets = new Map<string, Socket>();
   private userGameIdA = '';
   private userGameIdB = '';
+  private gameWatchId = '';
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
     console.log('connected');
     console.log(info);
-    this.pingpongService.setScoresZeros();
+    this.pingpongService.InitGameInfo(this.gameWatchId);
+    this.pingpongService.setScoresZeros(this.gameWatchId);
 
     // console.log('gamewatch: ', client.data.gameWatch);
     // console.log('info : ', client.data.userGameInfo);
     // console.log('role : ', client.data.role);
-    console.log('gameWatchId : ', client.data.gameWatch);
-
+    // console.log('gameWatchId : ', client.data.gameWatch.gameWatchId);
+    this.gameWatchId = client.data.gameWatch.gameWatchId;
+    client.join(this.gameWatchId);
     let isHost: boolean;
     let isWatcher: boolean;
 
@@ -79,53 +82,60 @@ export class GameEventsGateway
       isHost: isHost,
       isWatcher: isWatcher,
     });
-    this.sendToClientMapSize(this.pingpongService.getMapSize());
+    this.sendToClientMapSize(this.pingpongService.getMapSize(this.gameWatchId));
   }
 
   private sendToClientIsHost(socketId: any, data: any) {
-    this.server.to(socketId).emit('ishost', data);
+    this.server.to(this.gameWatchId).emit('ishost', data);
   }
 
   private sendToClientMapSize(mapSize: any) {
-    this.server.emit('mapSize', mapSize);
+    this.server.to(this.gameWatchId).emit('mapSize', mapSize);
   }
 
   @SubscribeMessage('gamecontrolB')
   async gameControlB(client: Socket, control: any) {
     if (client.data.role === 'host') {
       this.sendToClientControlB({
-        position: this.pingpongService.updatePaddleBPosition(control),
+        position: this.pingpongService.updatePaddleBPosition(
+          this.gameWatchId,
+          control,
+        ),
       });
     }
   }
 
   private sendToClientControlB(control: any) {
-    this.server.emit('controlB', control);
+    this.server.to(this.gameWatchId).emit('controlB', control);
   }
 
   @SubscribeMessage('gamecontrolA')
   async gameControlA(client: Socket, control: any) {
     if (client.data.role === 'guest') {
       this.sendToClientControlA({
-        position: this.pingpongService.updatePaddleAPosition(control),
+        position: this.pingpongService.updatePaddleAPosition(
+          this.gameWatchId,
+          control,
+        ),
       });
     }
   }
 
   private sendToClientControlA(control: any) {
-    this.server.emit('controlA', control);
+    this.server.to(this.gameWatchId).emit('controlA', control);
   }
 
   async onModuleInit() {
     setInterval(async () => {
       if (this.userGameIdA !== '' && this.userGameIdB !== '') {
         this.sendToClientBall({
-          ball: this.pingpongService.getBallInfo(),
+          ball: this.pingpongService.getBallInfo(this.gameWatchId),
         });
         this.sendToClientScores({
-          scores: this.pingpongService.getScores(),
+          scores: this.pingpongService.getScores(this.gameWatchId),
         });
         const winner = this.pingpongService.getWinner(
+          this.gameWatchId,
           this.userGameIdA,
           this.userGameIdB,
         );
@@ -142,15 +152,15 @@ export class GameEventsGateway
   }
 
   private sendToClientWinner(winner: any) {
-    this.server.emit('gameover', winner);
+    this.server.to(this.gameWatchId).emit('gameover', winner);
   }
 
   private sendToClientScores(scores: any) {
-    this.server.emit('scores', scores);
+    this.server.to(this.gameWatchId).emit('scores', scores);
   }
 
   sendToClientBall(control: any) {
-    this.server.emit('ballcontrol', control);
+    this.server.to(this.gameWatchId).emit('ballcontrol', control);
   }
 
   // 초기화 이후에 실행

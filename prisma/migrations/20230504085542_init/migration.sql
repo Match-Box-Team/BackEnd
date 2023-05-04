@@ -92,6 +92,7 @@ CREATE TABLE "Chat" (
     "chat_id" UUID NOT NULL,
     "message" TEXT NOT NULL,
     "time" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "nickname" TEXT NOT NULL,
     "channel_id" UUID NOT NULL,
     "user_channel_id" UUID,
 

@@ -143,6 +143,7 @@ export class GamesRepository {
         createAt: 'desc',
       },
       select: {
+        gameHistoryId: true,
         winnerUserGame: {
           select: {
             user: {
@@ -172,6 +173,7 @@ export class GamesRepository {
 
     return gameHistories.map(
       (gameHistory): GameHistoryResponseDto => ({
+        id: gameHistory.gameHistoryId,
         winner: {
           userId: gameHistory.winnerUserGame.user.userId,
           nickname: gameHistory.winnerUserGame.user.nickname,

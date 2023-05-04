@@ -95,7 +95,6 @@ export class GamesService {
         return {
           gameWatchId: gameWatchId,
           currentViewer: currentViewer,
-          id: gameWatch.gameWatchId,
           user1: user1,
           user2: user2,
         };

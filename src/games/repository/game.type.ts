@@ -55,6 +55,7 @@ export class UserInfoForHistoryDto {
 }
 
 export class GameHistoryResponseDto {
+  id: string;
   winner: UserInfoForHistoryDto;
   loser: UserInfoForHistoryDto;
 }

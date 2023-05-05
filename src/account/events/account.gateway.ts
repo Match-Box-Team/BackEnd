@@ -91,8 +91,9 @@ export class AccountEventsGateway
 
   private findSocketByUserIdForRandomMatch = (userId: string): Socket => {
     const clients = this.server.sockets.sockets;
+
     const matchedSocketArray = Array.from(clients.values()).filter(
-      (user) => user.data.userInfo.userId === userId,
+      (user) => user.data && user.data.user && user.data.user['id'] === userId,
     );
     return matchedSocketArray[0];
   };
@@ -244,9 +245,15 @@ export class AccountEventsGateway
     );
     const userSocket1 = this.findSocketByUserIdForRandomMatch(userId1);
     const userSocket2 = this.findSocketByUserIdForRandomMatch(userId2);
-    userSocket1.data.userInfo.userGameId = gameWatch.userGameId1;
-    userSocket2.data.userInfo.userGameId = gameWatch.userGameId2;
-    this.updateUserState(userSocket1, 'game');
-    this.updateUserState(userSocket2, 'game');
+
+    if (userSocket1 && userSocket1.data && userSocket1.data.userInfo) {
+      userSocket1.data.userInfo.userGameId = gameWatch.userGameId1;
+      this.updateUserState(userSocket1, 'game');
+    }
+
+    if (userSocket2 && userSocket2.data && userSocket2.data.userInfo) {
+      userSocket2.data.userInfo.userGameId = gameWatch.userGameId2;
+      this.updateUserState(userSocket2, 'game');
+    }
   }
 }

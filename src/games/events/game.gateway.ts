@@ -433,15 +433,17 @@ export class GameEventsGateway
     console.log('this is game watch on : ', data.gameWatchId);
     console.log(this.gameWatchIds);
     if (this.gameWatchIds.size !== 0) {
-      if (!this.gameWatchIds || !this.gameWatchIds[data.gameWatchId]) {
-        console.error('Invalid game watch ID:', data.gameWatchId);
-        return;
-      }
-
-      if (this.gameWatchIds[data.gameWatchId].watcherCount <= 4) {
+      if (this.gameWatchIds.get(data.gameWatchId).watchCount < 4) {
         client.join(data.gameWatchId);
         client.emit('gameWatchSuccess', data.gameWatchId);
+      } else {
+        client.emit('gameWatchFull', '관전자가 꽉 찼습니다');
+        return;
       }
+    } else {
+      client.emit('gameWatchFail', '게임이 존재하지 않습니다');
+      console.error('Invalid game watch ID:', data.gameWatchId);
+      return;
     }
   }
 }

@@ -30,6 +30,7 @@ interface roomInfo {
   userGameIdA: string;
   userGameIdB: string;
   gameWatchId: string;
+  watcherCount: number;
 }
 
 // cors 꼭꼭 해주기!
@@ -72,14 +73,13 @@ export class GameEventsGateway
       this.gameWatchIds.set(gameWatchId, {
         ...this.gameWatchIds.get(gameWatchId),
         gameWatchId,
+        watcherCount: 0,
       });
       console.log('id: ', this.gameWatchIds.get(gameWatchId));
     }
 
     // this.pingpongService.InitGameInfo(this.gameWatchId);
     // this.pingpongService.setScoresZeros(this.gameWatchId);
-    this.pingpongService.InitGameInfo(gameWatchId);
-    this.pingpongService.setScoresZeros(gameWatchId);
 
     // console.log('gamewatch: ', client.data.gameWatch);
     // console.log('info : ', client.data.userGameInfo);
@@ -95,6 +95,8 @@ export class GameEventsGateway
     if (client.data.role === 'host') {
       isHost = true;
       isWatcher = false;
+      this.pingpongService.InitGameInfo(gameWatchId);
+      this.pingpongService.setScoresZeros(gameWatchId);
       // this.userGameIdB = client.data.userGame.userGameId;
       const userGameIdB = client.data.userGame.userGameId;
       this.gameWatchIds.set(gameWatchId, {
@@ -126,6 +128,16 @@ export class GameEventsGateway
     const mapSize = this.pingpongService.getMapSize(gameWatchId);
     this.sendToClientMapSize(gameWatchId, mapSize);
   }
+
+  // if (this.gameWatchIds[gameWatchId] !== '') {
+  //   if (this.gameWatchIds[gameWatchId].watcherCount <= 4) {
+  //     client.join(gameWatchId);
+  //     client.emit('gameWatchSuccess', gameWatchId);
+  //     this.gameWatchIds[gameWatchId].watcherCount++;
+  //   } else {
+  //     client.emit('gameWatchFull', '관전자가 꽉 찼습니다');
+  //     return;
+  //   }
 
   private sendToClientIsHost(socketId: any, data: any) {
     // this.server.to(this.gameWatchId).emit('ishost', data);
@@ -414,30 +426,48 @@ export class GameEventsGateway
     this.gamesService.addPlayerToQueue(client);
   }
 
-  // @SubscribeMessage('gameFinish')
-  // async gameFinish(client: Socket, { gameWatchId }: GameWatchId) {
-  //   this.logger.log('Game Finish');
-  //   const userId = client.data.user['id'];
-  //   const gameWatch = await this.gamesService.getGameWatch(userId, gameWatchId);
+  @SubscribeMessage('gameWatch')
+  async gameWatch(client: Socket, { gameWatchId }) {
+    console.log('this is game watch on');
+    // const userId = client.data.user['id'];
 
-  //   if (gameWatch === null) {
-  //     client.emit('matchFail');
-  //     return;
-  //   }
-  //   this.gamesService.createGameHistory(gameWatch.gameWatchId, {
-  //     winnerId: gameWatch.userGameId1,
-  //     loserId: gameWatch.userGameId2,
-  //     winnerScore: 11,
-  //     loserScore: 1,
-  //   });
-  // }
-
-  // // 게임 떠나기
-  // @SubscribeMessage('leaveMatch')
-  // handleLeaveMatch(client: Socket) {
-  //   const userId = client.data.user['id'];
-  //   // 용도 물어보기
-  //   client.emit('matchFail');
-  //   this.gamesService.removePlayerToQueue(client, userId);
-  // }
+    // const gameWatch = await this.gamesService.getGameWatch(
+    //   userId,
+    //   gameWatchId,
+    // );
+    // if (gameWatch === null) {
+    //   client.emit('gameWatchFail', '게임이 존재하지 않습니다');
+    //   client.leave(gameWatchId);
+    //   return;
+    // }
+    // client.data.gameWatch = gameWatch;
+    // client.emit('gameWatchSuccess', gameWatch);
+  }
 }
+
+// @SubscribeMessage('gameFinish')
+// async gameFinish(client: Socket, { gameWatchId }: GameWatchId) {
+//   this.logger.log('Game Finish');
+//   const userId = client.data.user['id'];
+//   const gameWatch = await this.gamesService.getGameWatch(userId, gameWatchId);
+
+//   if (gameWatch === null) {
+//     client.emit('matchFail');
+//     return;
+//   }
+//   this.gamesService.createGameHistory(gameWatch.gameWatchId, {
+//     winnerId: gameWatch.userGameId1,
+//     loserId: gameWatch.userGameId2,
+//     winnerScore: 11,
+//     loserScore: 1,
+//   });
+// }
+
+// // 게임 떠나기
+// @SubscribeMessage('leaveMatch')
+// handleLeaveMatch(client: Socket) {
+//   const userId = client.data.user['id'];
+//   // 용도 물어보기
+//   client.emit('matchFail');
+//   this.gamesService.removePlayerToQueue(client, userId);
+// }

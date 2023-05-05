@@ -93,7 +93,7 @@ export class AccountEventsGateway
     const clients = this.server.sockets.sockets;
 
     const matchedSocketArray = Array.from(clients.values()).filter(
-      (user) => user.data.user['id'] === userId,
+      (user) => user.data && user.data.user && user.data.user['id'] === userId,
     );
     return matchedSocketArray[0];
   };

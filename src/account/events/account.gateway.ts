@@ -73,7 +73,7 @@ export class AccountEventsGateway
   private findSocketByUserId = (client: Socket, userId: string): Socket => {
     const clients = this.server.sockets.sockets;
     const matchedSocketArray = Array.from(clients.values()).filter(
-      (user) => user.data.userInfo.userId === userId,
+      (user) => user.data.user['id'] === userId,
     );
     if (matchedSocketArray.length === 0) {
       client.emit('gameError', { message: '로그인한 유저가 아닙니다' });
@@ -91,8 +91,9 @@ export class AccountEventsGateway
 
   private findSocketByUserIdForRandomMatch = (userId: string): Socket => {
     const clients = this.server.sockets.sockets;
+
     const matchedSocketArray = Array.from(clients.values()).filter(
-      (user) => user.data.userInfo.userId === userId,
+      (user) => user.data && user.data.user && user.data.user['id'] === userId,
     );
     return matchedSocketArray[0];
   };
@@ -228,8 +229,22 @@ export class AccountEventsGateway
     console.log('게임 준비 취소');
     const userSocket1 = this.findSocketByUserGameId(gameWatch.userGameId1);
     const userSocket2 = this.findSocketByUserGameId(gameWatch.userGameId2);
-    this.updateUserState(userSocket1, 'online');
-    this.updateUserState(userSocket2, 'online');
+    if (userSocket1) {
+      this.updateUserState(userSocket1, 'online');
+    }
+    if (userSocket2) {
+      this.updateUserState(userSocket2, 'online');
+    }
+  }
+
+  // 게임 준비 취소 이벤트 감지
+  @OnEvent('updateUserStateOnline')
+  updateUserStateOnline(userGameId: string) {
+    console.log('user 상태 online으로 업데이트');
+    const userSocket = this.findSocketByUserGameId(userGameId);
+    if (userSocket) {
+      this.updateUserState(userSocket, 'online');
+    }
   }
 
   // 랜덤 매칭이 성공되었을 때 감지되는 이벤트
@@ -244,9 +259,15 @@ export class AccountEventsGateway
     );
     const userSocket1 = this.findSocketByUserIdForRandomMatch(userId1);
     const userSocket2 = this.findSocketByUserIdForRandomMatch(userId2);
-    userSocket1.data.userInfo.userGameId = gameWatch.userGameId1;
-    userSocket2.data.userInfo.userGameId = gameWatch.userGameId2;
-    this.updateUserState(userSocket1, 'game');
-    this.updateUserState(userSocket2, 'game');
+
+    if (userSocket1 && userSocket1.data && userSocket1.data.userInfo) {
+      userSocket1.data.userInfo.userGameId = gameWatch.userGameId1;
+      this.updateUserState(userSocket1, 'game');
+    }
+
+    if (userSocket2 && userSocket2.data && userSocket2.data.userInfo) {
+      userSocket2.data.userInfo.userGameId = gameWatch.userGameId2;
+      this.updateUserState(userSocket2, 'game');
+    }
   }
 }

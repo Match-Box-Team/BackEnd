@@ -16,7 +16,7 @@ async function main() {
     },
     {
       userId: uuidv4(),
-      nickname: 'jibang',
+      nickname: 'jibang1',
       status: 'game',
       email: 'jibang@student.42seoul.kr',
       image: '127.0.0.1/image/jibang',
@@ -25,7 +25,7 @@ async function main() {
     },
     {
       userId: uuidv4(),
-      nickname: 'jokang',
+      nickname: 'jokang1',
       status: 'online',
       email: 'jokang@student.42seoul.kr',
       image: '127.0.0.1/image/jokang',
@@ -34,10 +34,10 @@ async function main() {
     },
     {
       userId: uuidv4(),
-      nickname: 'chaekim',
+      nickname: 'chaekim1',
       status: 'offline',
       email: 'chaekim@student.42seoul.kr',
-      image: '127.0.0.1/image/chaekim',
+      image: '127.0.0.1/image/chaekim1',
       intraId: 'chaekim',
       phoneNumber: '인트라에 안 뜸',
     },

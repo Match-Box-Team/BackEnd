@@ -132,6 +132,15 @@ export class GamesService {
     return gameWatch;
   }
 
+  async deleteGameWatch(gameWatchId: string): Promise<GameWatch> {
+    const gameWatch = await this.repository.getGameWatchById(gameWatchId);
+    if (!gameWatch) {
+      throw new NotFoundException('gameWatch가 존재하지 않습니다.');
+    }
+    const deletedGameWatch = await this.repository.deleteGameWatch(gameWatchId);
+    return deletedGameWatch;
+  }
+
   async getUserByUserGameId(userGameId: string): Promise<string> {
     const userId = await this.repository.getUserIdByUserGameId(userGameId);
     return userId.userId;

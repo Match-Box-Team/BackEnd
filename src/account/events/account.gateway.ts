@@ -91,8 +91,9 @@ export class AccountEventsGateway
 
   private findSocketByUserIdForRandomMatch = (userId: string): Socket => {
     const clients = this.server.sockets.sockets;
+
     const matchedSocketArray = Array.from(clients.values()).filter(
-      (user) => user.data.userInfo.userId === userId,
+      (user) => user.data.user['id'] === userId,
     );
     return matchedSocketArray[0];
   };

@@ -142,8 +142,8 @@ export class GameEventsGateway
   async gameControlB(client: Socket, control: any) {
     // this.gameWatchId = client.data.gameWatch.gameWatchId;
     const gameWatchId = client.data.gameWatch.gameWatchId;
-    console.log('B bar control:', gameWatchId);
-    console.log('size:', this.gameWatchIds.size);
+    // console.log('B bar control:', gameWatchId);
+    // console.log('size:', this.gameWatchIds.size);
     if (client.data.role === 'host') {
       this.sendToClientControlB(gameWatchId, {
         position: this.pingpongService.updatePaddleBPosition(
@@ -206,10 +206,12 @@ export class GameEventsGateway
             this.sendToClientWinner(roomInfo.gameWatchId, {
               winner: winner,
             });
-
+            let tmpId = roomInfo.gameWatchId;
             this.gameWatchIds.delete(roomInfo.gameWatchId);
+            this.gamesService.deleteGameWatch(tmpId);
             roomInfo.userGameIdA = '';
             roomInfo.userGameIdB = '';
+            tmpId = '';
           }
         }
       }

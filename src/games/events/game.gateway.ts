@@ -214,6 +214,9 @@ export class GameEventsGateway
   }
 
   private giveUpFn = async (client: Socket) => {
+    if (!client.data.gameWatch) {
+      return;
+    }
     const gameWatchId = client.data.gameWatch.gameWatchId;
     console.log('gameWatchId:', gameWatchId);
     console.log('userGameId:', client.data.userGame.userGameId);

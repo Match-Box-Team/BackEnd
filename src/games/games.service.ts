@@ -252,10 +252,8 @@ export class GamesService {
     if (gameWatch === null) {
       throw new NotFoundException('Not found gameWatch');
     }
-    const deletedGameWatchth = await this.repository.deleteGameWatch(
-      gameWatchId,
-    );
-    if (deletedGameWatchth === null) {
+    const deletedGameWatch = await this.repository.deleteGameWatch(gameWatchId);
+    if (deletedGameWatch === null) {
       throw new BadRequestException('Failed delete gameWatch');
     }
 

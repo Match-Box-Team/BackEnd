@@ -30,7 +30,7 @@ interface roomInfo {
   userGameIdA: string;
   userGameIdB: string;
   gameWatchId: string;
-  watcherCount: number;
+  watchCount: number;
 }
 
 // cors 꼭꼭 해주기!
@@ -73,7 +73,7 @@ export class GameEventsGateway
       this.gameWatchIds.set(gameWatchId, {
         ...this.gameWatchIds.get(gameWatchId),
         gameWatchId,
-        watcherCount: 0,
+        watchCount: 0,
       });
       console.log('id: ', this.gameWatchIds.get(gameWatchId));
     }
@@ -87,7 +87,6 @@ export class GameEventsGateway
     // console.log('gameWatchId : ', client.data.gameWatch.gameWatchId);
 
     // client.join(this.gameWatchId);
-    client.join(gameWatchId);
 
     let isHost: boolean;
     let isWatcher: boolean;
@@ -103,6 +102,7 @@ export class GameEventsGateway
         ...this.gameWatchIds.get(gameWatchId),
         userGameIdB,
       });
+      client.join(gameWatchId);
     } else if (client.data.role === 'guest') {
       isHost = false;
       isWatcher = false;
@@ -112,10 +112,12 @@ export class GameEventsGateway
         ...this.gameWatchIds.get(gameWatchId),
         userGameIdA,
       });
+      client.join(gameWatchId);
     } else {
       isHost = false;
       isWatcher = true;
       console.log("I'm watcher");
+      client.join(gameWatchId);
     }
     console.log('check: ', this.gameWatchIds.get(gameWatchId));
     console.log('size:', this.gameWatchIds.size);
@@ -427,23 +429,32 @@ export class GameEventsGateway
   }
 
   @SubscribeMessage('gameWatch')
-  async gameWatch(client: Socket, { gameWatchId }) {
-    console.log('this is game watch on');
-    // const userId = client.data.user['id'];
+  async gameWatch(client: Socket, data) {
+    console.log('this is game watch on : ', data.gameWatchId);
+    console.log(this.gameWatchIds);
+    if (this.gameWatchIds.size !== 0) {
+      if (!this.gameWatchIds || !this.gameWatchIds[data.gameWatchId]) {
+        console.error('Invalid game watch ID:', data.gameWatchId);
+        return;
+      }
 
-    // const gameWatch = await this.gamesService.getGameWatch(
-    //   userId,
-    //   gameWatchId,
-    // );
-    // if (gameWatch === null) {
-    //   client.emit('gameWatchFail', '게임이 존재하지 않습니다');
-    //   client.leave(gameWatchId);
-    //   return;
-    // }
-    // client.data.gameWatch = gameWatch;
-    // client.emit('gameWatchSuccess', gameWatch);
+      if (this.gameWatchIds[data.gameWatchId].watcherCount <= 4) {
+        client.join(data.gameWatchId);
+        client.emit('gameWatchSuccess', data.gameWatchId);
+      }
+    }
   }
 }
+
+// if (this.gameWatchIds[gameWatchId] !== '') {
+//   if (this.gameWatchIds[gameWatchId].watcherCount <= 4) {
+//     client.join(gameWatchId);
+//     client.emit('gameWatchSuccess', gameWatchId);
+//     this.gameWatchIds[gameWatchId].watcherCount++;
+//   } else {
+//     client.emit('gameWatchFull', '관전자가 꽉 찼습니다');
+//     return;
+//   }
 
 // @SubscribeMessage('gameFinish')
 // async gameFinish(client: Socket, { gameWatchId }: GameWatchId) {

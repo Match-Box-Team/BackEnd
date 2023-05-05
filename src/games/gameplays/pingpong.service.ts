@@ -15,28 +15,28 @@ export class PingpongService {
     this.gameRooms[gameWatchId].paddleAPosition = this.gameRooms[
       gameWatchId
     ].updatePaddlePosition(
-      this.gameRooms[gameWatchId].paddleAPosition,
+      this.gameRooms[gameWatchId]?.paddleAPosition,
       control,
     );
-    return this.gameRooms[gameWatchId].paddleAPosition;
+    return this.gameRooms[gameWatchId]?.paddleAPosition;
   }
 
   updatePaddleBPosition(gameWatchId: string, control: any): number {
     this.gameRooms[gameWatchId].paddleBPosition = this.gameRooms[
       gameWatchId
     ].updatePaddlePosition(
-      this.gameRooms[gameWatchId].paddleBPosition,
+      this.gameRooms[gameWatchId]?.paddleBPosition,
       control,
     );
-    return this.gameRooms[gameWatchId].paddleBPosition;
+    return this.gameRooms[gameWatchId]?.paddleBPosition;
   }
 
   getPaddleBPosition(gameWatchId: string): number {
-    return this.gameRooms[gameWatchId].paddleBPosition;
+    return this.gameRooms[gameWatchId]?.paddleBPosition;
   }
 
   getPaddleAPosition(gameWatchId: string): number {
-    return this.gameRooms[gameWatchId].paddleAPosition;
+    return this.gameRooms[gameWatchId]?.paddleAPosition;
   }
 
   ballControl(
@@ -44,6 +44,10 @@ export class PingpongService {
     paddleAPosition: number,
     paddleBPosition: number,
   ): any {
+    if (!this.gameRooms || !this.gameRooms[gameWatchId]) {
+      console.error(`Game room not found for gameWatchId: ${gameWatchId}`);
+      return;
+    }
     // Calculate the new ball position
     this.gameRooms[gameWatchId].ball.x +=
       this.gameRooms[gameWatchId].ball.velocityX;
@@ -110,7 +114,8 @@ export class PingpongService {
   }
 
   getMapSize(gameWatchId: string): any {
-    return this.gameRooms[gameWatchId].mapSize;
+    // return this.gameRooms[gameWatchId]?.mapSize;
+    return { width: 325, height: 485 };
   }
 
   getBallInfo(gameWatchId: string): any {
@@ -122,6 +127,10 @@ export class PingpongService {
   }
 
   getScores(gameWatchId: string): any {
+    if (!this.gameRooms || !this.gameRooms[gameWatchId]) {
+      console.error(`Game room not found for gameWatchId: ${gameWatchId}`);
+      return;
+    }
     if (
       this.gameRooms[gameWatchId].ball.y +
         this.gameRooms[gameWatchId].ball.radius >
@@ -151,6 +160,10 @@ export class PingpongService {
   }
 
   getWinner(gameWatchId: string, userIdA: string, userIdB: string) {
+    if (!this.gameRooms || !this.gameRooms[gameWatchId]) {
+      console.error(`Game room not found for gameWatchId: ${gameWatchId}`);
+      return;
+    }
     let winner = '';
     const goalScore = this.gameRooms[gameWatchId].goalScore;
     if (this.gameRooms[gameWatchId].scoreA === goalScore) {

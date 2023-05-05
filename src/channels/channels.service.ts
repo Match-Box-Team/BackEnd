@@ -104,6 +104,7 @@ export class ChannelsService {
   }
 
   async createChannel(userId: string, dto: ChannelCreateDto) {
+    const firstChatTime = new Date();
     if (dto.password === '') {
       dto.password = null;
     } else {
@@ -138,7 +139,7 @@ export class ChannelsService {
     await this.repository.createChat(
       userChannel.userChannelId,
       'Fake Message',
-      new Date(),
+      firstChatTime,
       user.nickname,
       newChannel.channelId,
     );
@@ -301,6 +302,7 @@ export class ChannelsService {
       buddyMe,
     );
     if (channel === null) {
+      const firstChatTime = new Date();
       // 새로 만들 떄 친구와 본인 둘 다 userChannel에 넣기
       const newChannelData: CreateChannelData = {
         channelName: meBuddy,
@@ -333,7 +335,7 @@ export class ChannelsService {
       await this.repository.createChat(
         userChannel.userChannelId,
         'Fake Message',
-        new Date(),
+        firstChatTime,
         me.nickname,
         channel.channelId,
       );

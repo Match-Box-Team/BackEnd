@@ -65,7 +65,7 @@ export class AuthGuard implements CanActivate {
   private errorType(data: JwtAuth): boolean {
     if (data.request instanceof Socket) {
       data.request.emit('error', {
-        UnauthorizedException: 'Unauthorized access when socket connection',
+        UnauthorizedException: '사용자 인증을 실패했습니다.',
       });
     } else {
       throw new UnauthorizedException();

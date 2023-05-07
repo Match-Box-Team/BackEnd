@@ -44,7 +44,7 @@ export class ChannelsEventsGateway
     );
 
     if (userChannel === null) {
-      this.errorEmit(client, 'You are not in channel');
+      this.errorEmit(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     client.data.userChannelId = userChannel.userChannelId;
@@ -58,7 +58,7 @@ export class ChannelsEventsGateway
     const userId = client.data.user['id'];
     const userChannelId = client.data.userChannelId;
     if (userChannelId === undefined) {
-      this.errorEmit(client, 'You are not in channel');
+      this.errorEmit(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     const userChannel = await this.channelService.validateUserChannelNoThrow(
@@ -66,7 +66,7 @@ export class ChannelsEventsGateway
       createChatData.channelId,
     );
     if (userChannel === null || userChannelId !== userChannel.userChannelId) {
-      this.errorEmit(client, 'You are not in channel');
+      this.errorEmit(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     if (userChannel.channel.isDm) {
@@ -81,7 +81,7 @@ export class ChannelsEventsGateway
       }
     } else {
       if (userChannel.isMute) {
-        this.errorEmit(client, 'You are muted');
+        this.errorEmit(client, '음소거된 상태입니다.');
         return;
       }
     }

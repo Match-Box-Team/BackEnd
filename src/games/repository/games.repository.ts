@@ -228,6 +228,20 @@ export class GamesRepository {
     });
   }
 
+  async updateGameWatch(
+    gameWatchId: string,
+    currentViewer: number,
+  ): Promise<GameWatch> {
+    return this.prisma.gameWatch.update({
+      where: {
+        gameWatchId,
+      },
+      data: {
+        currentViewer,
+      },
+    });
+  }
+
   async getGameWatchByUserIdAndGameWatchId(
     userId: string,
     gameWatchId: string,

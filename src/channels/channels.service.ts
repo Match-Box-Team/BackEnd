@@ -12,7 +12,7 @@ import {
   ChannelPasswordDto,
   DmDto,
 } from './dto/channels.dto';
-import { Channel } from '@prisma/client';
+import { Channel, UserChannel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AccountService } from 'src/account/account.service';
 
@@ -632,6 +632,16 @@ export class ChannelsService {
       throw new NotFoundException('Not existed channel');
     }
     return channel;
+  }
+
+  async validateKidkcedUserChannel(
+    userId: string,
+    userChannelId: string,
+  ): Promise<UserChannel> {
+    return await this.repository.findUserChannelByUserIdAndUserChannelId(
+      userId,
+      userChannelId,
+    );
   }
 
   /**

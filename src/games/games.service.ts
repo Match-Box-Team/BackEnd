@@ -210,7 +210,7 @@ export class GamesService {
           player2.data.userId,
           player2.data.gameId,
         );
-        const gameWatch = await this.repository.createGameWatch(
+        const gameWatch: GameWatch = await this.repository.createGameWatch(
           userGame1.userGameId,
           userGame2.userGameId,
         );
@@ -233,11 +233,8 @@ export class GamesService {
         const player = players[0];
         setTimeout(() => {
           if (players.length === 1 && this.map.get(gameId)[0] === player) {
-            player.emit('matchFail');
+            player.emit('randomMatchError', '랜덤 매칭 실패');
             this.removePlayerToQueue(player, player.data.userId);
-            // console.log(
-            //   `User ${player.data.nickname} removed from matchmaking queue due to timeout`,
-            // );
           }
         }, 10000);
       }

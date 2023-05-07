@@ -591,9 +591,9 @@ export class ChannelsService {
         }
       });
       if (banFriend) {
-        return 'you ban friend';
+        return '차단된 친구입니다.';
       }
-      return 'friend ban you';
+      return '친구가 당신을 차단한 상태입니다.';
     }
     return null;
   }

@@ -176,15 +176,13 @@ export class PingpongService {
       return;
     }
     let winner = '';
-    // const goalScore = this.gameRooms[gameWatchId].goalScore;
-    const goalScore = 11;
+    const goalScore = this.gameRooms[gameWatchId].goalScore;
     if (this.gameRooms[gameWatchId].scoreA === goalScore) {
-      console.log('Error A winner');
+      console.log('A winner:', goalScore);
       const user: UserProfile = await this.gameRepository.getUserProfile(
         userIdA,
       );
       winner = user.nickname;
-      // this.gameRepository.createGameHistory({
       this.gamesService.createGameHistory(gameWatchId, {
         winnerId: userIdA,
         loserId: userIdB,
@@ -193,12 +191,11 @@ export class PingpongService {
       });
     }
     if (this.gameRooms[gameWatchId].scoreB === goalScore) {
-      console.log('Error B winner');
+      console.log('B winner:', goalScore);
       const user: UserProfile = await this.gameRepository.getUserProfile(
         userIdB,
       );
       winner = user.nickname;
-      // this.gameRepository.createGameHistory({
       this.gamesService.createGameHistory(gameWatchId, {
         winnerId: userIdB,
         loserId: userIdA,

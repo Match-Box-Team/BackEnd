@@ -131,12 +131,20 @@ export class ChannelsEventsGateway
   }
 
   // 소켓 연결이 끊기면 실행
-  handleDisconnect(@ConnectedSocket() client: Socket) {
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
     this.logger.log(`${client.id} 소켓 연결 해제`);
     const user = client.data.user;
     const userChannelId = client.data.userChannelId;
-    if (user !== undefined && userChannelId !== undefined) {
-      this.channelService.updateLastViewTime(userChannelId);
+    if (user === undefined || userChannelId === undefined) {
+      return;
     }
+    const userChannel = await this.channelService.validateKidkcedUserChannel(
+      user.userId,
+      userChannelId,
+    );
+    if (userChannel === null || userChannelId !== userChannel.userChannelId) {
+      return;
+    }
+    this.channelService.updateLastViewTime(userChannelId);
   }
 }

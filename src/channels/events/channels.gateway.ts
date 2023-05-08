@@ -22,6 +22,11 @@ interface ChatMessage {
   time: Date;
 }
 
+interface KickMessage {
+  channelId: string;
+  targetId: string;
+}
+
 @UseGuards(AuthGuard)
 @WebSocketGateway({ cors: true, namespace: 'channel' })
 export class ChannelsEventsGateway
@@ -112,6 +117,28 @@ export class ChannelsEventsGateway
     client.to(createChatData.channelId).emit('chat', response);
 
     return response;
+  }
+
+  // 킥하기
+  @SubscribeMessage('kick')
+  async kick(client: Socket, kickData: KickMessage) {
+    const userId = client.data.user['id'];
+    const userChannelId = client.data.userChannelId;
+    if (userChannelId === undefined) {
+      this.errorEmit(client, '해당 채널에 참여하지 않았습니다.');
+      return;
+    }
+    const message = await this.channelService.kickUser(
+      userId,
+      kickData.targetId,
+      kickData.channelId,
+    );
+    if (message === null) {
+      client.to(kickData.channelId).emit('kicked', kickData);
+    } else {
+      this.errorEmit(client, message);
+    }
+    return;
   }
 
   private errorEmit(client: Socket, message: string) {

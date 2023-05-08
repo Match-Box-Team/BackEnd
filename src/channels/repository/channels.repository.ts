@@ -224,6 +224,17 @@ export class ChannelsRepository {
     });
   }
 
+  async findUserChannelByUserIdAndUserChannelId(
+    userId: string,
+    userChannelId: string,
+  ): Promise<UserChannel> {
+    return await this.prisma.userChannel.findFirst({
+      where: {
+        AND: [{ userId: userId, userChannelId: userChannelId }],
+      },
+    });
+  }
+
   /**
    * Create, Delete, Update
    */

@@ -17,7 +17,7 @@ export class GamesService {
     private repository: GamesRepository,
     private eventEmitter: EventEmitter2,
   ) {
-    setInterval(() => this.processMatchmakingQueue(), 1000);
+    setInterval(() => this.processMatchmakingQueue(), 3000);
   }
 
   async getGame(gameId: string): Promise<Game> {
@@ -125,6 +125,21 @@ export class GamesService {
     if (!userGame1 || !userGame2) {
       throw new NotFoundException('userGame이 생성되지 않은 유저가 있습니다.');
     }
+    const checkGameWatch1 = await this.repository.getGameWatchByUserGameId(
+      userGameId1,
+    );
+    const checkGameWatch2 = await this.repository.getGameWatchByUserGameId(
+      userGameId2,
+    );
+    if (checkGameWatch1 || checkGameWatch2) {
+      if (checkGameWatch1) {
+        await this.repository.deleteGameWatch(checkGameWatch1.gameWatchId);
+      }
+      if (checkGameWatch2) {
+        await this.repository.deleteGameWatch(checkGameWatch2.gameWatchId);
+      }
+      return null;
+    }
     const gameWatch = await this.repository.createGameWatch(
       userGameId1,
       userGameId2,
@@ -160,6 +175,15 @@ export class GamesService {
     const userId = player.data.userId;
     const gameId = player.data.gameId;
     const players = this.map.get(gameId);
+    if (players) {
+      players.map((socket) => {
+        if (socket.data.userId === userId) {
+          player.emit('randomMatchError', '이미 큐에 존재하는 유저입니다');
+        }
+        this.removePlayerToQueue(player, player.data.user['id']);
+        return;
+      });
+    }
     if (players) {
       this.map.set(gameId, [...this.map.get(gameId), player]);
     } else {
@@ -202,6 +226,9 @@ export class GamesService {
       while (players && players.length >= 2) {
         const player1 = players.shift();
         const player2 = players.shift();
+        if (player1.data.user['id'] === player2.data.user['id']) {
+          player1.emit('randomMatchError', '랜덤 매칭 실패');
+        }
         const userGame1 = await this.repository.getUserGame(
           player1.data.userId,
           player1.data.gameId,
@@ -210,10 +237,17 @@ export class GamesService {
           player2.data.userId,
           player2.data.gameId,
         );
-        const gameWatch: GameWatch = await this.repository.createGameWatch(
+        // const gameWatch: GameWatch = await this.repository.createGameWatch(
+        const gameWatch: GameWatch = await this.createWatchGame(
           userGame1.userGameId,
           userGame2.userGameId,
         );
+        // 이미 게임워치가 생성되어 있는 유저가 있는 경우
+        if (!gameWatch) {
+          player1.emit('randomMatchError', '매칭 에러');
+          player2.emit('randomMatchError', '매칭 에러');
+          return;
+        }
         player1.data.userInfo = { userGameId: userGame1.userGameId };
         player2.data.userInfo = { userGameId: userGame2.userGameId };
         console.log(
@@ -256,6 +290,9 @@ export class GamesService {
 
     const winnerId = gameHistoryDto.winnerId;
     const loserId = gameHistoryDto.loserId;
+    console.log('winnerId: ', winnerId);
+    console.log('loserId: ', loserId);
+    console.log('gameWatch:', gameWatch);
     if (
       (winnerId === gameWatch.userGameId1 &&
         loserId === gameWatch.userGameId2) ||

@@ -256,4 +256,12 @@ export class GamesRepository {
       },
     });
   }
+
+  async getGameWatchByUserGameId(userGameId: string): Promise<GameWatch> {
+    return await this.prisma.gameWatch.findFirst({
+      where: {
+        OR: [{ userGameId1: userGameId }, { userGameId2: userGameId }],
+      },
+    });
+  }
 }

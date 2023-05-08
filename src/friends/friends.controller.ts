@@ -66,7 +66,7 @@ export class FriendsController {
   @Get(':friendId/history')
   @UseGuards(AuthGuard)
   async getGameHistoryOfFriend(
-    @Param('friendId') frinedId: string,
+    @Param('friendId', ParseUUIDPipe) frinedId: string,
     @Query('game') gameName: string,
   ) {
     return await this.friendsService.searchGameHistoyOfFriend(

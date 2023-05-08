@@ -178,7 +178,6 @@ export class PingpongService {
     let winner = '';
     const goalScore = this.gameRooms[gameWatchId].goalScore;
     if (this.gameRooms[gameWatchId].scoreA === goalScore) {
-      console.log('A winner:', goalScore);
       const user: UserProfile = await this.gameRepository.getUserProfile(
         userIdA,
       );
@@ -191,7 +190,6 @@ export class PingpongService {
       });
     }
     if (this.gameRooms[gameWatchId].scoreB === goalScore) {
-      console.log('B winner:', goalScore);
       const user: UserProfile = await this.gameRepository.getUserProfile(
         userIdB,
       );

@@ -57,7 +57,7 @@ export class GameEventsGateway
   private gameWatchIds = new Map<string, roomInfo>();
 
   @SubscribeMessage('ready')
-  gameReady(client: Socket, info: any) {
+  async gameReady(client: Socket, info: any) {
     console.log('connected');
     const gameWatchId = info.gameWatchId;
     console.log('gameWatch:', info.gameWatchId);
@@ -98,6 +98,17 @@ export class GameEventsGateway
       isHost = false;
       isWatcher = true;
       console.log("I'm watcher");
+      const tempRoomInfo = this.gameWatchIds.get(gameWatchId);
+      this.gameWatchIds.set(gameWatchId, {
+        ...tempRoomInfo,
+        watchCount: tempRoomInfo.watchCount + 1,
+      });
+      await this.gameRepository.updateGameWatch(
+        gameWatchId,
+        tempRoomInfo.watchCount + 1,
+      );
+      console.log('viewer: ', this.gameWatchIds.get(gameWatchId));
+      client.data.gameWatchIdForWatcher = gameWatchId;
       client.join(gameWatchId);
     }
     this.sendToClientIsHost(client.id, {
@@ -201,8 +212,11 @@ export class GameEventsGateway
         const roomInfo: roomInfo = this.gameWatchIds.get(gameWatchId);
         if (
           roomInfo.gameWatchId !== '' &&
+          roomInfo.gameWatchId !== undefined &&
           roomInfo.userGameIdA !== '' &&
-          roomInfo.userGameIdB !== ''
+          roomInfo.userGameIdA !== undefined &&
+          roomInfo.userGameIdB !== '' &&
+          roomInfo.userGameIdB !== undefined
         ) {
           this.sendToClientBall(roomInfo.gameWatchId, {
             ball: this.pingpongService.getBallInfo(roomInfo.gameWatchId),
@@ -216,7 +230,6 @@ export class GameEventsGateway
             roomInfo.userGameIdB,
           );
           if (winner !== '') {
-            console.log(winner);
             this.sendToClientWinner(roomInfo.gameWatchId, {
               winner: winner,
             });
@@ -242,15 +255,14 @@ export class GameEventsGateway
   }
 
   private sendToClientScores(gameWatchId: string, scores: any) {
-    if (!scores || !scores.scores) {
+    if (!scores || scores.scores === undefined) {
       return;
     }
-    // console.log('after: ', scores);
     this.server.to(gameWatchId).emit('scores', scores);
   }
 
   sendToClientBall(gameWatchId: string, control: any) {
-    if (!control || !control.ball) {
+    if (!control || control.ball === undefined) {
       return;
     }
     this.server.to(gameWatchId).emit('ballcontrol', control);

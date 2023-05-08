@@ -228,6 +228,20 @@ export class GamesRepository {
     });
   }
 
+  async updateGameWatch(
+    gameWatchId: string,
+    currentViewer: number,
+  ): Promise<GameWatch> {
+    return this.prisma.gameWatch.update({
+      where: {
+        gameWatchId,
+      },
+      data: {
+        currentViewer,
+      },
+    });
+  }
+
   async getGameWatchByUserIdAndGameWatchId(
     userId: string,
     gameWatchId: string,
@@ -239,6 +253,14 @@ export class GamesRepository {
           { userGame1: { userId: userId } },
           { userGame2: { userId: userId } },
         ],
+      },
+    });
+  }
+
+  async getGameWatchByUserGameId(userGameId: string): Promise<GameWatch> {
+    return await this.prisma.gameWatch.findFirst({
+      where: {
+        OR: [{ userGameId1: userGameId }, { userGameId2: userGameId }],
       },
     });
   }

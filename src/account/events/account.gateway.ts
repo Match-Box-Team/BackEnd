@@ -70,17 +70,19 @@ export class AccountEventsGateway
     }
   }
 
+  // userId로 소켓 찾기
   private findSocketByUserId = (client: Socket, userId: string): Socket => {
     const clients = this.server.sockets.sockets;
     const matchedSocketArray = Array.from(clients.values()).filter(
       (user) => user.data.user['id'] === userId,
     );
     if (matchedSocketArray.length === 0) {
-      client.emit('gameError', { message: '로그인한 유저가 아닙니다' });
+      return null;
     }
     return matchedSocketArray[0];
   };
 
+  // userGameId로 소켓 찾기
   private findSocketByUserGameId = (userGameId: string): Socket => {
     const clients = this.server.sockets.sockets;
     const matchedSocketArray = Array.from(clients.values()).filter(
@@ -89,15 +91,16 @@ export class AccountEventsGateway
     return matchedSocketArray[0];
   };
 
+  // userId로 소켓 찾기 -> 위에 있는 함수랑 차이는 null반환을 안함
   private findSocketByUserIdForRandomMatch = (userId: string): Socket => {
     const clients = this.server.sockets.sockets;
-
     const matchedSocketArray = Array.from(clients.values()).filter(
       (user) => user.data && user.data.user && user.data.user['id'] === userId,
     );
     return matchedSocketArray[0];
   };
 
+  // 유저 상태 업데이트(DB, Socket)
   private updateUserState = async (client: Socket, state: string) => {
     client.data.userInfo.status = state;
     await this.accountService.updateUserState(
@@ -111,18 +114,20 @@ export class AccountEventsGateway
   @SubscribeMessage('inviteGame')
   async inviteGame(client: Socket, enemy: { userId: string }) {
     if (client.data.userInfo.userId === enemy.userId) {
-      client.emit('gameError', {
-        message: '자기 자신에게 게임을 신청했습니다',
-      });
+      client.emit('inviteFail', '자기 자신에게 게임을 신청했습니다');
       return;
     }
     const matchedUserSocket: Socket = this.findSocketByUserId(
       client,
       enemy.userId,
     );
+    if (!matchedUserSocket) {
+      client.emit('inviteFail', '상대방이 오프라인 상태입니다');
+      return;
+    }
     const matchedUser: User = matchedUserSocket.data.userInfo;
     if (matchedUser.status === 'game') {
-      client.emit('gameError', { message: '상대방이 게임 중입니다' });
+      client.emit('inviteFail', '상대방이 게임 중입니다');
       return;
     }
     const games: Game[] = await this.gamesService.getGames();
@@ -136,97 +141,87 @@ export class AccountEventsGateway
       pong.gameId,
     );
     if (!userPong || !enemyPong) {
-      client.emit('gameError', {
-        message: '게임을 구매하지 않은 유저가 있습니다',
-      });
+      client.emit('inviteFail', '게임을 구매하지 않은 유저가 있습니다');
       return;
     }
     client.data.userInfo.userGameId = userPong.userGameId;
     matchedUserSocket.data.userInfo.userGameId = enemyPong.userGameId;
-    // 유저 둘다
     await this.updateUserState(client, 'game');
     await this.updateUserState(matchedUserSocket, 'game');
+    client.emit('inviteSuccess');
     client.to(matchedUserSocket.id).emit('inviteGame', client.data.userInfo);
   }
 
   // 게임 초대 거부
-  @SubscribeMessage('inviteReject')
   // clinet: 초대 받은 유저, enemy: 초대 보낸 유저
+  @SubscribeMessage('inviteReject')
   async inviteReject(client: Socket, enemy: { userId: string }) {
-    try {
-      const matchedUserSocket: Socket = this.findSocketByUserId(
-        client,
-        enemy.userId,
-      );
-      console.log('게임 거부됨');
-      // 유저 둘다
+    const matchedUserSocket: Socket = this.findSocketByUserId(
+      client,
+      enemy.userId,
+    );
+    if (!matchedUserSocket) {
+      client.emit('inviteRejectFail', '상대방이 오프라인 상태입니다');
       await this.updateUserState(client, 'online');
-      await this.updateUserState(matchedUserSocket, 'online');
-      client.to(matchedUserSocket.id).emit('inviteReject');
-    } catch (error) {
-      // 초대 받은 유저
-      await this.updateUserState(client, 'online');
-      client.emit('gameError', {
-        message: '초대 받은 유저가 매칭을 취소했습니다',
-      });
+      return;
     }
+    console.log('초대 거부');
+    await this.updateUserState(client, 'online');
+    await this.updateUserState(matchedUserSocket, 'online');
+    client.to(matchedUserSocket.id).emit('inviteReject');
   }
 
   // 게임 초대 수락
   // clinet: 초대 받은 유저, enemy: 초대 보낸 유저
   @SubscribeMessage('inviteResolve')
   async inviteResolve(client: Socket, enemy: { userId: string }) {
-    try {
-      const matchedUserSocket: Socket = this.findSocketByUserId(
-        client,
-        enemy.userId,
-      );
-      // 두 유저를 게임 준비 방으로 이동시킴
-      const gameWatch: GameWatch = await this.gamesService.createWatchGame(
-        matchedUserSocket.data.userInfo.userGameId,
-        client.data.userInfo.userGameId,
-      );
-      if (!gameWatch) {
-        client.emit('gameError', { message: 'gameWatch 생성을 실패했습니다' });
-        await this.updateUserState(client, 'online');
-        await this.updateUserState(matchedUserSocket, 'online');
-      }
-      client.emit('goGameReadyPage', { gameWatchId: gameWatch.gameWatchId });
-      client
-        .to(matchedUserSocket.id)
-        .emit('goGameReadyPage', { gameWatchId: gameWatch.gameWatchId });
-    } catch (error) {
-      // 초대 받은 유저
+    const matchedUserSocket: Socket = this.findSocketByUserId(
+      client,
+      enemy.userId,
+    );
+    if (!matchedUserSocket) {
+      client.emit('inviteResolveFail', '상대방이 오프라인 상태입니다');
       await this.updateUserState(client, 'online');
-      client.emit('gameError', { message: '상대방이 매칭을 취소했습니다' });
+      return;
     }
+    const gameWatch: GameWatch = await this.gamesService.createWatchGame(
+      matchedUserSocket.data.userInfo.userGameId,
+      client.data.userInfo.userGameId,
+    );
+    if (!gameWatch) {
+      client.emit('inviteResolveFail', 'gameWatch 생성을 실패했습니다');
+      await this.updateUserState(client, 'online');
+      await this.updateUserState(matchedUserSocket, 'online');
+    }
+    console.log('초대 수락');
+    client.emit('goGameReadyPage', { gameWatchId: gameWatch.gameWatchId });
+    client
+      .to(matchedUserSocket.id)
+      .emit('goGameReadyPage', { gameWatchId: gameWatch.gameWatchId });
   }
 
   // 게임 초대 취소
-  @SubscribeMessage('inviteCancel')
   // clinet: 초대 보낸 유저, enemy: 초대 받은 유저
+  @SubscribeMessage('inviteCancel')
   async inviteCancel(client: Socket, enemy: { userId: string }) {
-    try {
-      const matchedUserSocket: Socket = this.findSocketByUserId(
-        client,
-        enemy.userId,
-      );
-      console.log('게임 초대 취소됨');
-      // 유저 둘다
+    const matchedUserSocket: Socket = this.findSocketByUserId(
+      client,
+      enemy.userId,
+    );
+    if (!matchedUserSocket) {
+      client.emit('inviteCancelFail', '상대방이 오프라인 상태입니다');
       await this.updateUserState(client, 'online');
-      await this.updateUserState(matchedUserSocket, 'online');
-      client.to(matchedUserSocket.id).emit('inviteCancel');
-    } catch (error) {
-      // 초대 보낸 유저
-      await this.updateUserState(client, 'online');
-      client.emit('gameError', { message: '상대방이 로그인 상태가 아닙니다' });
+      return;
     }
+    await this.updateUserState(client, 'online');
+    await this.updateUserState(matchedUserSocket, 'online');
+    client.emit('inviteCancelSuccess');
+    client.to(matchedUserSocket.id).emit('inviteCancel');
   }
 
-  // 게임 준비 취소 이벤트 감지
+  // Game Gateway로 부터 유저 상태 업데이트 이벤트 감지
   @OnEvent('cancelGame')
   cancelGame(gameWatch: GameWatch) {
-    console.log('게임 준비 취소');
     const userSocket1 = this.findSocketByUserGameId(gameWatch.userGameId1);
     const userSocket2 = this.findSocketByUserGameId(gameWatch.userGameId2);
     if (userSocket1) {
@@ -237,10 +232,9 @@ export class AccountEventsGateway
     }
   }
 
-  // 게임 준비 취소 이벤트 감지
+  // Game Gateway로 부터 유저 상태 업데이트 이벤트 감지
   @OnEvent('updateUserStateOnline')
   updateUserStateOnline(userGameId: string) {
-    console.log('user 상태 online으로 업데이트');
     const userSocket = this.findSocketByUserGameId(userGameId);
     if (userSocket) {
       this.updateUserState(userSocket, 'online');
@@ -250,7 +244,7 @@ export class AccountEventsGateway
   // 랜덤 매칭이 성공되었을 때 감지되는 이벤트
   @OnEvent('randomMatchSuccess')
   async cancelRandomMatch(gameWatch: GameWatch) {
-    console.log('랜덤 매칭 성공');
+    console.log('randomMatchSuccess:', gameWatch);
     const userId1 = await this.gamesService.getUserByUserGameId(
       gameWatch.userGameId1,
     );
@@ -259,12 +253,10 @@ export class AccountEventsGateway
     );
     const userSocket1 = this.findSocketByUserIdForRandomMatch(userId1);
     const userSocket2 = this.findSocketByUserIdForRandomMatch(userId2);
-
     if (userSocket1 && userSocket1.data && userSocket1.data.userInfo) {
       userSocket1.data.userInfo.userGameId = gameWatch.userGameId1;
       this.updateUserState(userSocket1, 'game');
     }
-
     if (userSocket2 && userSocket2.data && userSocket2.data.userInfo) {
       userSocket2.data.userInfo.userGameId = gameWatch.userGameId2;
       this.updateUserState(userSocket2, 'game');

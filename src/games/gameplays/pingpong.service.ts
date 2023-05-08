@@ -1,14 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { GamesRepository } from '../repository/games.repository';
 import { PingPongInfoDto } from '../dto/games.dto';
+import { GamesService } from '../games.service';
+import { UserProfile } from '../repository/game.type';
 
 @Injectable()
 export class PingpongService {
-  constructor(private gameRepository: GamesRepository) {}
+  constructor(
+    private gameRepository: GamesRepository,
+    private gamesService: GamesService,
+  ) {}
   private gameRooms = new Map<string, PingPongInfoDto>();
-  // pingpongInfo = new PingPongInfoDto();
-  InitGameInfo(gameWatchId: string) {
-    this.gameRooms[gameWatchId] = new PingPongInfoDto();
+
+  InitGameInfo(gameWatchId: string, speed: number) {
+    const pingPongInfo = new PingPongInfoDto();
+    pingPongInfo.ball.velocityX = speed + 2;
+    pingPongInfo.ball.velocityY = speed + 2;
+    this.gameRooms[gameWatchId] = pingPongInfo;
+    console.log('------------init-------------');
+    console.log(this.gameRooms[gameWatchId]);
+    console.log('-----------------------------');
   }
 
   updatePaddleAPosition(gameWatchId: string, control: any): number {
@@ -159,7 +170,7 @@ export class PingpongService {
     this.gameRooms[gameWatchId].scoreB = 0;
   }
 
-  getWinner(gameWatchId: string, userIdA: string, userIdB: string) {
+  getWinner = async (gameWatchId: string, userIdA: string, userIdB: string) => {
     if (!this.gameRooms || !this.gameRooms[gameWatchId]) {
       console.error(`Game room not found for gameWatchId: ${gameWatchId}`);
       return;
@@ -167,9 +178,11 @@ export class PingpongService {
     let winner = '';
     const goalScore = this.gameRooms[gameWatchId].goalScore;
     if (this.gameRooms[gameWatchId].scoreA === goalScore) {
-      winner = 'A';
-      // console.log('players : ', userIdA, userIdB);
-      this.gameRepository.createGameHistory({
+      const user: UserProfile = await this.gameRepository.getUserProfile(
+        userIdA,
+      );
+      winner = user.nickname;
+      this.gamesService.createGameHistory(gameWatchId, {
         winnerId: userIdA,
         loserId: userIdB,
         winnerScore: this.gameRooms[gameWatchId].scoreA,
@@ -177,8 +190,11 @@ export class PingpongService {
       });
     }
     if (this.gameRooms[gameWatchId].scoreB === goalScore) {
-      winner = 'B';
-      this.gameRepository.createGameHistory({
+      const user: UserProfile = await this.gameRepository.getUserProfile(
+        userIdB,
+      );
+      winner = user.nickname;
+      this.gamesService.createGameHistory(gameWatchId, {
         winnerId: userIdB,
         loserId: userIdA,
         winnerScore: this.gameRooms[gameWatchId].scoreB,
@@ -186,5 +202,5 @@ export class PingpongService {
       });
     }
     return winner;
-  }
+  };
 }

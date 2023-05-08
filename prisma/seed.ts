@@ -93,18 +93,18 @@ async function main() {
     },
   ];
 
-  const gameWatches = [
-    {
-      currentViewer: 2,
-      userGameId1: userGames[0].userGameId,
-      userGameId2: userGames[1].userGameId,
-    },
-    {
-      currentViewer: 2,
-      userGameId1: userGames[2].userGameId,
-      userGameId2: userGames[3].userGameId,
-    },
-  ];
+  // const gameWatches = [
+  //   {
+  //     currentViewer: 2,
+  //     userGameId1: userGames[0].userGameId,
+  //     userGameId2: userGames[1].userGameId,
+  //   },
+  //   {
+  //     currentViewer: 2,
+  //     userGameId1: userGames[2].userGameId,
+  //     userGameId2: userGames[3].userGameId,
+  //   },
+  // ];
 
   const gameHistories = [
     {
@@ -347,11 +347,11 @@ async function main() {
     });
   }
 
-  for (const gameWatch of gameWatches) {
-    await prisma.gameWatch.create({
-      data: gameWatch,
-    });
-  }
+  // for (const gameWatch of gameWatches) {
+  //   await prisma.gameWatch.create({
+  //     data: gameWatch,
+  //   });
+  // }
 
   for (const gameHistory of gameHistories) {
     await prisma.gameHistory.create({
@@ -400,8 +400,6 @@ async function main() {
       data: chats[i],
     });
   }
-
-  console.log('Seed data successfully created!');
 }
 
 main()

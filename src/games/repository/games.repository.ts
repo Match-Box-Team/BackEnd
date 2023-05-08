@@ -9,9 +9,21 @@ import {
   UserProfile,
 } from './game.type';
 
+interface initGame {
+  name: string;
+  price: number;
+  isPlayable: boolean;
+}
+
 @Injectable()
 export class GamesRepository {
   constructor(private prisma: PrismaService) {}
+
+  async addGames(games: initGame[]): Promise<void> {
+    await this.prisma.game.createMany({
+      data: games,
+    });
+  }
 
   async getGame(gameId: string): Promise<Game> {
     return this.prisma.game.findUnique({

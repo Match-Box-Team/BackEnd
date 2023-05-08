@@ -20,6 +20,35 @@ export class GamesService {
     setInterval(() => this.processMatchmakingQueue(), 3000);
   }
 
+  async initGames() {
+    const games = [
+      {
+        name: '핑퐁핑퐁',
+        price: 5000,
+        isPlayable: true,
+      },
+      {
+        name: '테트리스',
+        price: 7000,
+        isPlayable: false,
+      },
+      {
+        name: '퍼즐팡팡',
+        price: 6000,
+        isPlayable: false,
+      },
+      {
+        name: '좀비좀비',
+        price: 8000,
+        isPlayable: false,
+      },
+    ];
+    const checkGames = await this.repository.getGames();
+    if (checkGames.length === 0) {
+      await this.repository.addGames(games);
+    }
+  }
+
   async getGame(gameId: string): Promise<Game> {
     const game = await this.repository.getGame(gameId);
     if (game === null) {

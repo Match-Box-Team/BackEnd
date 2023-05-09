@@ -36,7 +36,7 @@ export class AppController {
   private createOauthUrl(): string {
     const clientId = process.env.OAUTH_APP_URL;
     const redirectUri = encodeURIComponent(
-      'http://127.0.0.1:3000/auth/callback',
+      `${process.env.BACKEND_URL}/auth/callback`,
     );
     const responseType = 'code';
 

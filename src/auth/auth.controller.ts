@@ -85,7 +85,7 @@ export class AuthController {
     this.authService.sendVerificationEmail(user.userId);
     // // 프론트 2차 메일 인증 페이지로 리다이렉트 해줘야함
     // res.redirect(301, 'http://127.0.0.1:3000/verify');
-    res.redirect(301, 'http://127.0.0.1:4000/auth');
+    res.redirect(301, `${process.env.FRONT_URL}/auth`);
   }
 
   @Post('sendEmail')
@@ -108,7 +108,7 @@ export class AuthController {
     // 인증 실패 시 다시 2차 인증 페이지로 리다이랙트 해줘야 함
     // 프론트할 때 수정 필요
     if (isVerify === false) {
-      res.redirect(301, 'http://127.0.0.1:3000/verifyFail');
+      res.redirect(301, `${process.env.BACKEND_URL}/verifyFail`);
     } else {
       const authInfo = this.authService.getAuthInfo(userId);
       const jwt = await this.authService.generateJwt(authInfo);
@@ -117,7 +117,7 @@ export class AuthController {
       // res.setHeader('Set-Cookie', cookieHeader);
       // res.redirect(301, 'http://127.0.0.1:3000/');
       res.status(200).json({
-        redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+        redirectUrl: `${process.env.FRONT_URL}/chat/channel`,
         token: jwt,
       });
     }
@@ -136,7 +136,7 @@ export class AuthController {
     const user = await this.accountService.getUserByIntraId('fake1');
     const jwt = await this.authService.generateJwt(fakeUser);
     res.status(200).json({
-      redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+      redirectUrl: `${process.env.FRONT_URL}/chat/channel`,
       token: jwt,
       userId: user.userId,
       nickname: user.nickname,
@@ -155,7 +155,7 @@ export class AuthController {
     const user = await this.accountService.getUserByIntraId('fake2');
     const jwt = await this.authService.generateJwt(fakeUser);
     res.status(200).json({
-      redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+      redirectUrl: `${process.env.FRONT_URL}/chat/channel`,
       token: jwt,
       userId: user.userId,
       nickname: user.nickname,
@@ -174,7 +174,7 @@ export class AuthController {
     const user = await this.accountService.getUserByIntraId('fake3');
     const jwt = await this.authService.generateJwt(fakeUser);
     res.status(200).json({
-      redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+      redirectUrl: `${process.env.FRONT_URL}/chat/channel`,
       token: jwt,
       userId: user.userId,
       nickname: user.nickname,
@@ -193,7 +193,7 @@ export class AuthController {
     const user = await this.accountService.getUserByIntraId('fake4');
     const jwt = await this.authService.generateJwt(fakeUser);
     res.status(200).json({
-      redirectUrl: 'http://127.0.0.1:4000/chat/channel',
+      redirectUrl: `${process.env.FRONT_URL}/chat/channel`,
       token: jwt,
       userId: user.userId,
       nickname: user.nickname,

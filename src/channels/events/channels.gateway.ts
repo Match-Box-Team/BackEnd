@@ -148,8 +148,8 @@ export class ChannelsEventsGateway
   }
 
   private errorOut(client: Socket, message: string) {
-    client.emit('errorOut', {
-      NotFoundException: message,
+    client.emit('error', {
+      NotFoundExceptionOut: message,
     });
   }
 

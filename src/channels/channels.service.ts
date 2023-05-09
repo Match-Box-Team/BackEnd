@@ -487,7 +487,7 @@ export class ChannelsService {
     }
 
     // 킥하려는 대상이 운영자일 때 예외처리
-    if (targetChannel.isOwner === true && userId != targetId) {
+    if (targetChannel.isOwner === true && userId !== targetId) {
       return '오너를 쫒아낼 수 없습니다';
     }
 

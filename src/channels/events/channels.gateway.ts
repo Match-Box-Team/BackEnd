@@ -49,7 +49,7 @@ export class ChannelsEventsGateway
     );
 
     if (userChannel === null) {
-      this.errorEmit(client, '해당 채널에 참여하지 않았습니다.');
+      this.errorOut(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     client.data.userChannelId = userChannel.userChannelId;
@@ -63,7 +63,7 @@ export class ChannelsEventsGateway
     const userId = client.data.user['id'];
     const userChannelId = client.data.userChannelId;
     if (userChannelId === undefined) {
-      this.errorEmit(client, '해당 채널에 참여하지 않았습니다.');
+      this.errorOut(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     const userChannel = await this.channelService.validateUserChannelNoThrow(
@@ -71,7 +71,7 @@ export class ChannelsEventsGateway
       createChatData.channelId,
     );
     if (userChannel === null || userChannelId !== userChannel.userChannelId) {
-      this.errorEmit(client, '해당 채널에 참여하지 않았습니다.');
+      this.errorOut(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     if (userChannel.channel.isDm) {
@@ -125,7 +125,7 @@ export class ChannelsEventsGateway
     const userId = client.data.user['id'];
     const userChannelId = client.data.userChannelId;
     if (userChannelId === undefined) {
-      this.errorEmit(client, '해당 채널에 참여하지 않았습니다.');
+      this.errorOut(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     const message = await this.channelService.kickUser(
@@ -144,6 +144,12 @@ export class ChannelsEventsGateway
   private errorEmit(client: Socket, message: string) {
     client.emit('error', {
       NotFoundException: message,
+    });
+  }
+
+  private errorOut(client: Socket, message: string) {
+    client.emit('error', {
+      NotFoundExceptionOut: message,
     });
   }
 

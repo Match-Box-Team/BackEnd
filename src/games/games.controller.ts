@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GamesService } from './games.service';
-import { GameHistoryDto, gameIdDto, gameWatchIdDto } from './dto/games.dto';
+import { GameHistoryDto } from './dto/games.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Request } from 'express';
 import { GameId, GameType, GameWatchesType } from './repository/game.type';
@@ -17,7 +17,13 @@ import { GameHistory, GameWatch } from '@prisma/client';
 
 @Controller('games')
 export class GamesController {
-  constructor(private gamesService: GamesService) {}
+  constructor(private gamesService: GamesService) {
+    this.init();
+  }
+
+  async init() {
+    await this.gamesService.initGames();
+  }
 
   // 게임샵 페이지 - 게임 목록 조회
   @Get()

@@ -74,7 +74,11 @@ export class AccountEventsGateway
   private findSocketByUserId = (client: Socket, userId: string): Socket => {
     const clients = this.server.sockets.sockets;
     const matchedSocketArray = Array.from(clients.values()).filter(
-      (user) => user.data.user['id'] === userId,
+      (user) =>
+        user.data &&
+        user.data.user &&
+        user.data.user['id'] &&
+        user.data.user['id'] === userId,
     );
     if (matchedSocketArray.length === 0) {
       return null;
@@ -86,7 +90,11 @@ export class AccountEventsGateway
   private findSocketByUserGameId = (userGameId: string): Socket => {
     const clients = this.server.sockets.sockets;
     const matchedSocketArray = Array.from(clients.values()).filter(
-      (user) => user.data.userInfo.userGameId === userGameId,
+      (user) =>
+        user.data &&
+        user.data.userInfo &&
+        user.data.userInfo.userGameId &&
+        user.data.userInfo.userGameId === userGameId,
     );
     return matchedSocketArray[0];
   };

@@ -161,10 +161,9 @@ export class GamesService {
       userGameId2,
     );
     if (checkGameWatch1 || checkGameWatch2) {
-      if (checkGameWatch1) {
+      if (checkGameWatch1 && checkGameWatch1.gameWatchId) {
         await this.repository.deleteGameWatch(checkGameWatch1.gameWatchId);
-      }
-      if (checkGameWatch2) {
+      } else if (checkGameWatch2 && checkGameWatch2.gameWatchId) {
         await this.repository.deleteGameWatch(checkGameWatch2.gameWatchId);
       }
       return null;

@@ -350,7 +350,11 @@ export class GameEventsGateway
     const userId = client.data.user['id'];
     const myUserGame: UserGame = await this.getMyUserGame(userId);
     if (!myUserGame) {
-      client.emit('gameError', { message: 'userGame이 없는 유저입니다' });
+      client.emit('cancelReadyGame');
+      if (gameWatch && gameWatch.gameWatchId) {
+        this.eventEmitter.emit('cancelGame', gameWatch.gameWatchId);
+      }
+      return;
     }
     client.data.userGame = myUserGame;
     client.data.gameWatch = gameWatch;
@@ -387,7 +391,9 @@ export class GameEventsGateway
       data.enemyUserGameId,
     );
     client.emit('cancelReadyGame');
-    client.to(enemySocket.id).emit('cancelReadyGame');
+    if (enemySocket) {
+      client.to(enemySocket.id).emit('cancelReadyGame');
+    }
     this.eventEmitter.emit('cancelGame', data.gameWatch);
   }
 
@@ -400,7 +406,12 @@ export class GameEventsGateway
     const enemySocket: Socket = this.findSocketByUserGameId(
       data.guestUserGameId,
     );
-    client.to(enemySocket.id).emit('speedUpdate', data.speed);
+    if (enemySocket) {
+      client.to(enemySocket.id).emit('speedUpdate', data.speed);
+    } else {
+      client.emit('cancelReadyGame');
+      this.eventEmitter.emit('cancelGame', client.data.gameWatch);
+    }
   }
 
   // 게임 시작
@@ -414,6 +425,7 @@ export class GameEventsGateway
     );
     if (!enemySocket) {
       client.emit('gameStartError');
+      return;
     }
     client.data.gameWatch.speed = data.speed;
     client.join(client.data.gameWatch.gameWatchId);

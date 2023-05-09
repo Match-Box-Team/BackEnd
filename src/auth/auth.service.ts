@@ -43,7 +43,7 @@ export class AuthService {
   }
 
   async getAccessTokenUrl(code: string): Promise<string> {
-    const redirect_url = 'http://127.0.0.1:3000/auth/callback';
+    const redirect_url = `${process.env.BACKEND_URL}/auth/callback`;
     const fullUrl = `https://api.intra.42.fr/oauth/token`;
 
     const requestOptions = {

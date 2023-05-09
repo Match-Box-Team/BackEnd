@@ -17,9 +17,6 @@ export class PingpongService {
     pingPongInfo.ball.velocityX = speed + 2;
     pingPongInfo.ball.velocityY = speed + 2;
     this.gameRooms[gameWatchId] = pingPongInfo;
-    console.log('------------init-------------');
-    console.log(this.gameRooms[gameWatchId]);
-    console.log('-----------------------------');
   }
 
   updatePaddleAPosition(gameWatchId: string, control: any): number {

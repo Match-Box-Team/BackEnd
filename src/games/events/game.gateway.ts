@@ -58,16 +58,14 @@ export class GameEventsGateway
 
   @SubscribeMessage('ready')
   async gameReady(client: Socket, info: any) {
-    console.log('connected');
+    this.logger.log(`game ready -id: ${client.id}`);
     const gameWatchId = info.gameWatchId;
-    console.log('gameWatch:', info.gameWatchId);
     if (info.gameWatchId) {
       this.gameWatchIds.set(gameWatchId, {
         ...this.gameWatchIds.get(gameWatchId),
         gameWatchId,
         watchCount: 0,
       });
-      console.log('id: ', this.gameWatchIds.get(gameWatchId));
     }
 
     let isHost: boolean;
@@ -95,9 +93,9 @@ export class GameEventsGateway
       });
       client.join(gameWatchId);
     } else {
+      this.logger.log(`Watcher -id: ${client.id}`);
       isHost = false;
       isWatcher = true;
-      console.log("I'm watcher");
       const tempRoomInfo = this.gameWatchIds.get(gameWatchId);
       this.gameWatchIds.set(gameWatchId, {
         ...tempRoomInfo,
@@ -107,7 +105,6 @@ export class GameEventsGateway
         gameWatchId,
         tempRoomInfo.watchCount + 1,
       );
-      console.log('viewer: ', this.gameWatchIds.get(gameWatchId));
       client.data.gameWatchIdForWatcher = gameWatchId;
       client.join(gameWatchId);
     }
@@ -191,7 +188,6 @@ export class GameEventsGateway
   @SubscribeMessage('gamecontrolA')
   async gameControlA(client: Socket, control: any) {
     const gameWatchId = client.data.gameWatch.gameWatchId;
-    console.log('A bar control:', gameWatchId);
     if (client.data.role === 'guest') {
       this.sendToClientControlA(gameWatchId, {
         position: this.pingpongService.updatePaddleAPosition(
@@ -243,7 +239,6 @@ export class GameEventsGateway
               'updateUserStateOnline',
               roomInfo.userGameIdB,
             );
-            console.log('room count:', this.gameWatchIds.size);
           }
         }
       }
@@ -279,9 +274,6 @@ export class GameEventsGateway
       return;
     }
     const gameWatchId = client.data.gameWatch.gameWatchId;
-    console.log('gameWatchId:', gameWatchId);
-    console.log('userGameId:', client.data.userGame.userGameId);
-    console.log('enemyGameId:', client.data.enemyUserGameId);
     const enemy = await this.accountService.getUser(client.data.enemyUserId);
     this.sendToClientWinner(gameWatchId, {
       winner: enemy.nickname,
@@ -296,7 +288,6 @@ export class GameEventsGateway
     this.gameWatchIds.delete(gameWatchId);
     // 유저 2명의 상태 online으로 업데이트
     this.eventEmitter.emit('cancelGame', client.data.gameWatch);
-    console.log('cancel room count:', this.gameWatchIds.size);
   };
 
   // 초기화 이후에 실행
@@ -356,11 +347,9 @@ export class GameEventsGateway
   // 게임 준비
   @SubscribeMessage('startReadyGame')
   async startGameReady(client: Socket, gameWatch: GameWatch) {
-    console.log('startReadyGame');
     const userId = client.data.user['id'];
     const myUserGame: UserGame = await this.getMyUserGame(userId);
     if (!myUserGame) {
-      console.log('userGame이 없는 유저입니다');
       client.emit('gameError', { message: 'userGame이 없는 유저입니다' });
     }
     client.data.userGame = myUserGame;
@@ -371,14 +360,12 @@ export class GameEventsGateway
       client.data.enemyUserId = await this.gamesService.getUserByUserGameId(
         gameWatch.userGameId2,
       );
-      console.log('방장 유저입니다');
     } else if (myUserGame.userGameId === gameWatch.userGameId2) {
       client.data.role = 'guest';
       client.data.enemyUserGameId = gameWatch.userGameId1;
       client.data.enemyUserId = await this.gamesService.getUserByUserGameId(
         gameWatch.userGameId1,
       );
-      console.log('방장이 아닌 유저입니다');
     }
     const userGameInfo: UserGameInfo = {
       ...myUserGame,
@@ -468,10 +455,8 @@ export class GameEventsGateway
 
   @SubscribeMessage('gameWatch')
   async gameWatch(client: Socket, data) {
-    console.log('this is game watch on : ', data.gameWatchId);
-    console.log(this.gameWatchIds);
     if (this.gameWatchIds.size !== 0) {
-      if (this.gameWatchIds.get(data.gameWatchId).watchCount < 4) {
+      if (this.gameWatchIds.get(data.gameWatchId).watchCount < 10) {
         client.join(data.gameWatchId);
         client.emit('gameWatchSuccess', data.gameWatchId);
       } else {

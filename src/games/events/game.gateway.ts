@@ -412,6 +412,9 @@ export class GameEventsGateway
     const enemySocket: Socket = this.findSocketByUserGameId(
       data.guestUserGameId,
     );
+    if (!enemySocket) {
+      client.emit('gameStartError');
+    }
     client.data.gameWatch.speed = data.speed;
     client.join(client.data.gameWatch.gameWatchId);
     enemySocket.join(client.data.gameWatch.gameWatchId);

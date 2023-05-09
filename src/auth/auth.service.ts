@@ -168,7 +168,7 @@ export class AuthService {
 
     await this.mailService.sendMail({
       to: userEmail.email,
-      subject: 'Verify Your Email Address',
+      subject: 'MatchBox 인증 토큰',
       template: 'verification',
       context: {
         code,

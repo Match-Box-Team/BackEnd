@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  NotFoundException,
-  Redirect,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, NotFoundException } from '@nestjs/common';
 import { AppService } from './app.service';
 import * as path from 'path';
 import * as fs from 'fs-extra';
@@ -51,17 +44,7 @@ export class AppController {
   }
 
   @Get('login')
-  // @Redirect('', 302)
   oauthLogin(): { url: string } {
     return { url: this.createOauthUrl() };
   }
-
-  /* test for authGuard */
-  // @Get('protected')
-  // @UseGuards(AuthGuard)
-  // protectedPageTest(@Request() req): any {
-  //   const { id } = req.id;
-  //   console.log(id);
-  //   return 'protected for login user';
-  // }
 }

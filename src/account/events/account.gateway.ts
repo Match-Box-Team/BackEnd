@@ -57,7 +57,7 @@ export class AccountEventsGateway
     try {
       const userId = client.data.user['id'];
       const user = await this.accountService.getUser(userId);
-      console.log(`login name: ${user.nickname} --- id: ${userId}`);
+      this.logger.log(`login name: ${user.nickname} --- id: ${userId}`);
       await this.accountService.updateUserState(userId, 'online');
       client.data.userInfo = {
         ...user,
@@ -165,7 +165,6 @@ export class AccountEventsGateway
       await this.updateUserState(client, 'online');
       return;
     }
-    console.log('초대 거부');
     await this.updateUserState(client, 'online');
     await this.updateUserState(matchedUserSocket, 'online');
     client.to(matchedUserSocket.id).emit('inviteReject');
@@ -193,7 +192,6 @@ export class AccountEventsGateway
       await this.updateUserState(client, 'online');
       await this.updateUserState(matchedUserSocket, 'online');
     }
-    console.log('초대 수락');
     client.emit('goGameReadyPage', { gameWatchId: gameWatch.gameWatchId });
     client
       .to(matchedUserSocket.id)
@@ -244,7 +242,6 @@ export class AccountEventsGateway
   // 랜덤 매칭이 성공되었을 때 감지되는 이벤트
   @OnEvent('randomMatchSuccess')
   async cancelRandomMatch(gameWatch: GameWatch) {
-    console.log('randomMatchSuccess:', gameWatch);
     const userId1 = await this.gamesService.getUserByUserGameId(
       gameWatch.userGameId1,
     );

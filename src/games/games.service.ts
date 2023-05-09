@@ -319,9 +319,6 @@ export class GamesService {
 
     const winnerId = gameHistoryDto.winnerId;
     const loserId = gameHistoryDto.loserId;
-    console.log('winnerId: ', winnerId);
-    console.log('loserId: ', loserId);
-    console.log('gameWatch:', gameWatch);
     if (
       (winnerId === gameWatch.userGameId1 &&
         loserId === gameWatch.userGameId2) ||

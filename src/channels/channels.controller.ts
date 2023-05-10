@@ -20,7 +20,6 @@ import {
 } from './dto/channels.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Request as ExpressRequest } from 'express';
-import { IsUUID } from 'class-validator';
 
 @Controller('channels')
 export class ChannelsController {
@@ -174,13 +173,12 @@ export class ChannelsController {
     await this.channelsService.setAdmin(req['id']['id'], userId, channelId);
   }
 
-  @Delete('/:channelId/member/:userId')
+  @Get('/:channelId/member/:userId')
   @UseGuards(AuthGuard)
-  async kickUser(
-    @Param('channelId', ParseUUIDPipe) channelId: string,
+  async getUserChannel(
     @Param('userId', ParseUUIDPipe) userId: string,
-    @Request() req: ExpressRequest,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
   ) {
-    await this.channelsService.kickUser(req['id']['id'], userId, channelId);
+    return await this.channelsService.getIsAdminAndIsMute(userId, channelId);
   }
 }

@@ -8,7 +8,7 @@ export class ChannelsRepository {
   constructor(private prisma: PrismaService) {}
 
   async findChannelsByPublic(userId: string): Promise<FindPublicChannel[]> {
-    return this.prisma.channel.findMany({
+    return await this.prisma.channel.findMany({
       where: {
         AND: [
           { isPublic: true },
@@ -26,6 +26,7 @@ export class ChannelsRepository {
         channelId: true,
         channelName: true,
         count: true,
+        password: true,
       },
     });
   }
@@ -33,7 +34,7 @@ export class ChannelsRepository {
   async findUserChannelsWithChannel(
     userId: string,
   ): Promise<FindUserChannelsWithChannel[]> {
-    return this.prisma.userChannel.findMany({
+    return await this.prisma.userChannel.findMany({
       where: {
         userId: userId,
       },
@@ -80,13 +81,11 @@ export class ChannelsRepository {
   async findChatsByChannelId(channelId: string): Promise<Chat[]> {
     return await this.prisma.chat.findMany({
       where: {
-        userChannel: {
-          channelId: channelId,
-        },
+        channelId: channelId,
       },
       orderBy: [
         {
-          time: 'desc',
+          time: 'asc',
         },
       ],
     });
@@ -127,16 +126,13 @@ export class ChannelsRepository {
   async findChatLogs(channelId: string): Promise<FindChatLogs[]> {
     return await this.prisma.chat.findMany({
       where: {
-        userChannel: {
-          channel: {
-            channelId: channelId,
-          },
-        },
+        channelId: channelId,
       },
       select: {
         chatId: true,
         message: true,
         time: true,
+        nickname: true,
         userChannel: {
           select: {
             isAdmin: true,
@@ -144,6 +140,7 @@ export class ChannelsRepository {
             user: {
               select: {
                 userId: true,
+                intraId: true,
                 nickname: true,
                 image: true,
               },
@@ -227,6 +224,17 @@ export class ChannelsRepository {
     });
   }
 
+  async findUserChannelByUserIdAndUserChannelId(
+    userId: string,
+    userChannelId: string,
+  ): Promise<UserChannel> {
+    return await this.prisma.userChannel.findFirst({
+      where: {
+        AND: [{ userId: userId, userChannelId: userChannelId }],
+      },
+    });
+  }
+
   /**
    * Create, Delete, Update
    */
@@ -257,14 +265,24 @@ export class ChannelsRepository {
     });
   }
 
-  async createChat(userChannelId: string, message: string, time: Date) {
-    await this.prisma.chat.create({
+  async createChat(
+    userChannelId: string,
+    message: string,
+    time: Date,
+    nickname: string,
+    channelId: string,
+  ): Promise<NewChat> {
+    const newChat = await this.prisma.chat.create({
       data: {
         userChannelId: userChannelId,
         message: message,
         time: time,
+        nickname: nickname,
+        channelId: channelId,
       },
     });
+
+    return newChat;
   }
 
   async updateLastChatTime(userChannelId: string, lastTime: Date) {

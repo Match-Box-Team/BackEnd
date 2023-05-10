@@ -12,7 +12,7 @@ import {
   ChannelPasswordDto,
   DmDto,
 } from './dto/channels.dto';
-import { Channel } from '@prisma/client';
+import { Channel, UserChannel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AccountService } from 'src/account/account.service';
 
@@ -44,32 +44,30 @@ export class ChannelsService {
           userChannel.channel.channelId,
         );
         let notReadCount = 0;
-        // "fake message" 시간
-        let lastMessageTime: Date = chats.at(0).time;
 
-        if (chats.length !== 1) {
-          chats.map((chat) => {
-            if (chat.time > userChannel.lastChatTime) {
-              notReadCount++;
-            }
-          });
-          lastMessageTime = chats.at(-1).time;
+        let lastMessageTime: Date;
+        if (chats.length !== 0) {
+          lastMessageTime = chats.at(0)?.time;
+
+          if (chats.length !== 1) {
+            chats.map((chat) => {
+              if (chat.time > userChannel.lastChatTime) {
+                notReadCount++;
+              }
+            });
+            lastMessageTime = chats.at(-1)?.time;
+          }
+        } else {
+          lastMessageTime = new Date();
         }
-        // 채널이 dm일 경우 상대방 이름 추출
-        if (userChannel.channel.isDm) {
-          const slash: number = userChannel.channel.channelName.indexOf('/');
-          const nickname1: string = userChannel.channel.channelName.substring(
-            0,
-            slash,
-          );
-          const nickname2: string = userChannel.channel.channelName.substring(
-            slash + 1,
-          );
 
-          if (nickname1 === userChannel.user.nickname) {
-            userChannel.channel.channelName = nickname2;
+        // 채널이 dm일 경우 상대방 이름 추출
+        if (userChannel.channel.isDm === true) {
+          const nicknames = userChannel.channel.channelName.split('/');
+          if (nicknames[0] === userChannel.user.nickname) {
+            userChannel.channel.channelName = nicknames[1];
           } else {
-            userChannel.channel.channelName = nickname1;
+            userChannel.channel.channelName = nicknames[0];
           }
         }
         // 채널의 멤버 최대 2명 추출
@@ -106,6 +104,7 @@ export class ChannelsService {
   }
 
   async createChannel(userId: string, dto: ChannelCreateDto) {
+    const firstChatTime = new Date();
     if (dto.password === '') {
       dto.password = null;
     } else {
@@ -136,10 +135,13 @@ export class ChannelsService {
     // 이렇게 할 경우, 채팅 내역이 아무것도 없을 때 last_chat_time로 대신 보여주는데,
     // 채팅방을 들어가고(소켓연결) 채팅방 나올 때(소켓 연결 끊김)마다 last_chat_time을 업데이트해주므로 적합하지 않다.
     // => 채팅방을 생성하자마자 "fake message" chat 테이블에 넣는 방법을 선택
+    const user = await this.accountService.getUser(userId);
     await this.repository.createChat(
       userChannel.userChannelId,
       'Fake Message',
-      new Date(),
+      firstChatTime,
+      user.nickname,
+      newChannel.channelId,
     );
     return { channelId: newChannel.channelId };
   }
@@ -187,8 +189,29 @@ export class ChannelsService {
     // 채팅방 생성 시 만든 fake message 빼고 로그 반환
     //  - 채팅방을 만들자마자 넣은 데이터이므로 가장 첫번째로 들어가있음.
     chats.shift();
-    userChannel.channel.isDm = undefined;
+    chats.map((chat) => {
+      if (chat.userChannel === null) {
+        chat.userChannel = {
+          isAdmin: false,
+          isMute: false,
+          user: {
+            userId: '',
+            intraId: '',
+            nickname: chat.nickname,
+            image: '',
+          },
+        };
+      }
+    });
     userChannel.channel.count = undefined;
+    if (userChannel.channel.isDm === true) {
+      const nicknames = userChannel.channel.channelName.split('/');
+      if (nicknames[0] === userChannel.user.nickname) {
+        userChannel.channel.channelName = nicknames[1];
+      } else {
+        userChannel.channel.channelName = nicknames[0];
+      }
+    }
     return {
       channel: userChannel.channel,
       chat: chats,
@@ -278,8 +301,8 @@ export class ChannelsService {
       meBuddy,
       buddyMe,
     );
-    console.log(channel);
     if (channel === null) {
+      const firstChatTime = new Date();
       // 새로 만들 떄 친구와 본인 둘 다 userChannel에 넣기
       const newChannelData: CreateChannelData = {
         channelName: meBuddy,
@@ -312,8 +335,28 @@ export class ChannelsService {
       await this.repository.createChat(
         userChannel.userChannelId,
         'Fake Message',
-        new Date(),
+        firstChatTime,
+        me.nickname,
+        channel.channelId,
       );
+    } else {
+      // 이전에 dm방을 나갔다가 다시 들어간 경우
+      if (
+        (await this.validateUserChannelNoThrow(userId, channel.channelId)) ===
+        null
+      ) {
+        const myUserChannelData: CreateUserChannelData = {
+          isOwner: false,
+          isAdmin: false,
+          isMute: false,
+          lastChatTime: new Date(),
+          userId: me.userId,
+          channelId: channel.channelId,
+        };
+        const userChannel = await this.repository.createUserChannel(
+          myUserChannelData,
+        );
+      }
     }
     return {
       channel: {
@@ -328,8 +371,8 @@ export class ChannelsService {
 
   async setUserMute(
     reqId: string,
-    channelId: string,
     userId: string,
+    channelId: string,
     isMute: boolean,
   ): Promise<UserChannelOne> {
     const userChannel = await this.validateUserChannel(reqId, channelId);
@@ -371,9 +414,11 @@ export class ChannelsService {
       memberList.map(async (member) => {
         let isFriend = false;
 
-        if (
-          await this.repository.findFriendByUserIdAndBuddyId(userId, channelId)
-        ) {
+        const friend = await this.repository.findFriendByUserIdAndBuddyId(
+          userId,
+          member.user.userId,
+        );
+        if (friend) {
           isFriend = true;
         }
         return {
@@ -423,24 +468,33 @@ export class ChannelsService {
     userId: string,
     targetId: string,
     channelId: string,
-  ): Promise<UserChannelOne> {
-    const userChannel = await this.validateUserChannel(userId, channelId);
-    const targetChannel = await this.validateUserChannel(targetId, channelId);
+  ): Promise<string> {
+    const userChannel = await this.validateUserChannelNoThrow(
+      userId,
+      channelId,
+    );
+    const targetChannel = await this.validateUserChannelNoThrow(
+      targetId,
+      channelId,
+    );
+    if (userChannel === null || targetChannel === null) {
+      return '사용자가 채팅방에 없습니다.';
+    }
 
     // 관리자나 오너인지 확인
     if (userChannel.isOwner !== true && userChannel.isAdmin !== true) {
-      throw new BadRequestException('사용자가 오너이거나 관리자가 아닙니다');
+      return '사용자가 오너이거나 관리자가 아닙니다';
     }
 
     // 킥하려는 대상이 운영자일 때 예외처리
-    if (targetChannel.isOwner === true && userId != targetId) {
-      throw new BadRequestException('오너를 쫒아낼 수 없습니다');
+    if (targetChannel.isOwner === true && userId !== targetId) {
+      return '오너를 쫒아낼 수 없습니다';
     }
 
     // 한 명 밖에 안 남았을 땐 채널 삭제
     if (userChannel.channel.count === 1) {
       await this.repository.deleteChannel(channelId);
-      return;
+      return null;
     }
 
     // 오너일 경우 다른 사람에게 오너를 부여
@@ -465,6 +519,15 @@ export class ChannelsService {
 
     await this.repository.deleteUserChannel(targetChannel.userChannelId);
     await this.repository.removeUserCountInChannel(channelId);
+    return null;
+  }
+
+  async getIsAdminAndIsMute(userId: string, channelId: string) {
+    const userChannel = await this.validateUserChannel(userId, channelId);
+    return {
+      isAdmin: userChannel.isAdmin,
+      isMute: userChannel.isMute,
+    };
   }
 
   /**
@@ -476,10 +539,37 @@ export class ChannelsService {
     message: string,
     time: Date,
   ): Promise<UserOne> {
-    await this.repository.createChat(userChannel.userChannelId, message, time);
+    await this.repository.createChat(
+      userChannel.userChannelId,
+      message,
+      time,
+      userChannel.user.nickname,
+      userChannel.channel.channelId,
+    );
     return {
-      user: userChannel.user,
+      userId: userChannel.user.userId,
+      nickname: userChannel.user.nickname,
+      image: userChannel.user.image,
+      isAdmin: userChannel.isAdmin,
+      isMute: userChannel.isMute,
     };
+  }
+
+  async createNewChatAndGetChatId(
+    userChannelId: string,
+    message: string,
+    time: Date,
+    nickname: string,
+    channelId: string,
+  ): Promise<NewChat> {
+    const newChat = await this.repository.createChat(
+      userChannelId,
+      message,
+      time,
+      nickname,
+      channelId,
+    );
+    return newChat;
   }
 
   async updateLastViewTime(userChannelId: string) {
@@ -497,7 +587,7 @@ export class ChannelsService {
       myUserChannelId,
     );
     if (buddy === null) {
-      return 'wrong data';
+      return null;
     }
     const banEachother = await this.repository.findBanEachOtherByBuddyId(
       userId,
@@ -511,9 +601,9 @@ export class ChannelsService {
         }
       });
       if (banFriend) {
-        return 'you ban friend';
+        return '차단된 친구입니다.';
       }
-      return 'friend ban you';
+      return '친구가 당신을 차단한 상태입니다.';
     }
     return null;
   }
@@ -552,6 +642,16 @@ export class ChannelsService {
       throw new NotFoundException('Not existed channel');
     }
     return channel;
+  }
+
+  async validateKidkcedUserChannel(
+    userId: string,
+    userChannelId: string,
+  ): Promise<UserChannel> {
+    return await this.repository.findUserChannelByUserIdAndUserChannelId(
+      userId,
+      userChannelId,
+    );
   }
 
   /**

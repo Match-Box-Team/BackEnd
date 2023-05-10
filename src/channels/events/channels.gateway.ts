@@ -22,6 +22,11 @@ interface ChatMessage {
   time: Date;
 }
 
+interface KickMessage {
+  channelId: string;
+  targetId: string;
+}
+
 @UseGuards(AuthGuard)
 @WebSocketGateway({ cors: true, namespace: 'channel' })
 export class ChannelsEventsGateway
@@ -42,8 +47,9 @@ export class ChannelsEventsGateway
       userId,
       enterChannelData.channelId,
     );
+
     if (userChannel === null) {
-      this.errorEmit(client, 'You are not in channel');
+      this.errorOut(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     client.data.userChannelId = userChannel.userChannelId;
@@ -57,7 +63,7 @@ export class ChannelsEventsGateway
     const userId = client.data.user['id'];
     const userChannelId = client.data.userChannelId;
     if (userChannelId === undefined) {
-      this.errorEmit(client, 'You are not in channel');
+      this.errorOut(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     const userChannel = await this.channelService.validateUserChannelNoThrow(
@@ -65,7 +71,7 @@ export class ChannelsEventsGateway
       createChatData.channelId,
     );
     if (userChannel === null || userChannelId !== userChannel.userChannelId) {
-      this.errorEmit(client, 'You are not in channel');
+      this.errorOut(client, '해당 채널에 참여하지 않았습니다.');
       return;
     }
     if (userChannel.channel.isDm) {
@@ -80,31 +86,70 @@ export class ChannelsEventsGateway
       }
     } else {
       if (userChannel.isMute) {
-        this.errorEmit(client, 'You are muted');
+        this.errorEmit(client, '음소거된 상태입니다.');
         return;
       }
     }
-    const user = await this.channelService.sendMessage(
-      userChannel,
+
+    const newChat = await this.channelService.createNewChatAndGetChatId(
+      userChannelId,
       createChatData.message,
       createChatData.time,
+      userChannel.user.nickname,
+      userChannel.channel.channelId,
     );
-    client.to(createChatData.channelId).emit('chat', {
-      channelId: createChatData.channelId,
-      user: user,
-      message: createChatData.message,
-      time: createChatData.time,
-    });
-    return {
-      channelId: createChatData.channelId,
-      user: user,
-      message: createChatData.message,
+
+    const response = {
+      chatId: newChat.chatId,
+      message: newChat.message,
+      time: newChat.time,
+      userChannel: {
+        isAdmin: userChannel.isAdmin,
+        isMute: userChannel.isMute,
+        user: {
+          userId: userChannel.user.userId,
+          nickname: userChannel.user.nickname,
+          image: userChannel.user.image,
+        },
+      },
     };
+
+    client.to(createChatData.channelId).emit('chat', response);
+
+    return response;
+  }
+
+  // 킥하기
+  @SubscribeMessage('kick')
+  async kick(client: Socket, kickData: KickMessage) {
+    const userId = client.data.user['id'];
+    const userChannelId = client.data.userChannelId;
+    if (userChannelId === undefined) {
+      this.errorOut(client, '해당 채널에 참여하지 않았습니다.');
+      return;
+    }
+    const message = await this.channelService.kickUser(
+      userId,
+      kickData.targetId,
+      kickData.channelId,
+    );
+    if (message === null) {
+      client.to(kickData.channelId).emit('kicked', kickData);
+    } else {
+      this.errorEmit(client, message);
+    }
+    return;
   }
 
   private errorEmit(client: Socket, message: string) {
     client.emit('error', {
       NotFoundException: message,
+    });
+  }
+
+  private errorOut(client: Socket, message: string) {
+    client.emit('error', {
+      NotFoundExceptionOut: message,
     });
   }
 
@@ -119,12 +164,20 @@ export class ChannelsEventsGateway
   }
 
   // 소켓 연결이 끊기면 실행
-  handleDisconnect(@ConnectedSocket() client: Socket) {
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
     this.logger.log(`${client.id} 소켓 연결 해제`);
     const user = client.data.user;
     const userChannelId = client.data.userChannelId;
-    if (user !== undefined && userChannelId !== undefined) {
-      this.channelService.updateLastViewTime(userChannelId);
+    if (user === undefined || userChannelId === undefined) {
+      return;
     }
+    const userChannel = await this.channelService.validateKidkcedUserChannel(
+      user.userId,
+      userChannelId,
+    );
+    if (userChannel === null || userChannelId !== userChannel.userChannelId) {
+      return;
+    }
+    await this.channelService.updateLastViewTime(userChannelId);
   }
 }

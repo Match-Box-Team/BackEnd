@@ -20,11 +20,13 @@ interface FindChatLogs {
   chatId: string;
   message: string;
   time: Date;
+  nickname: string;
   userChannel: {
     isAdmin: boolean;
     isMute: boolean;
     user: {
       userId: string;
+      intraId: string;
       nickname: string;
       image: string;
     };

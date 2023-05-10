@@ -43,7 +43,7 @@ export class AuthService {
   }
 
   async getAccessTokenUrl(code: string): Promise<string> {
-    const redirect_url = 'http://127.0.0.1:3000/auth/callback';
+    const redirect_url = `${process.env.BACKEND_URL}/auth/callback`;
     const fullUrl = `https://api.intra.42.fr/oauth/token`;
 
     const requestOptions = {
@@ -164,10 +164,11 @@ export class AuthService {
       throw new NotFoundException('Not found user email');
     }
     const code = Math.random().toString(36).substring(2, 15);
+    console.log(code);
 
     await this.mailService.sendMail({
       to: userEmail.email,
-      subject: 'Verify Your Email Address',
+      subject: 'MatchBox 인증 토큰',
       template: 'verification',
       context: {
         code,

@@ -107,7 +107,13 @@ export class FriendsService {
         gameInfo.gameId,
       );
     } catch (error) {
-      throw new NotFoundException(
+      throw new ConflictException(
+        'DB에서 게임 히스토리를 조회하는데 실패했습니다',
+      );
+    }
+
+    if (!userGameInfo) {
+      throw new ConflictException(
         '해당하는 친구가 게임을 가지고 있지 않습니다',
       );
     }
@@ -123,7 +129,6 @@ export class FriendsService {
         'DB에서 게임 히스토리를 조회하는데 실패했습니다',
       );
     }
-
     return {
       gameId: gameInfo.gameId,
       name: gameInfo.name,
@@ -131,11 +136,18 @@ export class FriendsService {
     };
   }
 
-  async getFriendDetails(reqId: string, friendId: string) {
-    const friend = await this.validateMyFriend(reqId, friendId);
+  async getFriendDetails(reqId: string, buddyId: string) {
+    const friend = await this.friendsRepository.findFriendByBuddyId(
+      reqId,
+      buddyId,
+    );
 
-    const userId = friend.buddyId;
-    const userInfo = await this.friendsRepository.findFriendUserInfo(userId);
+    let isFriend = true;
+
+    if (friend === null) {
+      isFriend = false;
+    }
+    const userInfo = await this.friendsRepository.findFriendUserInfo(buddyId);
 
     const games = await this.gameService.getGames();
 
@@ -146,7 +158,7 @@ export class FriendsService {
           name: game.name,
         };
         const userGame = await this.gameService.getUserGame(
-          userId,
+          buddyId,
           game.gameId,
         );
         let history;
@@ -154,7 +166,7 @@ export class FriendsService {
           history = null;
         } else {
           history = {
-            wincounts: this.friendsRepository.getUserGameWinCount(
+            winCounts: await this.friendsRepository.getUserGameWinCount(
               userGame.userGameId,
             ),
             loseCounts: await this.friendsRepository.getUserGameLoseCount(
@@ -170,6 +182,7 @@ export class FriendsService {
     );
     return {
       user: userInfo,
+      isFriend: isFriend,
       userGame: userGameData,
     };
   }

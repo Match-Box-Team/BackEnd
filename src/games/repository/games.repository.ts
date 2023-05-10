@@ -9,12 +9,24 @@ import {
   UserProfile,
 } from './game.type';
 
+interface initGame {
+  name: string;
+  price: number;
+  isPlayable: boolean;
+}
+
 @Injectable()
 export class GamesRepository {
   constructor(private prisma: PrismaService) {}
 
+  async addGames(games: initGame[]): Promise<void> {
+    await this.prisma.game.createMany({
+      data: games,
+    });
+  }
+
   async getGame(gameId: string): Promise<Game> {
-    return this.prisma.game.findUnique({
+    return await this.prisma.game.findUnique({
       where: {
         gameId: gameId,
       },
@@ -22,7 +34,7 @@ export class GamesRepository {
   }
 
   async getGameByName(gameName: string): Promise<Game> {
-    return this.prisma.game.findFirstOrThrow({
+    return await this.prisma.game.findFirstOrThrow({
       where: {
         name: gameName,
       },
@@ -30,7 +42,7 @@ export class GamesRepository {
   }
 
   async getGames(): Promise<Game[]> {
-    return this.prisma.game.findMany();
+    return await this.prisma.game.findMany();
   }
 
   // 왜?? -> undefined는 where절에서 무시하는 것 같음
@@ -38,14 +50,14 @@ export class GamesRepository {
     if (userId == undefined) {
       throw new NotFoundException('userId is undefined');
     }
-    return this.prisma.userGame.findMany({
+    return await this.prisma.userGame.findMany({
       where: { userId: userId },
       select: { gameId: true },
     });
   }
 
   async createUserGame(userId: string, gameId: string): Promise<UserGame> {
-    return this.prisma.userGame.create({
+    return await this.prisma.userGame.create({
       data: {
         userId: userId,
         gameId: gameId,
@@ -54,31 +66,31 @@ export class GamesRepository {
   }
 
   async getGameWatchById(gameWatchId: string): Promise<GameWatch> {
-    return this.prisma.gameWatch.findFirst({
+    return await this.prisma.gameWatch.findFirst({
       where: { gameWatchId },
     });
   }
 
   async getGameWatches(): Promise<GameWatch[]> {
-    return this.prisma.gameWatch.findMany();
+    return await this.prisma.gameWatch.findMany();
   }
 
   async getUserIdByUserGameId(userGameId: string): Promise<UserId> {
-    return this.prisma.userGame.findUnique({
+    return await this.prisma.userGame.findUnique({
       where: { userGameId: userGameId },
       select: { userId: true },
     });
   }
 
   async getGameIdByUserGameId(userGameId: string): Promise<GameId> {
-    return this.prisma.userGame.findUnique({
+    return await this.prisma.userGame.findUnique({
       where: { userGameId: userGameId },
       select: { gameId: true },
     });
   }
 
   async getGameWatchsWithSameGameId(gameId: string): Promise<GameWatch[]> {
-    return this.prisma.gameWatch.findMany({
+    return await this.prisma.gameWatch.findMany({
       where: {
         OR: [
           { userGame1: { game: { gameId: gameId } } },
@@ -108,7 +120,7 @@ export class GamesRepository {
     winnerScore,
     loserScore,
   }: GameHistoryDto): Promise<GameHistory> {
-    return this.prisma.gameHistory.create({
+    return await this.prisma.gameHistory.create({
       data: {
         winnerUserGameId: winnerId,
         loserUserGameId: loserId,
@@ -124,7 +136,7 @@ export class GamesRepository {
     winnerScore,
     loserScore,
   }: GameHistoryDto): Promise<GameHistory> {
-    return this.prisma.gameHistory.create({
+    return await this.prisma.gameHistory.create({
       data: {
         winnerUserGameId: winnerId,
         loserUserGameId: loserId,
@@ -143,6 +155,7 @@ export class GamesRepository {
         createAt: 'desc',
       },
       select: {
+        gameHistoryId: true,
         winnerUserGame: {
           select: {
             user: {
@@ -172,6 +185,7 @@ export class GamesRepository {
 
     return gameHistories.map(
       (gameHistory): GameHistoryResponseDto => ({
+        id: gameHistory.gameHistoryId,
         winner: {
           userId: gameHistory.winnerUserGame.user.userId,
           nickname: gameHistory.winnerUserGame.user.nickname,
@@ -189,10 +203,18 @@ export class GamesRepository {
   }
 
   async getUserGame(userId: string, gameId: string): Promise<UserGame> {
-    return this.prisma.userGame.findFirst({
+    return await this.prisma.userGame.findFirst({
       where: {
         userId: userId,
         gameId: gameId,
+      },
+    });
+  }
+
+  async getUserGameByUserGameId(userGameId: string): Promise<UserGame> {
+    return await this.prisma.userGame.findFirst({
+      where: {
+        userGameId,
       },
     });
   }
@@ -201,7 +223,7 @@ export class GamesRepository {
     userGameId1: string,
     userGameId2: string,
   ): Promise<GameWatch> {
-    return this.prisma.gameWatch.create({
+    return await this.prisma.gameWatch.create({
       data: {
         currentViewer: 0,
         userGameId1: userGameId1,
@@ -211,9 +233,23 @@ export class GamesRepository {
   }
 
   async deleteGameWatch(gameWatchId: string): Promise<GameWatch> {
-    return this.prisma.gameWatch.delete({
+    return await this.prisma.gameWatch.delete({
       where: {
         gameWatchId,
+      },
+    });
+  }
+
+  async updateGameWatch(
+    gameWatchId: string,
+    currentViewer: number,
+  ): Promise<GameWatch> {
+    return await this.prisma.gameWatch.update({
+      where: {
+        gameWatchId,
+      },
+      data: {
+        currentViewer,
       },
     });
   }
@@ -229,6 +265,14 @@ export class GamesRepository {
           { userGame1: { userId: userId } },
           { userGame2: { userId: userId } },
         ],
+      },
+    });
+  }
+
+  async getGameWatchByUserGameId(userGameId: string): Promise<GameWatch> {
+    return await this.prisma.gameWatch.findFirst({
+      where: {
+        OR: [{ userGameId1: userGameId }, { userGameId2: userGameId }],
       },
     });
   }

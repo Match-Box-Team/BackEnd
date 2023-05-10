@@ -34,8 +34,8 @@ CREATE TABLE "UserGame" (
 CREATE TABLE "GameWatch" (
     "game_watch_id" UUID NOT NULL,
     "current_viewer" INTEGER NOT NULL,
-    "game_id" UUID NOT NULL,
-    "user_id" UUID NOT NULL,
+    "user_game_id1" UUID NOT NULL,
+    "user_game_id2" UUID NOT NULL,
 
     CONSTRAINT "GameWatch_pkey" PRIMARY KEY ("game_watch_id")
 );
@@ -45,6 +45,9 @@ CREATE TABLE "GameHistory" (
     "game_history_id" UUID NOT NULL,
     "winner_user_game_id" UUID NOT NULL,
     "loser_user_game_id" UUID NOT NULL,
+    "winner_score" INTEGER NOT NULL,
+    "loser_score" INTEGER NOT NULL,
+    "create_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "GameHistory_pkey" PRIMARY KEY ("game_history_id")
 );
@@ -63,7 +66,7 @@ CREATE TABLE "Friend" (
 CREATE TABLE "Channel" (
     "channel_id" UUID NOT NULL,
     "channel_name" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
+    "password" TEXT,
     "count" INTEGER NOT NULL,
     "is_public" BOOLEAN NOT NULL,
     "is_dm" BOOLEAN NOT NULL,
@@ -89,7 +92,9 @@ CREATE TABLE "Chat" (
     "chat_id" UUID NOT NULL,
     "message" TEXT NOT NULL,
     "time" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "user_channel_id" UUID NOT NULL,
+    "nickname" TEXT NOT NULL,
+    "channel_id" UUID NOT NULL,
+    "user_channel_id" UUID,
 
     CONSTRAINT "Chat_pkey" PRIMARY KEY ("chat_id")
 );
@@ -107,10 +112,10 @@ ALTER TABLE "UserGame" ADD CONSTRAINT "UserGame_user_id_fkey" FOREIGN KEY ("user
 ALTER TABLE "UserGame" ADD CONSTRAINT "UserGame_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "Game"("game_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GameWatch" ADD CONSTRAINT "GameWatch_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "Game"("game_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "GameWatch" ADD CONSTRAINT "GameWatch_user_game_id1_fkey" FOREIGN KEY ("user_game_id1") REFERENCES "UserGame"("user_game_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GameWatch" ADD CONSTRAINT "GameWatch_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "GameWatch" ADD CONSTRAINT "GameWatch_user_game_id2_fkey" FOREIGN KEY ("user_game_id2") REFERENCES "UserGame"("user_game_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "GameHistory" ADD CONSTRAINT "GameHistory_winner_user_game_id_fkey" FOREIGN KEY ("winner_user_game_id") REFERENCES "UserGame"("user_game_id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -131,4 +136,4 @@ ALTER TABLE "UserChannel" ADD CONSTRAINT "UserChannel_user_id_fkey" FOREIGN KEY 
 ALTER TABLE "UserChannel" ADD CONSTRAINT "UserChannel_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "Channel"("channel_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Chat" ADD CONSTRAINT "Chat_user_channel_id_fkey" FOREIGN KEY ("user_channel_id") REFERENCES "UserChannel"("user_channel_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Chat" ADD CONSTRAINT "Chat_user_channel_id_fkey" FOREIGN KEY ("user_channel_id") REFERENCES "UserChannel"("user_channel_id") ON DELETE SET NULL ON UPDATE CASCADE;

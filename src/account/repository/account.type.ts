@@ -7,6 +7,7 @@ export interface IntraId {
 }
 
 export interface UserInfo {
+  userId: string;
   nickname: string;
   intraId: string;
   image: string;
@@ -22,8 +23,8 @@ export interface MyPage {
       name: string;
     };
     gameHistory: {
-      wincounts: number;
-      losecounts: number;
+      winCount: number;
+      loseCount: number;
     };
   }[];
 }

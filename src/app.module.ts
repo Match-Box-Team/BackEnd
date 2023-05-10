@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/guard/auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { APP_PIPE } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { APP_PIPE } from '@nestjs/core';
     ChannelsModule,
     AccountModule,
     AuthModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [

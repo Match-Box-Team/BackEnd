@@ -7,38 +7,38 @@ async function main() {
   const users = [
     {
       userId: uuidv4(),
-      nickname: 'jinho',
+      nickname: 'jinhokim1',
       status: 'game',
-      email: uuidv4(),
+      email: 'jinhokim@student.42seoul.kr',
       image: '127.0.0.1/image/jinho',
-      intraId: uuidv4(),
+      intraId: 'jinhokim',
       phoneNumber: '+82 10 4847 8113',
     },
     {
       userId: uuidv4(),
-      nickname: 'jibang',
+      nickname: 'jibang1',
       status: 'game',
-      email: uuidv4(),
+      email: 'jibang@student.42seoul.kr',
       image: '127.0.0.1/image/jibang',
-      intraId: uuidv4(),
+      intraId: 'jibang',
       phoneNumber: '인트라에 안 뜸',
     },
     {
       userId: uuidv4(),
-      nickname: 'jokang',
+      nickname: 'jokang1',
       status: 'online',
-      email: uuidv4(),
-      image: '127.0.0.1/image/chaekim',
-      intraId: uuidv4(),
-      phoneNumber: '인트라에 안 뜸',
-    },
-    {
-      userId: uuidv4(),
-      nickname: 'chaekim',
-      status: 'online',
-      email: uuidv4(),
+      email: 'jokang@student.42seoul.kr',
       image: '127.0.0.1/image/jokang',
-      intraId: uuidv4(),
+      intraId: 'jokang',
+      phoneNumber: '인트라에 안 뜸',
+    },
+    {
+      userId: uuidv4(),
+      nickname: 'chaekim1',
+      status: 'offline',
+      email: 'chaekim@student.42seoul.kr',
+      image: '127.0.0.1/image/chaekim1',
+      intraId: 'chaekim',
       phoneNumber: '인트라에 안 뜸',
     },
   ];
@@ -93,18 +93,18 @@ async function main() {
     },
   ];
 
-  const gameWatches = [
-    {
-      currentViewer: 2,
-      userGameId1: userGames[0].userGameId,
-      userGameId2: userGames[1].userGameId,
-    },
-    {
-      currentViewer: 2,
-      userGameId1: userGames[2].userGameId,
-      userGameId2: userGames[3].userGameId,
-    },
-  ];
+  // const gameWatches = [
+  //   {
+  //     currentViewer: 2,
+  //     userGameId1: userGames[0].userGameId,
+  //     userGameId2: userGames[1].userGameId,
+  //   },
+  //   {
+  //     currentViewer: 2,
+  //     userGameId1: userGames[2].userGameId,
+  //     userGameId2: userGames[3].userGameId,
+  //   },
+  // ];
 
   const gameHistories = [
     {
@@ -161,7 +161,7 @@ async function main() {
     {
       channelId: uuidv4(),
       channelName: '_announcement 비밀방',
-      password: 'abcd1234',
+      password: null,
       count: 100,
       isPublic: false,
       isDm: false,
@@ -180,11 +180,12 @@ async function main() {
       password: null,
       count: 50,
       isPublic: false,
-      isDm: true,
+      isDm: false,
     },
   ];
 
   const userChannels = [
+    // channel 0
     {
       userChannelId: uuidv4(),
       isOwner: true,
@@ -209,10 +210,45 @@ async function main() {
       userId: users[2].userId,
       channelId: channels[0].channelId,
     },
+    // channel 1
+    {
+      userChannelId: uuidv4(),
+      isOwner: true,
+      isAdmin: true,
+      isMute: false,
+      userId: users[1].userId,
+      channelId: channels[1].channelId,
+    },
+    {
+      userChannelId: uuidv4(),
+      isOwner: true,
+      isAdmin: true,
+      isMute: false,
+      userId: users[2].userId,
+      channelId: channels[1].channelId,
+    },
+    // channel 2
+    {
+      userChannelId: uuidv4(),
+      isOwner: true,
+      isAdmin: true,
+      isMute: false,
+      userId: users[3].userId,
+      channelId: channels[2].channelId,
+    },
     {
       userChannelId: uuidv4(),
       isOwner: false,
       isAdmin: false,
+      isMute: false,
+      userId: users[1].userId,
+      channelId: channels[2].channelId,
+    },
+    // channel 3
+    {
+      userChannelId: uuidv4(),
+      isOwner: true,
+      isAdmin: true,
       isMute: false,
       userId: users[2].userId,
       channelId: channels[3].channelId,
@@ -228,25 +264,68 @@ async function main() {
   ];
 
   const chats = [
+    // fake message
     {
+      userChannelId: userChannels[0].userChannelId,
+      message: 'Fake Message',
+      nickname: users[0].nickname,
+      channelId: channels[0].channelId,
+    },
+    {
+      userChannelId: userChannels[3].userChannelId,
+      message: 'Fake Message',
+      nickname: users[1].nickname,
+      channelId: channels[1].channelId,
+    },
+    {
+      userChannelId: userChannels[5].userChannelId,
+      message: 'Fake Message',
+      nickname: users[3].nickname,
+      channelId: channels[2].channelId,
+    },
+    {
+      userChannelId: userChannels[7].userChannelId,
+      message: 'Fake Message',
+      nickname: users[2].nickname,
+      channelId: channels[3].channelId,
+    },
+
+    // normal message
+    {
+      userChannelId: userChannels[0].userChannelId,
       message: 'Jinho: Hello, Jibang!',
-      userChannelId: userChannels[0].userChannelId,
+      nickname: users[0].nickname,
+      channelId: channels[0].channelId,
     },
     {
+      userChannelId: userChannels[0].userChannelId,
+      message: 'Jinho: Hello, Jibang!',
+      nickname: users[0].nickname,
+      channelId: channels[0].channelId,
+    },
+    {
+      userChannelId: userChannels[0].userChannelId,
       message: 'Jibang: Hello, Jinho!',
-      userChannelId: userChannels[0].userChannelId,
+      nickname: users[0].nickname,
+      channelId: channels[0].channelId,
     },
     {
+      userChannelId: userChannels[0].userChannelId,
       message: 'jinho: 헤헤헤 된다',
-      userChannelId: userChannels[0].userChannelId,
+      nickname: users[0].nickname,
+      channelId: channels[0].channelId,
     },
     {
+      userChannelId: userChannels[7].userChannelId,
       message: 'Chaekim: Hello, Jokang!',
-      userChannelId: userChannels[3].userChannelId,
+      nickname: users[2].nickname,
+      channelId: channels[3].channelId,
     },
     {
+      userChannelId: userChannels[7].userChannelId,
       message: 'Jokang: Hello, Chaekim!',
-      userChannelId: userChannels[3].userChannelId,
+      nickname: users[2].nickname,
+      channelId: channels[3].channelId,
     },
   ];
 
@@ -268,11 +347,11 @@ async function main() {
     });
   }
 
-  for (const gameWatch of gameWatches) {
-    await prisma.gameWatch.create({
-      data: gameWatch,
-    });
-  }
+  // for (const gameWatch of gameWatches) {
+  //   await prisma.gameWatch.create({
+  //     data: gameWatch,
+  //   });
+  // }
 
   for (const gameHistory of gameHistories) {
     await prisma.gameHistory.create({
@@ -298,13 +377,29 @@ async function main() {
     });
   }
 
-  for (const chat of chats) {
+  // fake message
+  for (let i = 0; i < 4; i++) {
     await prisma.chat.create({
-      data: chat,
+      data: chats[i],
     });
   }
 
-  console.log('Seed data successfully created!');
+  for (const userChannel of userChannels) {
+    await prisma.userChannel.update({
+      where: {
+        userChannelId: userChannel.userChannelId,
+      },
+      data: {
+        lastChatTime: new Date(),
+      },
+    });
+  }
+
+  for (let i = 4; i < 10; i++) {
+    await prisma.chat.create({
+      data: chats[i],
+    });
+  }
 }
 
 main()

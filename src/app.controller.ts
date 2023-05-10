@@ -1,4 +1,4 @@
-import { Controller, Get, Redirect, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, NotFoundException } from '@nestjs/common';
 import { AppService } from './app.service';
 import * as path from 'path';
 import * as fs from 'fs-extra';
@@ -6,6 +6,10 @@ import * as fs from 'fs-extra';
 export const userImagePath = path.join(
   process.cwd(), // 프로젝트 루트 경로
   'assets/images/', // 파일 저장할 경로
+);
+export const defaultImagePath = path.join(
+  process.cwd(), // 프로젝트 루트 경로
+  'assets/default/default.jpg', // 파일 저장할 경로
 );
 if (!fs.existsSync(userImagePath)) {
   fs.mkdirSync(userImagePath, { recursive: true });
@@ -26,13 +30,13 @@ export class AppController {
 
   @Get('verifyFail')
   verifyFail(): string {
-    return '2차 인증 실패';
+    throw new NotFoundException('2차 인증 실패');
   }
 
   private createOauthUrl(): string {
     const clientId = process.env.OAUTH_APP_URL;
     const redirectUri = encodeURIComponent(
-      'http://127.0.0.1:3000/auth/callback',
+      `${process.env.BACKEND_URL}/auth/callback`,
     );
     const responseType = 'code';
 
@@ -40,17 +44,7 @@ export class AppController {
   }
 
   @Get('login')
-  @Redirect('', 302)
   oauthLogin(): { url: string } {
     return { url: this.createOauthUrl() };
   }
-
-  /* test for authGuard */
-  // @Get('protected')
-  // @UseGuards(AuthGuard)
-  // protectedPageTest(@Request() req): any {
-  //   const { id } = req.id;
-  //   console.log(id);
-  //   return 'protected for login user';
-  // }
 }

@@ -23,7 +23,7 @@ import { GamesRepository } from 'src/games/repository/games.repository';
         },
       },
       defaults: {
-        from: '"nest-modules" <modules@nestjs.com>',
+        from: '"MatchBox" <modules@nestjs.com>',
       },
       template: {
         dir: path.join(process.cwd(), 'src/auth/templates'),

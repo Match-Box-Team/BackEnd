@@ -9,11 +9,11 @@ export class AccountRepository {
 
   // 쿼리 작성
   async getUsers(): Promise<User[]> {
-    return this.prisma.user.findMany();
+    return await this.prisma.user.findMany();
   }
 
   async getUser(userId: string): Promise<User> {
-    return this.prisma.user.findUnique({
+    return await this.prisma.user.findUnique({
       where: {
         userId: userId,
       },
@@ -21,7 +21,7 @@ export class AccountRepository {
   }
 
   async getUserByIntraId(intraId: string): Promise<User> {
-    return this.prisma.user.findFirst({
+    return await this.prisma.user.findFirst({
       where: {
         intraId,
       },
@@ -29,7 +29,7 @@ export class AccountRepository {
   }
 
   async getUserEmail(userId: string): Promise<UserEmail> {
-    return this.prisma.user.findUnique({
+    return await this.prisma.user.findUnique({
       where: {
         userId,
       },
@@ -40,7 +40,7 @@ export class AccountRepository {
   }
 
   async getUserIntraIdByUserId(userId: string): Promise<IntraId> {
-    return this.prisma.user.findUnique({
+    return await this.prisma.user.findUnique({
       where: {
         userId,
       },
@@ -51,11 +51,12 @@ export class AccountRepository {
   }
 
   async getUserInfo(userId: string): Promise<UserInfo> {
-    return this.prisma.user.findUnique({
+    return await this.prisma.user.findUnique({
       where: {
         userId: userId,
       },
       select: {
+        userId: true,
         nickname: true,
         intraId: true,
         image: true,
@@ -66,7 +67,7 @@ export class AccountRepository {
   }
 
   async getUserGameWinCount(userGameId: string): Promise<number> {
-    return this.prisma.gameHistory.count({
+    return await this.prisma.gameHistory.count({
       where: {
         winnerUserGameId: userGameId,
       },
@@ -74,7 +75,7 @@ export class AccountRepository {
   }
 
   async getUserGameLoseCount(userGameId: string): Promise<number> {
-    return this.prisma.gameHistory.count({
+    return await this.prisma.gameHistory.count({
       where: {
         loserUserGameId: userGameId,
       },
@@ -82,7 +83,7 @@ export class AccountRepository {
   }
 
   async updateUserImagePath(userId: string, imagePath: string): Promise<User> {
-    return this.prisma.user.update({
+    return await this.prisma.user.update({
       where: {
         userId,
       },
@@ -97,7 +98,7 @@ export class AccountRepository {
     data: Prisma.UserUpdateInput;
   }): Promise<User> {
     const { data, where } = params;
-    return this.prisma.user.update({
+    return await this.prisma.user.update({
       data,
       where,
     });
@@ -108,14 +109,14 @@ export class AccountRepository {
     const data = {
       status: status,
     };
-    return this.prisma.user.update({
+    return await this.prisma.user.update({
       data,
       where,
     });
   }
 
   async getUserGame(userId: string, gameId: string): Promise<UserGame> {
-    return this.prisma.userGame.findFirst({
+    return await this.prisma.userGame.findFirst({
       where: {
         userId: userId,
         gameId: gameId,

@@ -105,7 +105,7 @@ export class FriendsRepository {
   }
 
   async findFriendUserInfo(userId: string): Promise<FriendUserInfo> {
-    return this.prisma.user.findUnique({
+    return await this.prisma.user.findUnique({
       where: {
         userId: userId,
       },
@@ -118,7 +118,7 @@ export class FriendsRepository {
   }
 
   async getUserGameWinCount(userGameId: string): Promise<number> {
-    return this.prisma.gameHistory.count({
+    return await this.prisma.gameHistory.count({
       where: {
         winnerUserGameId: userGameId,
       },
@@ -126,7 +126,7 @@ export class FriendsRepository {
   }
 
   async getUserGameLoseCount(userGameId: string): Promise<number> {
-    return this.prisma.gameHistory.count({
+    return await this.prisma.gameHistory.count({
       where: {
         loserUserGameId: userGameId,
       },

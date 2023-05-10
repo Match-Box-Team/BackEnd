@@ -82,7 +82,7 @@ export class AuthController {
     // const cookieHeader = `token=${user.userId}; HttpOnly; Path=/`;
     // res.setHeader('Set-Cookie', cookieHeader);
     // // 인트라 이메일로 인증 코드 전송
-    this.authService.sendVerificationEmail(user.userId);
+    await this.authService.sendVerificationEmail(user.userId);
     // // 프론트 2차 메일 인증 페이지로 리다이렉트 해줘야함
     // res.redirect(301, 'http://127.0.0.1:3000/verify');
     res.redirect(301, 'http://127.0.0.1:4000/auth');

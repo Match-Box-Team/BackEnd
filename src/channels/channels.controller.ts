@@ -20,7 +20,6 @@ import {
 } from './dto/channels.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Request as ExpressRequest } from 'express';
-import { IsUUID } from 'class-validator';
 
 @Controller('channels')
 export class ChannelsController {

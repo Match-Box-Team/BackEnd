@@ -93,6 +93,10 @@ export class GameEventsGateway
       });
       client.join(gameWatchId);
     } else {
+      if (gameWatchId === undefined) {
+        client.emit('gameWatchFail');
+        return;
+      }
       this.logger.log(`Watcher -id: ${client.id}`);
       isHost = false;
       isWatcher = true;
@@ -113,9 +117,9 @@ export class GameEventsGateway
       isWatcher: isWatcher,
     });
     if (!isWatcher) {
-      this.sendToClientNickname(client, isHost);
+      await this.sendToClientNickname(client, isHost); //
     } else {
-      this.sendNicknameForWatcher(client, gameWatchId);
+      await this.sendNicknameForWatcher(client, gameWatchId); //
     }
     const mapSize = this.pingpongService.getMapSize(gameWatchId);
     this.sendToClientMapSize(gameWatchId, mapSize);
@@ -220,26 +224,28 @@ export class GameEventsGateway
           this.sendToClientScores(roomInfo.gameWatchId, {
             scores: this.pingpongService.getScores(roomInfo.gameWatchId),
           });
-          const winner = await this.pingpongService.getWinner(
-            roomInfo.gameWatchId,
-            roomInfo.userGameIdA,
-            roomInfo.userGameIdB,
-          );
-          if (winner !== '') {
-            this.sendToClientWinner(roomInfo.gameWatchId, {
-              winner: winner,
-            });
-            this.gameWatchIds.delete(roomInfo.gameWatchId);
-            // 유저 2명의 상태 online으로 업데이트
-            this.eventEmitter.emit(
-              'updateUserStateOnline',
+          try {
+            const winner = await this.pingpongService.getWinner(
+              roomInfo.gameWatchId,
               roomInfo.userGameIdA,
-            );
-            this.eventEmitter.emit(
-              'updateUserStateOnline',
               roomInfo.userGameIdB,
             );
-          }
+            if (winner !== '') {
+              this.sendToClientWinner(roomInfo.gameWatchId, {
+                winner: winner,
+              });
+              this.gameWatchIds.delete(roomInfo.gameWatchId);
+              // 유저 2명의 상태 online으로 업데이트
+              this.eventEmitter.emit(
+                'updateUserStateOnline',
+                roomInfo.userGameIdA,
+              );
+              this.eventEmitter.emit(
+                'updateUserStateOnline',
+                roomInfo.userGameIdB,
+              );
+            }
+          } catch {}
         }
       }
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
@@ -279,7 +285,8 @@ export class GameEventsGateway
       winner: enemy.nickname,
     });
     // createGameHistory 내부에 gameWatch를 지우는 코드가 있음
-    this.gamesService.createGameHistory(gameWatchId, {
+    await this.gamesService.createGameHistory(gameWatchId, {
+      //
       winnerId: client.data.enemyUserGameId,
       loserId: client.data.userGame.userGameId,
       winnerScore: 11,

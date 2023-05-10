@@ -63,7 +63,7 @@ export class GamesService {
   }
 
   async getUserGame(userId: string, gameId: string): Promise<UserGame> {
-    return this.repository.getUserGame(userId, gameId);
+    return await this.repository.getUserGame(userId, gameId);
   }
 
   async getGamesByUserId(userId: string): Promise<GameType[]> {

@@ -217,13 +217,13 @@ export class GamesService {
     } else {
       this.map.set(gameId, [player]);
     }
-    console.log(
-      `User ${userId} added to ${
-        player.data.gameName
-      } matchmaking queue. Current queue length: ${
-        this.map.get(gameId).length
-      }`,
-    );
+    // console.log(
+    //   `User ${userId} added to ${
+    //     player.data.gameName
+    //   } matchmaking queue. Current queue length: ${
+    //     this.map.get(gameId).length
+    //   }`,
+    // );
   }
 
   // 게임 매칭 큐에서 제거
@@ -238,13 +238,13 @@ export class GamesService {
       gameId,
       players.filter((player) => player.data.userId !== userId),
     );
-    console.log(
-      `User ${player.data.nickname} deleted to ${
-        player.data.gameName
-      } matchmaking queue. Current queue length: ${
-        this.map.get(gameId).length
-      }`,
-    );
+    // console.log(
+    //   `User ${player.data.nickname} deleted to ${
+    //     player.data.gameName
+    //   } matchmaking queue. Current queue length: ${
+    //     this.map.get(gameId).length
+    //   }`,
+    // );
   }
 
   // 1초마다 유저 2명 이상 있으면 매칭 해줌
@@ -278,9 +278,9 @@ export class GamesService {
         }
         player1.data.userInfo = { userGameId: userGame1.userGameId };
         player2.data.userInfo = { userGameId: userGame2.userGameId };
-        console.log(
-          `Matched ${player1.data.nickname} and ${player2.data.nickname} with room name ${gameWatch.gameWatchId}`,
-        );
+        // console.log(
+        //   `Matched ${player1.data.nickname} and ${player2.data.nickname} with room name ${gameWatch.gameWatchId}`,
+        // );
         player1.emit('randomMatchSuccess', {
           gameWatchId: gameWatch.gameWatchId,
         });

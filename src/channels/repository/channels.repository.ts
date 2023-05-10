@@ -8,7 +8,7 @@ export class ChannelsRepository {
   constructor(private prisma: PrismaService) {}
 
   async findChannelsByPublic(userId: string): Promise<FindPublicChannel[]> {
-    return this.prisma.channel.findMany({
+    return await this.prisma.channel.findMany({
       where: {
         AND: [
           { isPublic: true },
@@ -34,7 +34,7 @@ export class ChannelsRepository {
   async findUserChannelsWithChannel(
     userId: string,
   ): Promise<FindUserChannelsWithChannel[]> {
-    return this.prisma.userChannel.findMany({
+    return await this.prisma.userChannel.findMany({
       where: {
         userId: userId,
       },

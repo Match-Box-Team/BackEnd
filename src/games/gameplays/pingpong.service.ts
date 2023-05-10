@@ -179,7 +179,7 @@ export class PingpongService {
         userIdA,
       );
       winner = user.nickname;
-      this.gamesService.createGameHistory(gameWatchId, {
+      await this.gamesService.createGameHistory(gameWatchId, {
         winnerId: userIdA,
         loserId: userIdB,
         winnerScore: this.gameRooms[gameWatchId].scoreA,
@@ -191,7 +191,7 @@ export class PingpongService {
         userIdB,
       );
       winner = user.nickname;
-      this.gamesService.createGameHistory(gameWatchId, {
+      await this.gamesService.createGameHistory(gameWatchId, {
         winnerId: userIdB,
         loserId: userIdA,
         winnerScore: this.gameRooms[gameWatchId].scoreB,

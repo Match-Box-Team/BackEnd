@@ -178,6 +178,6 @@ export class ChannelsEventsGateway
     if (userChannel === null || userChannelId !== userChannel.userChannelId) {
       return;
     }
-    this.channelService.updateLastViewTime(userChannelId);
+    await this.channelService.updateLastViewTime(userChannelId);
   }
 }

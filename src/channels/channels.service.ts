@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ChannelsRepository } from './repository/channels.repository';
@@ -23,13 +24,24 @@ export class ChannelsService {
     private accountService: AccountService,
   ) {}
 
+  private logger = new Logger(ChannelsService.name);
+
   async getPublicList(userId: string) {
-    const channels = await this.repository.findChannelsByPublic(userId);
-    channels
-      .sort((res1: FindPublicChannel, res2: FindPublicChannel): number => {
-        return res1.count - res2.count;
-      })
-      .reverse();
+    let channels;
+    try {
+      channels = await this.repository.findChannelsByPublic(userId);
+    } catch {
+      this.logger.log('채널을 DB에서 가져오는데 오류가 발생했습니다');
+    }
+    try {
+      channels
+        .sort((res1: FindPublicChannel, res2: FindPublicChannel): number => {
+          return res1.count - res2.count;
+        })
+        .reverse();
+    } catch {
+      this.logger.log('채널을 정렬하는데 오류가 발생했습니다');
+    }
     return { channel: channels };
   }
 

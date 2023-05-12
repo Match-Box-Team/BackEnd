@@ -197,7 +197,6 @@ export class GamesService {
   // Map<gameId, [socket...]>
   private map = new Map<string, Socket[]>();
 
-  // TODO: 유저 중복 처리 필요함!!!
   // 게임 매칭 큐에 추가
   addPlayerToQueue(player: Socket): void {
     const userId = player.data.userId;
@@ -207,9 +206,8 @@ export class GamesService {
       players.map((socket) => {
         if (socket.data.userId === userId) {
           player.emit('randomMatchError', '이미 큐에 존재하는 유저입니다');
+          return;
         }
-        this.removePlayerToQueue(player, player.data.user['id']);
-        return;
       });
     }
     if (players) {

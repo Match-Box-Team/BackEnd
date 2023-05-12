@@ -232,7 +232,7 @@ export class GameEventsGateway
           roomInfo.userGameIdB !== undefined
         ) {
           this.sendToClientBall(roomInfo.gameWatchId, {
-            ball: this.pingpongService.getBallInfo(roomInfo.gameWatchId).ball,
+            ball: this.pingpongService.getBallInfo(roomInfo.gameWatchId),
           });
           const scores: Scores = this.pingpongService.getScores(
             roomInfo.gameWatchId,
@@ -276,7 +276,7 @@ export class GameEventsGateway
     this.server.to(gameWatchId).emit('scores', scores);
   }
 
-  sendToClientBall(gameWatchId: string, control: BallInfoDto) {
+  sendToClientBall(gameWatchId: string, control: any) {
     if (!control || control.ball === undefined) {
       return;
     }

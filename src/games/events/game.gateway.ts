@@ -25,6 +25,7 @@ import {
 import { GamesRepository } from '../repository/games.repository';
 import { GameWatchId } from '../repository/game.type';
 import {
+  BallDto,
   BallInfoDto,
   MapSizeDto,
   PaddleControlDto,
@@ -133,7 +134,7 @@ export class GameEventsGateway
     } else {
       await this.sendNicknameForWatcher(client, gameWatchId); //
     }
-    const mapSize = this.pingpongService.getMapSize(gameWatchId);
+    const mapSize = this.pingpongService.getMapSize();
     this.sendToClientMapSize(gameWatchId, mapSize);
   }
 
@@ -231,7 +232,7 @@ export class GameEventsGateway
           roomInfo.userGameIdB !== undefined
         ) {
           this.sendToClientBall(roomInfo.gameWatchId, {
-            ball: this.pingpongService.getBallInfo(roomInfo.gameWatchId),
+            ball: this.pingpongService.getBallInfo(roomInfo.gameWatchId).ball,
           });
           const scores: Scores = this.pingpongService.getScores(
             roomInfo.gameWatchId,

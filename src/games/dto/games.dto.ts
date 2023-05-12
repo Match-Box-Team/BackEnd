@@ -87,6 +87,16 @@ export class BallInfoDto {
   ball: BallDto;
 }
 
+export class ScoresDto {
+  @IsNumber()
+  @IsNotEmpty()
+  scoreA: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  scoreB: number;
+}
+
 export class PingPongInfoDto {
   paddleAPosition = 100;
   paddleBPosition = 100;
@@ -116,7 +126,7 @@ export class PingPongInfoDto {
     speed: 4,
   };
 
-  updatePaddlePosition(paddlePosition: number, control: any): number {
+  updatePaddlePosition(paddlePosition: number, control: UserInputDto): number {
     paddlePosition += this.paddleInfo.speed * control.direction;
 
     if (paddlePosition < 0) {

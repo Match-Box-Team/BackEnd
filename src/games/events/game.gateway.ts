@@ -24,6 +24,12 @@ import {
 } from '../repository/game.type';
 import { GamesRepository } from '../repository/games.repository';
 import { GameWatchId } from '../repository/game.type';
+import {
+  BallInfoDto,
+  MapSizeDto,
+  PaddleControlDto,
+  UserInputDto,
+} from '../dto/games.dto';
 
 interface UserGameInfo {
   userId: string;
@@ -174,12 +180,12 @@ export class GameEventsGateway
     this.server.to(socketId).emit('ishost', role);
   }
 
-  private sendToClientMapSize(gameWatchId: string, mapSize: any) {
+  private sendToClientMapSize(gameWatchId: string, mapSize: MapSizeDto) {
     this.server.to(gameWatchId).emit('mapSize', mapSize);
   }
 
   @SubscribeMessage('gamecontrolB')
-  async gameControlB(client: Socket, control: any) {
+  async gameControlB(client: Socket, control: UserInputDto) {
     const gameWatchId = client.data.gameWatch.gameWatchId;
     if (client.data.role === 'host') {
       this.sendToClientControlB(gameWatchId, {
@@ -191,12 +197,12 @@ export class GameEventsGateway
     }
   }
 
-  private sendToClientControlB(gameWatchId: string, control: any) {
+  private sendToClientControlB(gameWatchId: string, control: PaddleControlDto) {
     this.server.to(gameWatchId).emit('controlB', control);
   }
 
   @SubscribeMessage('gamecontrolA')
-  async gameControlA(client: Socket, control: any) {
+  async gameControlA(client: Socket, control: UserInputDto) {
     const gameWatchId = client.data.gameWatch.gameWatchId;
     if (client.data.role === 'guest') {
       this.sendToClientControlA(gameWatchId, {
@@ -208,7 +214,7 @@ export class GameEventsGateway
     }
   }
 
-  private sendToClientControlA(gameWatchId: string, control: any) {
+  private sendToClientControlA(gameWatchId: string, control: PaddleControlDto) {
     this.server.to(gameWatchId).emit('controlA', control);
   }
 
@@ -269,7 +275,7 @@ export class GameEventsGateway
     this.server.to(gameWatchId).emit('scores', scores);
   }
 
-  sendToClientBall(gameWatchId: string, control: any) {
+  sendToClientBall(gameWatchId: string, control: BallInfoDto) {
     if (!control || control.ball === undefined) {
       return;
     }

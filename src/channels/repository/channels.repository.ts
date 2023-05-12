@@ -66,6 +66,7 @@ export class ChannelsRepository {
       },
       select: {
         userChannelId: true,
+        isOwner: true,
         isAdmin: true,
         user: {
           select: {
@@ -178,6 +179,7 @@ export class ChannelsRepository {
       },
       select: {
         userChannelId: true,
+        isOwner: true,
         isAdmin: true,
         user: true,
       },

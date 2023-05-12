@@ -41,6 +41,7 @@ interface FindPublicChannel {
 
 interface FindUsersInChannel {
   userChannelId: string;
+  isOwner: boolean;
   isAdmin: boolean;
   user: {
     userId: string;

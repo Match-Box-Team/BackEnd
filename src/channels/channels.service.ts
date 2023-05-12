@@ -82,11 +82,16 @@ export class ChannelsService {
             userChannel.channel.channelName = nicknames[0];
           }
         }
-        // 채널의 멤버 최대 2명 추출
         const users = await this.repository.findUsersInChannel(
           userChannel.channel.channelId,
         );
+        let ownerId: string;
+        let ownerImage: string;
         users.map((user) => {
+          if (user.isOwner === true) {
+            ownerId = user.user.userId;
+            ownerImage = user.user.image;
+          }
           user.userChannelId = undefined;
           user.isAdmin = undefined;
         });
@@ -94,7 +99,11 @@ export class ChannelsService {
         userChannel.lastChatTime = undefined;
         return {
           userChannel: userChannel,
-          user: users.slice(0, 2),
+          owner: {
+            ownerId: ownerId,
+            ownerImage: ownerImage,
+          },
+          user: users,
           chat: {
             computedChatCount: notReadCount,
             time: lastMessageTime,

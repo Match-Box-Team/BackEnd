@@ -59,3 +59,17 @@ export class GameHistoryResponseDto {
   winner: UserInfoForHistoryDto;
   loser: UserInfoForHistoryDto;
 }
+
+export class Scores {
+  scoreA: number;
+  scoreB: number;
+}
+
+export class Winner {
+  winner: string;
+}
+
+export class Role {
+  isHost: boolean;
+  isWatcher: boolean;
+}

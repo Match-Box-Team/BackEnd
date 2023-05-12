@@ -15,8 +15,22 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { Game, GameWatch, UserGame } from '@prisma/client';
 import { PingpongService } from '../gameplays/pingpong.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UserProfile, randomMatchDto } from '../repository/game.type';
+import {
+  Role,
+  Scores,
+  UserProfile,
+  Winner,
+  randomMatchDto,
+} from '../repository/game.type';
 import { GamesRepository } from '../repository/games.repository';
+import { GameWatchId } from '../repository/game.type';
+import {
+  BallDto,
+  BallInfoDto,
+  MapSizeDto,
+  PaddleControlDto,
+  UserInputDto,
+} from '../dto/games.dto';
 
 interface UserGameInfo {
   userId: string;
@@ -57,10 +71,9 @@ export class GameEventsGateway
   private gameWatchIds = new Map<string, roomInfo>();
 
   @SubscribeMessage('ready')
-  async gameReady(client: Socket, info: any) {
+  async gameReady(client: Socket, { gameWatchId }: GameWatchId) {
     this.logger.log(`game ready -id: ${client.id}`);
-    const gameWatchId = info.gameWatchId;
-    if (info.gameWatchId) {
+    if (gameWatchId) {
       this.gameWatchIds.set(gameWatchId, {
         ...this.gameWatchIds.get(gameWatchId),
         gameWatchId,
@@ -121,7 +134,7 @@ export class GameEventsGateway
     } else {
       await this.sendNicknameForWatcher(client, gameWatchId); //
     }
-    const mapSize = this.pingpongService.getMapSize(gameWatchId);
+    const mapSize = this.pingpongService.getMapSize();
     this.sendToClientMapSize(gameWatchId, mapSize);
   }
 
@@ -164,16 +177,16 @@ export class GameEventsGateway
     });
   };
 
-  private sendToClientIsHost(socketId: any, data: any) {
-    this.server.to(socketId).emit('ishost', data);
+  private sendToClientIsHost(socketId: string, role: Role) {
+    this.server.to(socketId).emit('ishost', role);
   }
 
-  private sendToClientMapSize(gameWatchId: string, mapSize: any) {
+  private sendToClientMapSize(gameWatchId: string, mapSize: MapSizeDto) {
     this.server.to(gameWatchId).emit('mapSize', mapSize);
   }
 
   @SubscribeMessage('gamecontrolB')
-  async gameControlB(client: Socket, control: any) {
+  async gameControlB(client: Socket, control: UserInputDto) {
     const gameWatchId = client.data.gameWatch.gameWatchId;
     if (client.data.role === 'host') {
       this.sendToClientControlB(gameWatchId, {
@@ -185,12 +198,12 @@ export class GameEventsGateway
     }
   }
 
-  private sendToClientControlB(gameWatchId: string, control: any) {
+  private sendToClientControlB(gameWatchId: string, control: PaddleControlDto) {
     this.server.to(gameWatchId).emit('controlB', control);
   }
 
   @SubscribeMessage('gamecontrolA')
-  async gameControlA(client: Socket, control: any) {
+  async gameControlA(client: Socket, control: UserInputDto) {
     const gameWatchId = client.data.gameWatch.gameWatchId;
     if (client.data.role === 'guest') {
       this.sendToClientControlA(gameWatchId, {
@@ -202,7 +215,7 @@ export class GameEventsGateway
     }
   }
 
-  private sendToClientControlA(gameWatchId: string, control: any) {
+  private sendToClientControlA(gameWatchId: string, control: PaddleControlDto) {
     this.server.to(gameWatchId).emit('controlA', control);
   }
 
@@ -221,9 +234,10 @@ export class GameEventsGateway
           this.sendToClientBall(roomInfo.gameWatchId, {
             ball: this.pingpongService.getBallInfo(roomInfo.gameWatchId),
           });
-          this.sendToClientScores(roomInfo.gameWatchId, {
-            scores: this.pingpongService.getScores(roomInfo.gameWatchId),
-          });
+          const scores: Scores = this.pingpongService.getScores(
+            roomInfo.gameWatchId,
+          );
+          this.sendToClientScores(roomInfo.gameWatchId, scores);
           try {
             const winner = await this.pingpongService.getWinner(
               roomInfo.gameWatchId,
@@ -251,12 +265,12 @@ export class GameEventsGateway
     }, 1000 / 60); // 60FPS로 업데이트, 필요에 따라 조정 가능
   }
 
-  private sendToClientWinner(gameWatchId: string, winner: any) {
+  private sendToClientWinner(gameWatchId: string, winner: Winner) {
     this.server.to(gameWatchId).emit('gameover', winner);
   }
 
-  private sendToClientScores(gameWatchId: string, scores: any) {
-    if (!scores || scores.scores === undefined) {
+  private sendToClientScores(gameWatchId: string, scores: Scores) {
+    if (!scores || scores === undefined) {
       return;
     }
     this.server.to(gameWatchId).emit('scores', scores);
@@ -439,6 +453,16 @@ export class GameEventsGateway
     enemySocket.join(client.data.gameWatch.gameWatchId);
     client.emit('gameStart');
     client.to(enemySocket.id).emit('gameStart');
+  }
+
+  @SubscribeMessage('checkGameWatchId')
+  async checkGameWatchId(client: Socket, { gameWatchId }: GameWatchId) {
+    const gameWatch = await this.gameRepository.getGameWatchById(gameWatchId);
+    if (!gameWatch) {
+      client.emit('checkGameWatchId', { result: false });
+    } else {
+      client.emit('checkGameWatchId', { result: true });
+    }
   }
 
   // 랜덤 게임 매칭

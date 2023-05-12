@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { GamesRepository } from '../repository/games.repository';
-import { PingPongInfoDto } from '../dto/games.dto';
+import {
+  BallInfoDto,
+  MapSizeDto,
+  PingPongInfoDto,
+  ScoresDto,
+  UserInputDto,
+} from '../dto/games.dto';
 import { GamesService } from '../games.service';
 import { UserProfile } from '../repository/game.type';
 
@@ -19,7 +25,7 @@ export class PingpongService {
     this.gameRooms[gameWatchId] = pingPongInfo;
   }
 
-  updatePaddleAPosition(gameWatchId: string, control: any): number {
+  updatePaddleAPosition(gameWatchId: string, control: UserInputDto): number {
     this.gameRooms[gameWatchId].paddleAPosition = this.gameRooms[
       gameWatchId
     ].updatePaddlePosition(
@@ -29,7 +35,7 @@ export class PingpongService {
     return this.gameRooms[gameWatchId]?.paddleAPosition;
   }
 
-  updatePaddleBPosition(gameWatchId: string, control: any): number {
+  updatePaddleBPosition(gameWatchId: string, control: UserInputDto): number {
     this.gameRooms[gameWatchId].paddleBPosition = this.gameRooms[
       gameWatchId
     ].updatePaddlePosition(
@@ -51,7 +57,7 @@ export class PingpongService {
     gameWatchId: string,
     paddleAPosition: number,
     paddleBPosition: number,
-  ): any {
+  ): BallInfoDto {
     if (!this.gameRooms || !this.gameRooms[gameWatchId]) {
       console.error(`Game room not found for gameWatchId: ${gameWatchId}`);
       return;
@@ -121,12 +127,11 @@ export class PingpongService {
     return this.gameRooms[gameWatchId].ball;
   }
 
-  getMapSize(gameWatchId: string): any {
-    // return this.gameRooms[gameWatchId]?.mapSize;
+  getMapSize(): MapSizeDto {
     return { width: 325, height: 485 };
   }
 
-  getBallInfo(gameWatchId: string): any {
+  getBallInfo(gameWatchId: string): BallInfoDto {
     return this.ballControl(
       gameWatchId,
       this.getPaddleAPosition(gameWatchId),
@@ -134,7 +139,7 @@ export class PingpongService {
     );
   }
 
-  getScores(gameWatchId: string): any {
+  getScores(gameWatchId: string): ScoresDto {
     if (!this.gameRooms || !this.gameRooms[gameWatchId]) {
       console.error(`Game room not found for gameWatchId: ${gameWatchId}`);
       return;

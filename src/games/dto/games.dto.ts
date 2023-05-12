@@ -34,6 +34,69 @@ export class GameHistoryDto {
   loserScore: number;
 }
 
+export class MapSizeDto {
+  @IsNumber()
+  @IsNotEmpty()
+  width: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  height: number;
+}
+
+export class UserInputDto {
+  @IsNumber()
+  @IsNotEmpty()
+  direction: number;
+}
+
+export class PaddleControlDto {
+  @IsNumber()
+  @IsNotEmpty()
+  position: number;
+}
+
+export class BallDto {
+  @IsNumber()
+  @IsNotEmpty()
+  x: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  y: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  radius: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  velocityX: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  velocityY: number;
+
+  @IsString()
+  @IsNotEmpty()
+  color: string;
+}
+
+export class BallInfoDto {
+  @IsNotEmpty()
+  ball: BallDto;
+}
+
+export class ScoresDto {
+  @IsNumber()
+  @IsNotEmpty()
+  scoreA: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  scoreB: number;
+}
+
 export class PingPongInfoDto {
   paddleAPosition = 100;
   paddleBPosition = 100;
@@ -63,7 +126,7 @@ export class PingPongInfoDto {
     speed: 4,
   };
 
-  updatePaddlePosition(paddlePosition: number, control: any): number {
+  updatePaddlePosition(paddlePosition: number, control: UserInputDto): number {
     paddlePosition += this.paddleInfo.speed * control.direction;
 
     if (paddlePosition < 0) {
